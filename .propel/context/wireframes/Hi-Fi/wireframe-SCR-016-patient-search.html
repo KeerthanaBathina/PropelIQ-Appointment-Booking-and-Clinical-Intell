@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-016 Patient Search - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .staff-sidebar .nav-item.active { border-left-color: var(--secondary-500); color: var(--secondary-500); background: var(--secondary-50); }
+  .search-header { display: flex; gap: var(--sp-3); align-items: flex-end; flex-wrap: wrap; margin-bottom: var(--sp-4); }
+  .search-header .form-group { margin-bottom: 0; flex: 1; min-width: 240px; }
+  .patient-link { color: var(--primary-500); text-decoration: none; font-weight: 500; }
+  .patient-link:hover { text-decoration: underline; }
+  .result-count { font-size: 0.875rem; color: var(--neutral-600); margin-bottom: var(--sp-3); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #breadcrumb-staff | click | SCR-010 (Staff Dashboard) |
+| .patient-link | click | SCR-013 (Patient Profile 360) |
+-->
+<div class="shell">
+  <nav class="sidebar staff-sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-010-staff-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-011-arrival-queue.html"><span class="nav-icon">👥</span><span class="nav-label">Queue</span></a>
+      <a class="nav-item" href="wireframe-SCR-012-document-upload.html"><span class="nav-icon">📄</span><span class="nav-label">Documents</span></a>
+      <a class="nav-item active" href="wireframe-SCR-016-patient-search.html"><span class="nav-icon">🔍</span><span class="nav-label">Patients</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Patient Search</h2></div>
+    <div class="header-right"><div class="avatar" style="background:var(--secondary-50);color:var(--secondary-700);">EC</div></div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-staff" href="wireframe-SCR-010-staff-dashboard.html">Staff Dashboard</a><span>/</span>
+      <span class="current">Patient Search</span>
+    </div>
+
+    <h1 class="h2 mb-4">Find a Patient</h1>
+
+    <div class="card mb-4">
+      <div class="search-header">
+        <div class="form-group">
+          <label class="form-label" for="search-input">Search</label>
+          <input id="search-input" class="form-input" type="search" placeholder="Name, MRN, DOB, phone, or email…" aria-label="Search patients" value="Brown" />
+        </div>
+        <div class="form-group" style="min-width:160px;flex:0 0 160px;">
+          <label class="form-label" for="search-provider">Provider</label>
+          <select id="search-provider" class="form-input form-select" style="min-height:40px;padding:var(--sp-2) var(--sp-3);">
+            <option>All Providers</option><option>Dr. Emily Chen</option><option>Dr. Michael Park</option>
+          </select>
+        </div>
+        <div class="form-group" style="min-width:140px;flex:0 0 140px;">
+          <label class="form-label" for="search-status">Status</label>
+          <select id="search-status" class="form-input form-select" style="min-height:40px;padding:var(--sp-2) var(--sp-3);">
+            <option>All</option><option>Active</option><option>Inactive</option>
+          </select>
+        </div>
+        <button class="btn btn-primary" style="align-self:flex-end;">Search</button>
+      </div>
+    </div>
+
+    <div class="result-count">Showing 3 results for "Brown"</div>
+
+    <div class="card">
+      <div class="table-wrapper">
+        <table aria-label="Patient search results">
+          <thead>
+            <tr>
+              <th class="sortable">Name</th>
+              <th>MRN</th>
+              <th class="sortable">DOB</th>
+              <th>Phone</th>
+              <th>Provider</th>
+              <th>Last Visit</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><a class="patient-link" href="wireframe-SCR-013-patient-profile-360.html">Robert Brown</a></td>
+              <td>MRN-00412</td>
+              <td>1985-03-22</td>
+              <td>(555) 123-4567</td>
+              <td>Dr. Chen</td>
+              <td>Jan 15, 2025</td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr>
+              <td><a class="patient-link" href="wireframe-SCR-013-patient-profile-360.html">Margaret Brown</a></td>
+              <td>MRN-00198</td>
+              <td>1962-08-14</td>
+              <td>(555) 234-5678</td>
+              <td>Dr. Park</td>
+              <td>Dec 20, 2024</td>
+              <td><span class="badge badge-success">Active</span></td>
+            </tr>
+            <tr style="opacity:0.7;">
+              <td><a class="patient-link" href="wireframe-SCR-013-patient-profile-360.html">Timothy Brown</a></td>
+              <td>MRN-00075</td>
+              <td>1990-11-05</td>
+              <td>(555) 345-6789</td>
+              <td>Dr. Chen</td>
+              <td>Jun 03, 2023</td>
+              <td><span class="badge badge-default">Inactive</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination mt-3">
+        <button class="btn btn-secondary btn-sm" disabled>Previous</button>
+        <span class="pagination-info">Page 1 of 1</span>
+        <button class="btn btn-secondary btn-sm" disabled>Next</button>
+      </div>
+    </div>
+
+    <div class="card mt-4" style="text-align:center;padding:var(--sp-8);display:none;">
+      <p style="color:var(--neutral-500);font-size:1rem;">No patients found matching your search criteria.</p>
+      <p class="caption">Try adjusting your filters or search terms.</p>
+    </div>
+  </main>
+</div>
+</body>
+</html>

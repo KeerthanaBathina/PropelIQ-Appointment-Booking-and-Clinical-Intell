@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-010 Staff Dashboard - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .staff-sidebar .nav-item.active { border-left-color: var(--secondary-500); color: var(--secondary-500); background: var(--secondary-50); }
+  .stat-value { font-size: 2rem; font-weight: 300; }
+  .stat-label { font-size: 0.75rem; color: var(--neutral-600); text-transform: uppercase; letter-spacing: 0.08em; }
+  .task-item { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-3) 0; border-bottom: 1px solid var(--neutral-200); }
+  .task-item:last-child { border-bottom: none; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #walkin-btn | click | Walk-in Registration Modal |
+| #view-queue | click | SCR-011 (Arrival Queue) |
+| #search-patient | submit | SCR-016 (Patient Search) |
+-->
+<div class="shell">
+  <nav class="sidebar staff-sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item active" href="wireframe-SCR-010-staff-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-011-arrival-queue.html"><span class="nav-icon">👥</span><span class="nav-label">Queue</span></a>
+      <a class="nav-item" href="wireframe-SCR-012-document-upload.html"><span class="nav-icon">📄</span><span class="nav-label">Documents</span></a>
+      <a class="nav-item" href="wireframe-SCR-016-patient-search.html"><span class="nav-icon">🔍</span><span class="nav-label">Patients</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left">
+      <h2 class="h3">Staff Dashboard</h2>
+    </div>
+    <div class="header-right">
+      <form class="flex gap-2" action="wireframe-SCR-016-patient-search.html">
+        <input id="search-patient" type="search" class="form-input" placeholder="Search patients..." aria-label="Search patients" style="width:250px;min-height:36px;padding:var(--sp-2) var(--sp-3);">
+        <button type="submit" class="btn btn-secondary btn-sm">Search</button>
+      </form>
+      <span class="body2" style="color:var(--neutral-600);">Dr. Emily Chen</span>
+      <div class="avatar" style="background:var(--secondary-50);color:var(--secondary-700);">EC</div>
+    </div>
+  </header>
+  <main class="main" role="main">
+    <!-- Stats -->
+    <div class="card-grid mb-6">
+      <div class="card text-center">
+        <div class="stat-value" style="color:var(--secondary-500);">12</div>
+        <div class="stat-label">Today's Appointments</div>
+      </div>
+      <div class="card text-center">
+        <div class="stat-value" style="color:var(--warning-main);">5</div>
+        <div class="stat-label">In Queue</div>
+      </div>
+      <div class="card text-center">
+        <div class="stat-value" style="color:var(--info-main);">3</div>
+        <div class="stat-label">Pending Reviews</div>
+      </div>
+      <div class="card text-center">
+        <div class="stat-value" style="color:var(--success-main);">8</div>
+        <div class="stat-label">Completed Today</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex gap-3 mb-6">
+      <button id="walkin-btn" class="btn btn-primary">Walk-in Registration</button>
+      <a id="view-queue" href="wireframe-SCR-011-arrival-queue.html" class="btn btn-secondary">View Queue</a>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-6);">
+      <!-- Today's Schedule -->
+      <div class="card">
+        <h3 class="h3 mb-4">Today's Schedule</h3>
+        <div class="table-wrapper">
+          <table aria-label="Today's appointments">
+            <thead><tr><th>Time</th><th>Patient</th><th>Type</th><th>Status</th></tr></thead>
+            <tbody>
+              <tr><td>8:00 AM</td><td><a href="wireframe-SCR-013-patient-profile-360.html" style="color:var(--primary-500);text-decoration:none;">Maria Garcia</a></td><td>Checkup</td><td><span class="badge badge-success">Completed</span></td></tr>
+              <tr><td>8:30 AM</td><td><a href="wireframe-SCR-013-patient-profile-360.html" style="color:var(--primary-500);text-decoration:none;">James Wilson</a></td><td>Follow-up</td><td><span class="badge badge-success">Completed</span></td></tr>
+              <tr><td>9:30 AM</td><td><a href="wireframe-SCR-013-patient-profile-360.html" style="color:var(--primary-500);text-decoration:none;">Sarah Johnson</a></td><td>Consultation</td><td><span class="badge" style="background:var(--status-in-visit);color:#fff;">In Visit</span></td></tr>
+              <tr><td>10:00 AM</td><td>Robert Brown</td><td>Checkup</td><td><span class="badge badge-info">Waiting</span></td></tr>
+              <tr><td>10:30 AM</td><td>Lisa Anderson</td><td>Follow-up</td><td><span class="badge badge-default">Scheduled</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Pending Tasks -->
+      <div class="card">
+        <h3 class="h3 mb-4">Pending Tasks</h3>
+        <div class="task-item">
+          <div><div class="subtitle2">Document Review</div><div class="caption">Maria Garcia — Lab results uploaded</div></div>
+          <a href="wireframe-SCR-013-patient-profile-360.html" class="btn btn-text btn-sm">Review</a>
+        </div>
+        <div class="task-item">
+          <div><div class="subtitle2">Code Approval</div><div class="caption">James Wilson — 3 codes pending</div></div>
+          <a href="wireframe-SCR-014-medical-coding.html" class="btn btn-text btn-sm">Review</a>
+        </div>
+        <div class="task-item">
+          <div><div class="subtitle2">Conflict Resolution</div><div class="caption">Sarah Johnson — Medication conflict</div></div>
+          <a href="wireframe-SCR-013-patient-profile-360.html" class="btn btn-text btn-sm">Resolve</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

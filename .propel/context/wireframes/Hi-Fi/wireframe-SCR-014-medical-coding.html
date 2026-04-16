@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-014 Medical Coding - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .staff-sidebar .nav-item.active { border-left-color: var(--secondary-500); color: var(--secondary-500); background: var(--secondary-50); }
+  .coding-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: var(--sp-4); margin-bottom: var(--sp-4); }
+  .coding-stat { text-align: center; padding: var(--sp-4); }
+  .coding-stat .stat-value { font-size: 2rem; font-weight: 700; }
+  .coding-stat .stat-label { font-size: 0.75rem; color: var(--neutral-600); margin-top: var(--sp-1); }
+  .agreement-meter { height: 8px; background: var(--neutral-200); border-radius: var(--rad-sm); overflow: hidden; margin-top: var(--sp-2); }
+  .agreement-fill { height: 100%; background: var(--success-500); border-radius: var(--rad-sm); }
+  .code-table td, .code-table th { padding: var(--sp-2) var(--sp-3); font-size: 0.875rem; }
+  .override-actions { display: flex; gap: var(--sp-2); }
+
+  /* Justification modal */
+  .modal-overlay { display: none; }
+  .modal-overlay.show { display: flex; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #breadcrumb-staff | click | SCR-010 (Staff Dashboard) |
+| #breadcrumb-patient | click | SCR-013 (Patient Profile 360) |
+| #approve-all | click | Approve all pending codes |
+| #override-btn | click | Open justification modal |
+-->
+<div class="shell">
+  <nav class="sidebar staff-sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-010-staff-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-011-arrival-queue.html"><span class="nav-icon">👥</span><span class="nav-label">Queue</span></a>
+      <a class="nav-item" href="wireframe-SCR-012-document-upload.html"><span class="nav-icon">📄</span><span class="nav-label">Documents</span></a>
+      <a class="nav-item" href="wireframe-SCR-016-patient-search.html"><span class="nav-icon">🔍</span><span class="nav-label">Patients</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Medical Coding</h2></div>
+    <div class="header-right">
+      <button id="approve-all" class="btn btn-primary btn-sm">Approve All Pending (3)</button>
+    </div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-staff" href="wireframe-SCR-010-staff-dashboard.html">Staff Dashboard</a><span>/</span>
+      <a id="breadcrumb-patient" href="wireframe-SCR-013-patient-profile-360.html">Robert Brown</a><span>/</span>
+      <span class="current">Medical Coding</span>
+    </div>
+
+    <h1 class="h2 mb-4">AI-Assisted Medical Coding — Robert Brown</h1>
+
+    <div class="coding-summary">
+      <div class="card coding-stat">
+        <div class="stat-value" style="color:var(--success-500);">87%</div>
+        <div class="stat-label">AI-Human Agreement</div>
+        <div class="agreement-meter"><div class="agreement-fill" style="width:87%"></div></div>
+      </div>
+      <div class="card coding-stat">
+        <div class="stat-value">14</div>
+        <div class="stat-label">Total Codes</div>
+      </div>
+      <div class="card coding-stat">
+        <div class="stat-value" style="color:var(--success-500);">9</div>
+        <div class="stat-label">Approved</div>
+      </div>
+      <div class="card coding-stat">
+        <div class="stat-value" style="color:var(--warning-500);">3</div>
+        <div class="stat-label">Pending Review</div>
+      </div>
+      <div class="card coding-stat">
+        <div class="stat-value" style="color:var(--error-500);">2</div>
+        <div class="stat-label">Overridden</div>
+      </div>
+    </div>
+
+    <!-- ICD-10 Codes -->
+    <div class="card mb-4">
+      <h3 class="h4 mb-3">ICD-10 Diagnosis Codes</h3>
+      <div class="table-wrapper">
+        <table class="code-table" aria-label="ICD-10 diagnosis codes">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Description</th>
+              <th>AI Suggested</th>
+              <th>Confidence</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>E11.9</strong></td>
+              <td>Type 2 Diabetes Mellitus without complications</td>
+              <td>E11.9</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 96%">96%</span></td>
+              <td><span class="badge badge-success">Approved</span></td>
+              <td><button class="btn btn-secondary btn-sm" disabled>Override</button></td>
+            </tr>
+            <tr>
+              <td><strong>I10</strong></td>
+              <td>Essential (Primary) Hypertension</td>
+              <td>I10</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 97%">97%</span></td>
+              <td><span class="badge badge-success">Approved</span></td>
+              <td><button class="btn btn-secondary btn-sm" disabled>Override</button></td>
+            </tr>
+            <tr>
+              <td><strong>E78.5</strong></td>
+              <td>Hyperlipidemia, unspecified</td>
+              <td>E78.00</td>
+              <td><span class="confidence-badge confidence-medium" aria-label="Medium confidence: 72%">72%</span></td>
+              <td><span class="badge badge-warning">Pending</span></td>
+              <td class="override-actions">
+                <button class="btn btn-primary btn-sm">Approve</button>
+                <button id="override-btn" class="btn btn-secondary btn-sm">Override</button>
+              </td>
+            </tr>
+            <tr>
+              <td><strong>K21.0</strong></td>
+              <td>GERD with esophagitis</td>
+              <td>K21.9</td>
+              <td><span class="confidence-badge confidence-low" aria-label="Low confidence: 48%">48%</span></td>
+              <td><span class="badge badge-error">Overridden</span></td>
+              <td><span class="caption">By Dr. Chen on 01/16</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- CPT Codes -->
+    <div class="card mb-4">
+      <h3 class="h4 mb-3">CPT Procedure Codes</h3>
+      <div class="table-wrapper">
+        <table class="code-table" aria-label="CPT procedure codes">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Description</th>
+              <th>AI Suggested</th>
+              <th>Confidence</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>99213</strong></td>
+              <td>Office Visit — Established, Level 3</td>
+              <td>99213</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 98%">98%</span></td>
+              <td><span class="badge badge-success">Approved</span></td>
+              <td><button class="btn btn-secondary btn-sm" disabled>Override</button></td>
+            </tr>
+            <tr>
+              <td><strong>80053</strong></td>
+              <td>Comprehensive Metabolic Panel</td>
+              <td>80053</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 95%">95%</span></td>
+              <td><span class="badge badge-success">Approved</span></td>
+              <td><button class="btn btn-secondary btn-sm" disabled>Override</button></td>
+            </tr>
+            <tr>
+              <td><strong>83036</strong></td>
+              <td>Hemoglobin A1c</td>
+              <td>83036</td>
+              <td><span class="confidence-badge confidence-medium" aria-label="Medium confidence: 79%">79%</span></td>
+              <td><span class="badge badge-warning">Pending</span></td>
+              <td class="override-actions">
+                <button class="btn btn-primary btn-sm">Approve</button>
+                <button class="btn btn-secondary btn-sm">Override</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="alert alert-info" role="status" style="display:none;">
+      <strong>AI Unavailable:</strong> Code suggestions from the AI engine are temporarily unavailable. Manual coding is available. Queued documents will be processed when the service resumes.
+    </div>
+
+    <!-- Justification Modal (hidden by default) -->
+    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title-justify">
+      <div class="modal">
+        <div class="modal-header">
+          <h3 id="modal-title-justify" class="h4">Override Code — Justification Required</h3>
+          <button class="modal-close" aria-label="Close modal">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="form-group">
+            <label class="form-label" for="override-code">Replacement Code</label>
+            <input id="override-code" class="form-input" type="text" placeholder="Enter ICD-10 or CPT code" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="override-reason">Justification <span style="color:var(--error-500);">*</span></label>
+            <textarea id="override-reason" class="form-input" rows="4" placeholder="Provide clinical justification for overriding the AI-suggested code…" required></textarea>
+          </div>
+          <p class="caption">Overrides are logged in the audit trail per HIPAA compliance requirements.</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary">Cancel</button>
+          <button class="btn btn-primary">Submit Override</button>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

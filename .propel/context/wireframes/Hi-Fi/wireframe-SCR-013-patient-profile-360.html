@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-013 Patient Profile 360 - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .staff-sidebar .nav-item.active { border-left-color: var(--secondary-500); color: var(--secondary-500); background: var(--secondary-50); }
+  .profile-header { display: flex; align-items: center; gap: var(--sp-4); margin-bottom: var(--sp-4); }
+  .profile-avatar { width: 64px; height: 64px; border-radius: var(--rad-full); background: var(--primary-100); color: var(--primary-700); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 600; }
+  .profile-info h1 { margin: 0 0 var(--sp-1); }
+  .profile-meta { font-size: 0.875rem; color: var(--neutral-600); }
+  .profile-meta span { margin-right: var(--sp-3); }
+  .conflict-row { background: var(--warning-surface) !important; }
+  .conflict-icon { color: var(--warning-500); margin-right: var(--sp-1); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .data-table td, .data-table th { padding: var(--sp-2) var(--sp-3); font-size: 0.875rem; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #breadcrumb-staff | click | SCR-010 (Staff Dashboard) |
+| #upload-docs | click | SCR-012 (Document Upload) |
+| #view-coding | click | SCR-014 (Medical Coding) |
+| #tab-medications | click | Show medications panel |
+| #tab-diagnoses | click | Show diagnoses panel |
+| #tab-procedures | click | Show procedures panel |
+| #tab-allergies | click | Show allergies panel |
+-->
+<div class="shell">
+  <nav class="sidebar staff-sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-010-staff-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-011-arrival-queue.html"><span class="nav-icon">👥</span><span class="nav-label">Queue</span></a>
+      <a class="nav-item" href="wireframe-SCR-012-document-upload.html"><span class="nav-icon">📄</span><span class="nav-label">Documents</span></a>
+      <a class="nav-item active" href="wireframe-SCR-016-patient-search.html"><span class="nav-icon">🔍</span><span class="nav-label">Patients</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Patient Profile 360°</h2></div>
+    <div class="header-right">
+      <a id="upload-docs" href="wireframe-SCR-012-document-upload.html" class="btn btn-secondary btn-sm">Upload Documents</a>
+      <a id="view-coding" href="wireframe-SCR-014-medical-coding.html" class="btn btn-primary btn-sm" style="margin-left:var(--sp-2);">Medical Coding</a>
+    </div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-staff" href="wireframe-SCR-010-staff-dashboard.html">Staff Dashboard</a><span>/</span>
+      <a href="wireframe-SCR-016-patient-search.html">Patients</a><span>/</span>
+      <span class="current">Robert Brown</span>
+    </div>
+
+    <div class="profile-header">
+      <div class="profile-avatar">RB</div>
+      <div class="profile-info">
+        <h1 class="h2">Robert Brown</h1>
+        <div class="profile-meta">
+          <span>DOB: 1985-03-22</span>
+          <span>MRN: MRN-00412</span>
+          <span>Insurance: Blue Cross PPO</span>
+          <span><span class="badge badge-success">Active</span></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning" role="alert">
+      ⚠ <strong>1 data conflict detected</strong> — Medication dosage discrepancy between Lab Results (Jan 15) and Discharge Summary (Jan 10). <a href="#" style="color:var(--warning-700);font-weight:500;">Review &amp; Resolve</a>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Clinical data tabs">
+      <button id="tab-medications" class="tab active" role="tab" aria-selected="true" aria-controls="panel-medications">Medications (12)</button>
+      <button id="tab-diagnoses" class="tab" role="tab" aria-selected="false" aria-controls="panel-diagnoses">Diagnoses (8)</button>
+      <button id="tab-procedures" class="tab" role="tab" aria-selected="false" aria-controls="panel-procedures">Procedures (5)</button>
+      <button id="tab-allergies" class="tab" role="tab" aria-selected="false" aria-controls="panel-allergies">Allergies (3)</button>
+    </div>
+
+    <!-- Medications Panel -->
+    <div id="panel-medications" class="tab-content active card" role="tabpanel" aria-labelledby="tab-medications">
+      <div class="table-wrapper">
+        <table class="data-table" aria-label="Medications list">
+          <thead>
+            <tr>
+              <th>Medication</th>
+              <th>Dosage</th>
+              <th>Frequency</th>
+              <th>Source</th>
+              <th>Confidence</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Lisinopril</td>
+              <td>10 mg</td>
+              <td>Once daily</td>
+              <td>Discharge Summary</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 96%">96%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+            <tr class="conflict-row">
+              <td><span class="conflict-icon">⚠</span>Metformin</td>
+              <td>500 mg <span style="color:var(--error-500);font-size:0.75rem;">vs 1000 mg</span></td>
+              <td>Twice daily</td>
+              <td>Lab Results vs Discharge</td>
+              <td><span class="confidence-badge confidence-low" aria-label="Low confidence: 45%">45%</span></td>
+              <td><span class="badge badge-warning">Conflict</span></td>
+            </tr>
+            <tr>
+              <td>Atorvastatin</td>
+              <td>20 mg</td>
+              <td>Once daily</td>
+              <td>Lab Results</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 92%">92%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+            <tr>
+              <td>Omeprazole</td>
+              <td>20 mg</td>
+              <td>Once daily</td>
+              <td>Referral Letter</td>
+              <td><span class="confidence-badge confidence-medium" aria-label="Medium confidence: 78%">78%</span></td>
+              <td><span class="badge badge-default">Pending</span></td>
+            </tr>
+            <tr>
+              <td>Aspirin</td>
+              <td>81 mg</td>
+              <td>Once daily</td>
+              <td>Discharge Summary</td>
+              <td><span class="confidence-badge confidence-high" aria-label="High confidence: 99%">99%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="pagination mt-3">
+        <button class="btn btn-secondary btn-sm" disabled>Previous</button>
+        <span class="pagination-info">Page 1 of 3</span>
+        <button class="btn btn-secondary btn-sm">Next</button>
+      </div>
+    </div>
+
+    <!-- Diagnoses Panel -->
+    <div id="panel-diagnoses" class="tab-content card" role="tabpanel" aria-labelledby="tab-diagnoses">
+      <div class="table-wrapper">
+        <table class="data-table" aria-label="Diagnoses list">
+          <thead>
+            <tr><th>Code</th><th>Description</th><th>Date</th><th>Source</th><th>Confidence</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>E11.9</td><td>Type 2 Diabetes Mellitus</td><td>2023-06-15</td><td>Lab Results</td>
+              <td><span class="confidence-badge confidence-high">94%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+            <tr>
+              <td>I10</td><td>Essential Hypertension</td><td>2022-11-03</td><td>Discharge Summary</td>
+              <td><span class="confidence-badge confidence-high">97%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+            <tr>
+              <td>E78.5</td><td>Hyperlipidemia</td><td>2023-01-20</td><td>Lab Results</td>
+              <td><span class="confidence-badge confidence-medium">82%</span></td>
+              <td><span class="badge badge-default">Pending</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Procedures Panel -->
+    <div id="panel-procedures" class="tab-content card" role="tabpanel" aria-labelledby="tab-procedures">
+      <div class="table-wrapper">
+        <table class="data-table" aria-label="Procedures list">
+          <thead>
+            <tr><th>Code</th><th>Description</th><th>Date</th><th>Provider</th><th>Confidence</th><th>Status</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>99213</td><td>Office Visit — Level 3</td><td>2024-01-15</td><td>Dr. Chen</td>
+              <td><span class="confidence-badge confidence-high">98%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+            <tr>
+              <td>80053</td><td>Comprehensive Metabolic Panel</td><td>2024-01-15</td><td>Lab</td>
+              <td><span class="confidence-badge confidence-high">95%</span></td>
+              <td><span class="badge badge-success">Verified</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Allergies Panel -->
+    <div id="panel-allergies" class="tab-content card" role="tabpanel" aria-labelledby="tab-allergies">
+      <div class="table-wrapper">
+        <table class="data-table" aria-label="Allergies list">
+          <thead>
+            <tr><th>Allergen</th><th>Reaction</th><th>Severity</th><th>Source</th><th>Confidence</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Penicillin</td><td>Rash, Hives</td><td><span class="badge badge-error">Severe</span></td><td>AI Intake</td>
+              <td><span class="confidence-badge confidence-high">91%</span></td>
+            </tr>
+            <tr>
+              <td>Sulfa Drugs</td><td>Nausea</td><td><span class="badge badge-warning">Moderate</span></td><td>Discharge Summary</td>
+              <td><span class="confidence-badge confidence-medium">76%</span></td>
+            </tr>
+            <tr>
+              <td>Latex</td><td>Contact Dermatitis</td><td><span class="badge badge-default">Mild</span></td><td>Manual Intake</td>
+              <td><span class="confidence-badge confidence-high">88%</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

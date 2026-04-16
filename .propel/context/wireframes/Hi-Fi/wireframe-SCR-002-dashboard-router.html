@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-002 Dashboard Router - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .router-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--neutral-100); }
+  .router-container { text-align: center; max-width: 800px; width: 100%; padding: var(--sp-6); }
+  .router-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-6); margin-top: var(--sp-8); }
+  .role-card {
+    background: var(--neutral-0);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-1);
+    padding: var(--sp-8) var(--sp-6);
+    text-align: center;
+    text-decoration: none;
+    color: var(--neutral-900);
+    transition: all var(--transition-micro);
+    cursor: pointer;
+  }
+  .role-card:hover { box-shadow: var(--shadow-2); transform: translateY(-2px); }
+  .role-card:focus-visible { outline: 2px solid var(--primary-500); outline-offset: 2px; }
+  .role-icon { font-size: 3rem; margin-bottom: var(--sp-4); }
+  .role-card.patient .role-icon { color: var(--primary-500); }
+  .role-card.staff .role-icon { color: var(--secondary-500); }
+  .role-card.admin .role-icon { color: var(--neutral-700); }
+  .redirect-msg { margin-top: var(--sp-4); font-size: 0.875rem; color: var(--neutral-500); }
+  @media (max-width: 767px) { .router-cards { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #patient-dash | click/auto | SCR-005 (Patient Dashboard) |
+| #staff-dash | click/auto | SCR-010 (Staff Dashboard) |
+| #admin-dash | click/auto | SCR-015 (Admin Dashboard) |
+-->
+<div class="router-shell">
+  <div class="router-container">
+    <div style="font-size:1.5rem;font-weight:700;color:var(--primary-500);margin-bottom:var(--sp-2);">UPACIP</div>
+    <h1 class="h1">Welcome back</h1>
+    <p class="body1" style="color:var(--neutral-600);">You are being redirected to your dashboard...</p>
+
+    <div class="router-cards">
+      <a id="patient-dash" class="role-card patient" href="wireframe-SCR-005-patient-dashboard.html" role="button" aria-label="Patient Dashboard">
+        <div class="role-icon">🏥</div>
+        <h3 class="h3">Patient Portal</h3>
+        <p class="body2" style="color:var(--neutral-600);margin-top:var(--sp-2);">Appointments, intake, and health records</p>
+      </a>
+      <a id="staff-dash" class="role-card staff" href="wireframe-SCR-010-staff-dashboard.html" role="button" aria-label="Staff Dashboard">
+        <div class="role-icon">👩‍⚕️</div>
+        <h3 class="h3">Staff Portal</h3>
+        <p class="body2" style="color:var(--neutral-600);margin-top:var(--sp-2);">Queue, documents, and clinical tools</p>
+      </a>
+      <a id="admin-dash" class="role-card admin" href="wireframe-SCR-015-admin-dashboard.html" role="button" aria-label="Admin Dashboard">
+        <div class="role-icon">⚙️</div>
+        <h3 class="h3">Admin Portal</h3>
+        <p class="body2" style="color:var(--neutral-600);margin-top:var(--sp-2);">Configuration, users, and monitoring</p>
+      </a>
+    </div>
+    <p class="redirect-msg">Auto-redirecting based on your role in 3 seconds...</p>
+  </div>
+</div>
+</body>
+</html>

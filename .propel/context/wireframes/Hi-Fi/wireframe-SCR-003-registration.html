@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-003 Registration - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .reg-shell { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--neutral-100); padding: var(--sp-6); }
+  .reg-form { background: var(--neutral-0); border-radius: var(--radius-md); box-shadow: var(--shadow-1); padding: var(--sp-8); width: 100%; max-width: 520px; }
+  .reg-form h1 { font-size: 1.5rem; font-weight: 400; margin-bottom: var(--sp-2); }
+  .reg-form .subtitle { color: var(--neutral-600); font-size: 0.875rem; margin-bottom: var(--sp-6); }
+  .pwd-strength { height: 4px; border-radius: 2px; margin-top: var(--sp-1); background: var(--neutral-200); }
+  .pwd-strength-fill { height: 100%; border-radius: 2px; width: 60%; background: var(--warning-main); transition: width var(--transition-standard); }
+  .pwd-hint { font-size: 0.75rem; color: var(--neutral-500); margin-top: var(--sp-1); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #register-btn | click (valid) | SCR-003 Success State |
+| #back-login | click | SCR-001 (Login) |
+-->
+<div class="reg-shell">
+  <form class="reg-form" aria-label="Patient registration form">
+    <div style="font-size:1.25rem;font-weight:700;color:var(--primary-500);margin-bottom:var(--sp-4);">UPACIP</div>
+    <h1>Create your account</h1>
+    <p class="subtitle">Join to book appointments and manage your health.</p>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label" for="first-name">First Name</label>
+        <input id="first-name" type="text" class="form-input" placeholder="John" required aria-required="true">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="last-name">Last Name</label>
+        <input id="last-name" type="text" class="form-input" placeholder="Doe" required aria-required="true">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="reg-email">Email Address</label>
+      <input id="reg-email" type="email" class="form-input" placeholder="e.g., john@email.com" required aria-required="true">
+      <div class="form-helper">We'll send a verification email to this address.</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="reg-phone">Phone Number</label>
+      <input id="reg-phone" type="tel" class="form-input" placeholder="(555) 123-4567" required aria-required="true">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="reg-dob">Date of Birth</label>
+      <input id="reg-dob" type="date" class="form-input" required aria-required="true">
+    </div>
+
+    <div class="form-group">
+      <label class="form-label" for="reg-password">Password</label>
+      <input id="reg-password" type="password" class="form-input" placeholder="Create a strong password" required aria-required="true">
+      <div class="pwd-strength"><div class="pwd-strength-fill"></div></div>
+      <div class="pwd-hint">Use 8+ characters with a mix of letters, numbers, and symbols.</div>
+    </div>
+
+    <div class="checkbox-group mb-6">
+      <input type="checkbox" id="terms" class="checkbox-input" required aria-required="true">
+      <label for="terms" class="body2">I agree to the <a href="#" style="color:var(--primary-500);">Terms of Service</a> and <a href="#" style="color:var(--primary-500);">Privacy Policy</a></label>
+    </div>
+
+    <button id="register-btn" type="submit" class="btn btn-primary w-full">Create Account</button>
+
+    <p class="body2 text-center mt-4" style="color:var(--neutral-600);">
+      Already have an account? <a id="back-login" href="wireframe-SCR-001-login.html" style="color:var(--primary-500);text-decoration:none;">Sign in</a>
+    </p>
+  </form>
+</div>
+</body>
+</html>

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-015 Admin Dashboard - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .admin-sidebar .nav-item.active { border-left-color: var(--error-500); color: var(--error-700); background: var(--error-surface); }
+  .admin-sidebar { border-right-color: var(--error-200); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+  .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: var(--sp-2); }
+  .slot-cell { padding: var(--sp-2); border: 1px solid var(--neutral-200); border-radius: var(--rad-md); text-align: center; font-size: 0.8125rem; cursor: pointer; }
+  .slot-cell.available { background: var(--success-surface); border-color: var(--success-200); }
+  .slot-cell.blocked { background: var(--neutral-100); color: var(--neutral-400); text-decoration: line-through; }
+  .holiday-card { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-3); border: 1px solid var(--neutral-200); border-radius: var(--rad-md); margin-bottom: var(--sp-2); }
+  .user-row { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-3) 0; border-bottom: 1px solid var(--neutral-200); }
+  .user-row:last-child { border-bottom: none; }
+  .user-info { flex: 1; }
+  .user-name { font-weight: 500; font-size: 0.875rem; }
+  .user-role { font-size: 0.75rem; color: var(--neutral-600); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #breadcrumb-home | click | SCR-002 (Dashboard Router) |
+| #nav-search | click | SCR-016 (Patient Search) |
+| #tab-slots | click | Show slot template panel |
+| #tab-notifs | click | Show notification panel |
+| #tab-hours | click | Show hours/holidays panel |
+| #tab-users | click | Show user management panel |
+-->
+<div class="shell">
+  <nav class="sidebar admin-sidebar" aria-label="Admin navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item active" href="wireframe-SCR-015-admin-dashboard.html"><span class="nav-icon">⚙️</span><span class="nav-label">Admin</span></a>
+      <a id="nav-search" class="nav-item" href="wireframe-SCR-016-patient-search.html"><span class="nav-icon">🔍</span><span class="nav-label">Search</span></a>
+      <a class="nav-item" href="wireframe-SCR-002-dashboard-router.html"><span class="nav-icon">🏠</span><span class="nav-label">Home</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Administration</h2></div>
+    <div class="header-right"><div class="avatar" style="background:var(--error-surface);color:var(--error-700);">AD</div></div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-home" href="wireframe-SCR-002-dashboard-router.html">Home</a><span>/</span>
+      <span class="current">Admin Dashboard</span>
+    </div>
+
+    <h1 class="h2 mb-4">System Administration</h1>
+
+    <div class="tabs" role="tablist" aria-label="Admin sections">
+      <button id="tab-slots" class="tab active" role="tab" aria-selected="true" aria-controls="panel-slots">Slot Templates</button>
+      <button id="tab-notifs" class="tab" role="tab" aria-selected="false" aria-controls="panel-notifs">Notifications</button>
+      <button id="tab-hours" class="tab" role="tab" aria-selected="false" aria-controls="panel-hours">Hours &amp; Holidays</button>
+      <button id="tab-users" class="tab" role="tab" aria-selected="false" aria-controls="panel-users">User Management</button>
+    </div>
+
+    <!-- Slot Templates Panel -->
+    <div id="panel-slots" class="tab-content active card" role="tabpanel" aria-labelledby="tab-slots">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);">
+        <h3 class="h4">Weekly Slot Template — Dr. Emily Chen</h3>
+        <div style="display:flex;gap:var(--sp-2);">
+          <select class="form-input form-select" style="min-height:36px;padding:var(--sp-2);width:auto;">
+            <option>Dr. Emily Chen</option><option>Dr. Michael Park</option>
+          </select>
+          <button class="btn btn-primary btn-sm">Save Template</button>
+        </div>
+      </div>
+      <p class="caption mb-3">Click a slot to toggle availability. Green = available, strikethrough = blocked.</p>
+      <div style="display:grid;grid-template-columns:80px repeat(5,1fr);gap:var(--sp-1);font-size:0.8125rem;">
+        <div style="font-weight:600;padding:var(--sp-2);"></div>
+        <div style="font-weight:600;padding:var(--sp-2);text-align:center;">Mon</div>
+        <div style="font-weight:600;padding:var(--sp-2);text-align:center;">Tue</div>
+        <div style="font-weight:600;padding:var(--sp-2);text-align:center;">Wed</div>
+        <div style="font-weight:600;padding:var(--sp-2);text-align:center;">Thu</div>
+        <div style="font-weight:600;padding:var(--sp-2);text-align:center;">Fri</div>
+
+        <div style="padding:var(--sp-2);font-weight:500;">9:00 AM</div>
+        <div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell blocked">Blocked</div><div class="slot-cell available">Available</div><div class="slot-cell available">Available</div>
+
+        <div style="padding:var(--sp-2);font-weight:500;">10:00 AM</div>
+        <div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell blocked">Blocked</div><div class="slot-cell available">Available</div><div class="slot-cell available">Available</div>
+
+        <div style="padding:var(--sp-2);font-weight:500;">11:00 AM</div>
+        <div class="slot-cell available">Available</div><div class="slot-cell blocked">Blocked</div><div class="slot-cell blocked">Blocked</div><div class="slot-cell available">Available</div><div class="slot-cell available">Available</div>
+
+        <div style="padding:var(--sp-2);font-weight:500;">2:00 PM</div>
+        <div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell blocked">Blocked</div>
+
+        <div style="padding:var(--sp-2);font-weight:500;">3:00 PM</div>
+        <div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell available">Available</div><div class="slot-cell blocked">Blocked</div><div class="slot-cell blocked">Blocked</div>
+      </div>
+    </div>
+
+    <!-- Notifications Panel -->
+    <div id="panel-notifs" class="tab-content card" role="tabpanel" aria-labelledby="tab-notifs">
+      <h3 class="h4 mb-3">Notification Templates</h3>
+      <div class="table-wrapper">
+        <table aria-label="Notification templates">
+          <thead>
+            <tr><th>Template</th><th>Channel</th><th>Trigger</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Appointment Reminder (24h)</td><td>Email + SMS</td><td>24h before appt</td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+            </tr>
+            <tr>
+              <td>Appointment Confirmation</td><td>Email</td><td>On booking</td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+            </tr>
+            <tr>
+              <td>Intake Completion</td><td>In-App</td><td>Intake submitted</td>
+              <td><span class="badge badge-default">Draft</span></td>
+              <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+            </tr>
+            <tr>
+              <td>No-Show Follow-up</td><td>SMS</td><td>15 min past appt</td>
+              <td><span class="badge badge-success">Active</span></td>
+              <td><button class="btn btn-secondary btn-sm">Edit</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <button class="btn btn-primary btn-sm mt-3">+ Add Template</button>
+    </div>
+
+    <!-- Hours & Holidays Panel -->
+    <div id="panel-hours" class="tab-content card" role="tabpanel" aria-labelledby="tab-hours">
+      <h3 class="h4 mb-3">Operating Hours &amp; Holidays</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-6);">
+        <div>
+          <h4 class="h5 mb-2">Regular Hours</h4>
+          <table style="width:100%;font-size:0.875rem;">
+            <tbody>
+              <tr><td style="padding:var(--sp-1) 0;font-weight:500;">Monday–Friday</td><td>8:00 AM – 5:00 PM</td></tr>
+              <tr><td style="padding:var(--sp-1) 0;font-weight:500;">Saturday</td><td>9:00 AM – 1:00 PM</td></tr>
+              <tr><td style="padding:var(--sp-1) 0;font-weight:500;">Sunday</td><td>Closed</td></tr>
+            </tbody>
+          </table>
+          <button class="btn btn-secondary btn-sm mt-3">Edit Hours</button>
+        </div>
+        <div>
+          <h4 class="h5 mb-2">Upcoming Holidays</h4>
+          <div class="holiday-card">
+            <div><strong>Martin Luther King Jr. Day</strong><br><span class="caption">January 20, 2025</span></div>
+            <span class="badge badge-error">Closed</span>
+          </div>
+          <div class="holiday-card">
+            <div><strong>Presidents' Day</strong><br><span class="caption">February 17, 2025</span></div>
+            <span class="badge badge-error">Closed</span>
+          </div>
+          <div class="holiday-card">
+            <div><strong>Good Friday</strong><br><span class="caption">April 18, 2025</span></div>
+            <span class="badge badge-warning">Half Day</span>
+          </div>
+          <button class="btn btn-secondary btn-sm mt-3">+ Add Holiday</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Management Panel -->
+    <div id="panel-users" class="tab-content card" role="tabpanel" aria-labelledby="tab-users">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);">
+        <h3 class="h4">Users</h3>
+        <button class="btn btn-primary btn-sm">+ Invite User</button>
+      </div>
+      <div class="user-row">
+        <div class="avatar" style="width:40px;height:40px;font-size:0.875rem;">EC</div>
+        <div class="user-info">
+          <div class="user-name">Dr. Emily Chen</div>
+          <div class="user-role">Staff — Provider</div>
+        </div>
+        <span class="badge badge-success">Active</span>
+        <label class="toggle" aria-label="Toggle user active status">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="user-row">
+        <div class="avatar" style="width:40px;height:40px;font-size:0.875rem;">MP</div>
+        <div class="user-info">
+          <div class="user-name">Dr. Michael Park</div>
+          <div class="user-role">Staff — Provider</div>
+        </div>
+        <span class="badge badge-success">Active</span>
+        <label class="toggle" aria-label="Toggle user active status">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="user-row">
+        <div class="avatar" style="width:40px;height:40px;font-size:0.875rem;">SR</div>
+        <div class="user-info">
+          <div class="user-name">Sarah Rodriguez</div>
+          <div class="user-role">Staff — Front Desk</div>
+        </div>
+        <span class="badge badge-success">Active</span>
+        <label class="toggle" aria-label="Toggle user active status">
+          <input type="checkbox" checked>
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+      <div class="user-row" style="opacity:0.6;">
+        <div class="avatar" style="width:40px;height:40px;font-size:0.875rem;">JW</div>
+        <div class="user-info">
+          <div class="user-name">James Wilson</div>
+          <div class="user-role">Staff — Billing</div>
+        </div>
+        <span class="badge badge-default">Inactive</span>
+        <label class="toggle" aria-label="Toggle user active status">
+          <input type="checkbox">
+          <span class="toggle-slider"></span>
+        </label>
+      </div>
+    </div>
+
+  </main>
+</div>
+</body>
+</html>

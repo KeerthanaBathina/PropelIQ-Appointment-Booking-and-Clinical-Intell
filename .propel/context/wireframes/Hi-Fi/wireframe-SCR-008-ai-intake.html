@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-008 AI Conversational Intake - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .chat-panel { display: flex; flex-direction: column; height: calc(100vh - var(--header-height) - 48px - 60px); }
+  .chat-header { padding: var(--sp-4); border-bottom: 1px solid var(--neutral-200); display: flex; align-items: center; justify-content: space-between; }
+  .chat-body { flex: 1; overflow-y: auto; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-3); }
+  .chat-input-bar { padding: var(--sp-4); border-top: 1px solid var(--neutral-200); display: flex; gap: var(--sp-3); align-items: flex-end; }
+  .chat-input-bar input { flex: 1; }
+  .progress-section { display: flex; align-items: center; gap: var(--sp-3); padding: var(--sp-2) var(--sp-4); background: var(--neutral-50); border-bottom: 1px solid var(--neutral-200); font-size: 0.75rem; color: var(--neutral-600); }
+  .progress-section .progress-bar { flex: 1; max-width: 200px; }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #switch-manual | click | SCR-009 (Manual Intake) |
+| #confirm-intake | click | SCR-005 (Patient Dashboard) |
+| #breadcrumb-dash | click | SCR-005 (Patient Dashboard) |
+-->
+<div class="shell">
+  <nav class="sidebar" aria-label="Patient navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-005-patient-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-006-appointment-booking.html"><span class="nav-icon">📅</span><span class="nav-label">Book Appointment</span></a>
+      <a class="nav-item" href="wireframe-SCR-007-appointment-history.html"><span class="nav-icon">📋</span><span class="nav-label">History</span></a>
+      <a class="nav-item active" href="wireframe-SCR-008-ai-intake.html"><span class="nav-icon">💬</span><span class="nav-label">Intake</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Patient Intake</h2></div>
+    <div class="header-right"><div class="avatar">SJ</div></div>
+  </header>
+  <main class="main" role="main" style="padding:0;">
+    <div style="padding:var(--sp-4) var(--sp-6) 0;">
+      <div class="breadcrumb" aria-label="Breadcrumb">
+        <a id="breadcrumb-dash" href="wireframe-SCR-005-patient-dashboard.html">Dashboard</a><span>/</span><span class="current">AI Intake</span>
+      </div>
+    </div>
+
+    <div class="card" style="margin:0 var(--sp-6) var(--sp-6);display:flex;flex-direction:column;height:calc(100vh - var(--header-height) - 100px);">
+      <div class="chat-header">
+        <div>
+          <span class="h4">AI Health Assistant</span>
+          <span class="badge badge-success" style="margin-left:var(--sp-2);">Active</span>
+        </div>
+        <a id="switch-manual" href="wireframe-SCR-009-manual-intake.html" class="btn btn-secondary btn-sm">Switch to Manual Form</a>
+      </div>
+
+      <div class="progress-section">
+        <span>Progress: 4/8 mandatory fields</span>
+        <div class="progress-bar"><div class="progress-fill" style="width:50%;"></div></div>
+        <span class="caption">Auto-saved 10s ago</span>
+      </div>
+
+      <div class="chat-body" role="log" aria-live="polite" aria-label="Intake conversation">
+        <div class="chat-bubble chat-ai">
+          <div>Hello Sarah! I'm your AI health assistant. I'll help you complete your intake form. Let's start with some basic questions.</div>
+          <div class="chat-time">10:02 AM</div>
+        </div>
+        <div class="chat-bubble chat-ai">
+          <div>Do you have any known allergies? Please list them, or type "none" if you don't have any.</div>
+          <div class="chat-time">10:02 AM</div>
+        </div>
+        <div class="chat-bubble chat-user">
+          <div>I'm allergic to penicillin and peanuts.</div>
+          <div class="chat-time">10:03 AM</div>
+        </div>
+        <div class="chat-bubble chat-ai">
+          <div>Thank you. I've recorded: <strong>Penicillin</strong> (medication) and <strong>Peanuts</strong> (food). Are there any reactions you experience with these allergies?</div>
+          <div class="chat-time">10:03 AM</div>
+        </div>
+        <div class="chat-bubble chat-user">
+          <div>Penicillin gives me a rash. Peanuts cause swelling.</div>
+          <div class="chat-time">10:04 AM</div>
+        </div>
+        <div class="chat-bubble chat-ai">
+          <div>Got it. Now, are you currently taking any medications? Please list them with dosages if you know them.</div>
+          <div class="chat-time">10:04 AM</div>
+        </div>
+
+        <!-- Typing indicator -->
+        <div class="chat-bubble chat-ai" style="background:var(--neutral-100);padding:var(--sp-3);">
+          <div class="typing-indicator" aria-label="AI is typing">
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+            <div class="typing-dot"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-input-bar">
+        <input type="text" class="form-input" placeholder="Type your response..." aria-label="Type your response">
+        <button class="btn btn-primary">Send</button>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-007 Appointment History - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #breadcrumb-dash | click | SCR-005 (Patient Dashboard) |
+-->
+<div class="shell">
+  <nav class="sidebar" aria-label="Patient navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-005-patient-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-006-appointment-booking.html"><span class="nav-icon">📅</span><span class="nav-label">Book Appointment</span></a>
+      <a class="nav-item active" href="wireframe-SCR-007-appointment-history.html"><span class="nav-icon">📋</span><span class="nav-label">History</span></a>
+      <a class="nav-item" href="wireframe-SCR-008-ai-intake.html"><span class="nav-icon">💬</span><span class="nav-label">Intake</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Appointment History</h2></div>
+    <div class="header-right"><div class="avatar">SJ</div></div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-dash" href="wireframe-SCR-005-patient-dashboard.html">Dashboard</a><span>/</span><span class="current">Appointment History</span>
+    </div>
+    <div class="card">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="h3">Past Appointments</h3>
+        <a href="wireframe-SCR-006-appointment-booking.html" class="btn btn-primary btn-sm">Book New</a>
+      </div>
+      <div class="table-wrapper">
+        <table aria-label="Appointment history">
+          <thead>
+            <tr>
+              <th class="sortable" aria-sort="descending">Date ↓</th>
+              <th>Time</th>
+              <th>Provider</th>
+              <th>Type</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>Apr 10, 2026</td><td>9:00 AM</td><td>Dr. Emily Chen</td><td>Follow-up</td><td><span class="badge badge-success">Completed</span></td></tr>
+            <tr><td>Mar 28, 2026</td><td>2:00 PM</td><td>Dr. Michael Park</td><td>General Checkup</td><td><span class="badge badge-success">Completed</span></td></tr>
+            <tr><td>Mar 15, 2026</td><td>11:00 AM</td><td>Dr. Lisa Wang</td><td>Consultation</td><td><span class="badge badge-success">Completed</span></td></tr>
+            <tr><td>Feb 20, 2026</td><td>10:30 AM</td><td>Dr. Emily Chen</td><td>Follow-up</td><td><span class="badge badge-default">Cancelled</span></td></tr>
+            <tr><td>Feb 05, 2026</td><td>3:00 PM</td><td>Dr. Michael Park</td><td>General Checkup</td><td><span class="badge badge-error">No-Show</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <nav class="pagination" aria-label="Pagination">
+        <button class="page-btn" disabled aria-label="Previous page">‹</button>
+        <button class="page-btn active" aria-current="page">1</button>
+        <button class="page-btn">2</button>
+        <button class="page-btn">3</button>
+        <button class="page-btn" aria-label="Next page">›</button>
+      </nav>
+    </div>
+  </main>
+</div>
+</body>
+</html>

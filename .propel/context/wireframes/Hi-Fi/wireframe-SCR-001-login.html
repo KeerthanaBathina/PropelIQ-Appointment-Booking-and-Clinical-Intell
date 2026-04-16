@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-001 Login - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .login-shell { display: flex; min-height: 100vh; }
+  .login-left { flex: 1; background: linear-gradient(135deg, var(--primary-700), var(--primary-500)); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; padding: var(--sp-10); }
+  .login-left h1 { font-size: 2rem; font-weight: 300; margin-bottom: var(--sp-3); }
+  .login-left p { font-size: 1rem; opacity: 0.85; max-width: 360px; text-align: center; }
+  .login-right { flex: 1; display: flex; align-items: center; justify-content: center; background: var(--neutral-0); padding: var(--sp-6); }
+  .login-form { width: 100%; max-width: 400px; }
+  .login-form h2 { font-size: 1.5rem; font-weight: 400; margin-bottom: var(--sp-6); }
+  .login-links { display: flex; justify-content: space-between; margin-top: var(--sp-4); font-size: 0.875rem; }
+  .login-links a { color: var(--primary-500); text-decoration: none; }
+  .login-links a:hover { text-decoration: underline; }
+  .login-links a:focus-visible { outline: 2px solid var(--primary-500); outline-offset: 2px; }
+  .login-divider { text-align: center; color: var(--neutral-500); font-size: 0.75rem; margin: var(--sp-6) 0; position: relative; }
+  .login-divider::before, .login-divider::after { content: ''; position: absolute; top: 50%; width: 40%; height: 1px; background: var(--neutral-300); }
+  .login-divider::before { left: 0; }
+  .login-divider::after { right: 0; }
+  .pwd-wrapper { position: relative; }
+  .pwd-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--neutral-500); cursor: pointer; font-size: 0.75rem; }
+  @media (max-width: 767px) { .login-left { display: none; } }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #login-btn | click | SCR-002 (Dashboard Router) |
+| #forgot-pwd | click | SCR-004 (Password Reset) |
+| #create-account | click | SCR-003 (Registration) |
+-->
+<div class="login-shell">
+  <div class="login-left">
+    <div style="font-size:2.5rem;font-weight:700;margin-bottom:var(--sp-2);">UPACIP</div>
+    <h1>Unified Patient Access</h1>
+    <p>Streamline scheduling, clinical intelligence, and patient engagement in one secure platform.</p>
+  </div>
+  <div class="login-right">
+    <form class="login-form" aria-label="Login form">
+      <h2>Sign in to your account</h2>
+
+      <div id="login-error" class="alert alert-error" role="alert" style="display:none;">
+        Invalid email or password. Please try again.
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="email">Email Address</label>
+        <input id="email" type="email" class="form-input" placeholder="e.g., john@email.com" required aria-required="true" autocomplete="email">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="password">Password</label>
+        <div class="pwd-wrapper">
+          <input id="password" type="password" class="form-input" placeholder="Enter password" required aria-required="true" autocomplete="current-password">
+          <button type="button" class="pwd-toggle" aria-label="Toggle password visibility">Show</button>
+        </div>
+      </div>
+
+      <div class="checkbox-group mb-4">
+        <input type="checkbox" id="remember" class="checkbox-input">
+        <label for="remember" class="body2">Remember me</label>
+      </div>
+
+      <a id="login-btn" href="wireframe-SCR-002-dashboard-router.html" class="btn btn-primary w-full" role="button" style="display:flex;">Sign In</a>
+
+      <div class="login-links">
+        <a id="forgot-pwd" href="wireframe-SCR-004-password-reset.html">Forgot Password?</a>
+        <a id="create-account" href="wireframe-SCR-003-registration.html">Create Account</a>
+      </div>
+    </form>
+  </div>
+</div>
+</body>
+</html>

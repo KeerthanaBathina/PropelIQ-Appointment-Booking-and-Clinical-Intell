@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-006 Appointment Booking - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .booking-layout { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); }
+  .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+  .cal-header { font-size: 0.75rem; font-weight: 500; color: var(--neutral-600); padding: var(--sp-2); }
+  .cal-day { padding: var(--sp-2); border-radius: var(--radius-sm); font-size: 0.875rem; cursor: pointer; transition: all var(--transition-micro); min-height: 40px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .cal-day:hover:not(.disabled) { background: var(--primary-50); }
+  .cal-day.today { border: 1px solid var(--primary-500); }
+  .cal-day.selected { background: var(--primary-500); color: #fff; }
+  .cal-day.disabled { color: var(--neutral-400); cursor: default; }
+  .cal-day .avail-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--primary-500); margin-top: 2px; }
+  .slot-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--sp-2); }
+  .slot {
+    padding: var(--sp-2) var(--sp-3); border: 1px solid var(--neutral-300); border-radius: var(--radius-sm); text-align: center;
+    font-size: 0.875rem; cursor: pointer; transition: all var(--transition-micro); min-height: 40px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .slot:hover:not(.unavailable) { border-color: var(--primary-500); background: var(--primary-50); }
+  .slot.selected { background: var(--primary-500); color: #fff; border-color: var(--primary-500); }
+  .slot.unavailable { background: var(--neutral-200); color: var(--neutral-500); cursor: default; }
+  .slot:focus-visible { outline: 2px solid var(--primary-500); outline-offset: 2px; }
+  @media (max-width: 767px) { .booking-layout { grid-template-columns: 1fr; } .slot-grid { grid-template-columns: repeat(2, 1fr); } }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #confirm-booking | click | Booking Confirmation Modal |
+| #modal-confirm | click | SCR-005 (Patient Dashboard) |
+| #breadcrumb-dash | click | SCR-005 (Patient Dashboard) |
+-->
+<div class="shell">
+  <nav class="sidebar" aria-label="Patient navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-005-patient-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item active" href="wireframe-SCR-006-appointment-booking.html"><span class="nav-icon">📅</span><span class="nav-label">Book Appointment</span></a>
+      <a class="nav-item" href="wireframe-SCR-007-appointment-history.html"><span class="nav-icon">📋</span><span class="nav-label">History</span></a>
+      <a class="nav-item" href="wireframe-SCR-008-ai-intake.html"><span class="nav-icon">💬</span><span class="nav-label">Intake</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Book Appointment</h2></div>
+    <div class="header-right"><div class="avatar">SJ</div></div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-dash" href="wireframe-SCR-005-patient-dashboard.html">Dashboard</a><span>/</span><span class="current">Book Appointment</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-6">
+      <div class="flex gap-4 items-center" style="flex-wrap:wrap;">
+        <div class="form-group" style="margin-bottom:0;flex:1;min-width:200px;">
+          <label class="form-label" for="provider">Provider (Optional)</label>
+          <select id="provider" class="form-input form-select" aria-label="Select provider">
+            <option value="">Any Provider</option>
+            <option>Dr. Emily Chen</option>
+            <option>Dr. Michael Park</option>
+            <option>Dr. Lisa Wang</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;flex:1;min-width:200px;">
+          <label class="form-label" for="visit-type">Visit Type</label>
+          <select id="visit-type" class="form-input form-select" aria-label="Select visit type">
+            <option>General Checkup</option>
+            <option>Follow-up</option>
+            <option>Consultation</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="booking-layout">
+      <!-- Calendar -->
+      <div class="card">
+        <div class="flex items-center justify-between mb-4">
+          <button class="btn btn-text btn-sm" aria-label="Previous month">← Prev</button>
+          <h3 class="h3">April 2026</h3>
+          <button class="btn btn-text btn-sm" aria-label="Next month">Next →</button>
+        </div>
+        <div class="cal-grid" role="grid" aria-label="Select appointment date">
+          <div class="cal-header">Sun</div><div class="cal-header">Mon</div><div class="cal-header">Tue</div><div class="cal-header">Wed</div><div class="cal-header">Thu</div><div class="cal-header">Fri</div><div class="cal-header">Sat</div>
+          <div class="cal-day disabled"></div><div class="cal-day disabled"></div><div class="cal-day disabled"></div><div class="cal-day disabled">1</div><div class="cal-day disabled">2</div><div class="cal-day disabled">3</div><div class="cal-day disabled">4</div>
+          <div class="cal-day disabled">5</div><div class="cal-day disabled">6</div><div class="cal-day disabled">7</div><div class="cal-day disabled">8</div><div class="cal-day disabled">9</div><div class="cal-day disabled">10</div><div class="cal-day disabled">11</div>
+          <div class="cal-day disabled">12</div><div class="cal-day disabled">13</div><div class="cal-day disabled">14</div><div class="cal-day today">15</div><div class="cal-day">16<div class="avail-dot"></div></div><div class="cal-day">17<div class="avail-dot"></div></div><div class="cal-day selected">18<div class="avail-dot"></div></div>
+          <div class="cal-day">19</div><div class="cal-day">20<div class="avail-dot"></div></div><div class="cal-day">21<div class="avail-dot"></div></div><div class="cal-day">22<div class="avail-dot"></div></div><div class="cal-day">23<div class="avail-dot"></div></div><div class="cal-day">24</div><div class="cal-day">25<div class="avail-dot"></div></div>
+          <div class="cal-day">26</div><div class="cal-day">27<div class="avail-dot"></div></div><div class="cal-day">28<div class="avail-dot"></div></div><div class="cal-day">29</div><div class="cal-day">30<div class="avail-dot"></div></div><div class="cal-day disabled"></div><div class="cal-day disabled"></div>
+        </div>
+        <div class="caption mt-2"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--primary-500);margin-right:4px;vertical-align:middle;"></span> Available slots</div>
+      </div>
+
+      <!-- Time Slots -->
+      <div class="card">
+        <h3 class="h3 mb-4">Available Slots — Apr 18, 2026</h3>
+        <p class="subtitle2 mb-4" style="color:var(--neutral-600);">Select a time slot</p>
+        <div class="slot-grid" role="radiogroup" aria-label="Select appointment time">
+          <div class="slot" role="radio" aria-checked="false" tabindex="0">8:00 AM</div>
+          <div class="slot" role="radio" aria-checked="false" tabindex="-1">8:30 AM</div>
+          <div class="slot unavailable" aria-disabled="true">9:00 AM</div>
+          <div class="slot" role="radio" aria-checked="false" tabindex="-1">9:30 AM</div>
+          <div class="slot selected" role="radio" aria-checked="true" tabindex="-1">10:00 AM</div>
+          <div class="slot" role="radio" aria-checked="false" tabindex="-1">10:30 AM</div>
+          <div class="slot unavailable" aria-disabled="true">11:00 AM</div>
+          <div class="slot unavailable" aria-disabled="true">11:30 AM</div>
+          <div class="slot" role="radio" aria-checked="false" tabindex="-1">1:00 PM</div>
+          <div class="slot" role="radio" aria-checked="false" tabindex="-1">1:30 PM</div>
+          <div class="slot" role="radio" aria-checked="false" tabindex="-1">2:00 PM</div>
+          <div class="slot unavailable" aria-disabled="true">2:30 PM</div>
+        </div>
+
+        <div class="mt-6 flex gap-3">
+          <button id="confirm-booking" class="btn btn-primary">Confirm Booking</button>
+          <a href="wireframe-SCR-005-patient-dashboard.html" class="btn btn-secondary">Cancel</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Booking Confirmation Modal (hidden by default) -->
+    <div class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modal-title" style="display:none;">
+      <div class="modal modal-sm">
+        <div class="modal-header">
+          <h3 id="modal-title" class="h3">Confirm Appointment</h3>
+          <button class="btn btn-text btn-sm" aria-label="Close">✕</button>
+        </div>
+        <p class="body2 mb-4"><strong>Date:</strong> April 18, 2026</p>
+        <p class="body2 mb-4"><strong>Time:</strong> 10:00 AM</p>
+        <p class="body2 mb-4"><strong>Provider:</strong> Dr. Emily Chen</p>
+        <p class="body2 mb-4"><strong>Type:</strong> General Checkup</p>
+        <div class="modal-actions">
+          <button class="btn btn-secondary">Cancel</button>
+          <a id="modal-confirm" href="wireframe-SCR-005-patient-dashboard.html" class="btn btn-primary">Confirm</a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

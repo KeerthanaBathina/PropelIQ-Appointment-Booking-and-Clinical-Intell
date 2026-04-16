@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-011 Arrival Queue - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .staff-sidebar .nav-item.active { border-left-color: var(--secondary-500); color: var(--secondary-500); background: var(--secondary-50); }
+  .queue-filters { display: flex; gap: var(--sp-3); align-items: flex-end; flex-wrap: wrap; }
+  .queue-count { font-size: 0.875rem; color: var(--neutral-600); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #mark-arrived | click | SCR-011 (updated) |
+| #patient-name | click | SCR-013 (Patient Profile 360) |
+| #breadcrumb-staff | click | SCR-010 (Staff Dashboard) |
+-->
+<div class="shell">
+  <nav class="sidebar staff-sidebar" aria-label="Staff navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-010-staff-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item active" href="wireframe-SCR-011-arrival-queue.html"><span class="nav-icon">👥</span><span class="nav-label">Queue</span></a>
+      <a class="nav-item" href="wireframe-SCR-012-document-upload.html"><span class="nav-icon">📄</span><span class="nav-label">Documents</span></a>
+      <a class="nav-item" href="wireframe-SCR-016-patient-search.html"><span class="nav-icon">🔍</span><span class="nav-label">Patients</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Arrival Queue</h2></div>
+    <div class="header-right"><div class="avatar" style="background:var(--secondary-50);color:var(--secondary-700);">EC</div></div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-staff" href="wireframe-SCR-010-staff-dashboard.html">Staff Dashboard</a><span>/</span><span class="current">Arrival Queue</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="h2">Today's Queue</h1>
+      <span class="queue-count">5 patients • Last updated: 10:05 AM</span>
+    </div>
+
+    <div class="card mb-4">
+      <div class="queue-filters">
+        <div class="form-group" style="margin-bottom:0;min-width:160px;">
+          <label class="form-label" for="q-provider">Provider</label>
+          <select id="q-provider" class="form-input form-select" style="min-height:36px;padding:var(--sp-2) var(--sp-3);">
+            <option>All Providers</option><option>Dr. Emily Chen</option><option>Dr. Michael Park</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0;min-width:140px;">
+          <label class="form-label" for="q-status">Status</label>
+          <select id="q-status" class="form-input form-select" style="min-height:36px;padding:var(--sp-2) var(--sp-3);">
+            <option>All Statuses</option><option>Waiting</option><option>In Visit</option><option>No-Show</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert alert-warning" role="alert">
+      ⚠ 1 patient has been waiting over 30 minutes.
+    </div>
+
+    <div class="card">
+      <div class="table-wrapper">
+        <table aria-label="Arrival queue" role="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th class="sortable">Patient</th>
+              <th class="sortable">Appt Time</th>
+              <th>Provider</th>
+              <th>Type</th>
+              <th class="sortable">Wait Time</th>
+              <th>Priority</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr style="background:var(--error-surface);">
+              <td>1</td>
+              <td><a id="patient-name" href="wireframe-SCR-013-patient-profile-360.html" style="color:var(--primary-500);text-decoration:none;">Robert Brown</a></td>
+              <td>9:00 AM</td>
+              <td>Dr. Chen</td>
+              <td>Checkup</td>
+              <td><span class="timer timer-alert" aria-label="Wait time: 35 minutes">35:22</span></td>
+              <td><span class="badge badge-error">Urgent</span></td>
+              <td><span class="badge badge-warning">Waiting</span></td>
+              <td>
+                <button class="btn btn-primary btn-sm">In Visit</button>
+              </td>
+            </tr>
+            <tr>
+              <td>2</td>
+              <td><a href="wireframe-SCR-013-patient-profile-360.html" style="color:var(--primary-500);text-decoration:none;">Lisa Anderson</a></td>
+              <td>10:00 AM</td>
+              <td>Dr. Chen</td>
+              <td>Follow-up</td>
+              <td><span class="timer timer-normal" aria-label="Wait time: 8 minutes">08:15</span></td>
+              <td><span class="badge badge-default">Normal</span></td>
+              <td><span class="badge badge-warning">Waiting</span></td>
+              <td>
+                <button id="mark-arrived" class="btn btn-primary btn-sm">In Visit</button>
+                <button class="btn btn-secondary btn-sm">Urgent</button>
+              </td>
+            </tr>
+            <tr>
+              <td>3</td>
+              <td><a href="wireframe-SCR-013-patient-profile-360.html" style="color:var(--primary-500);text-decoration:none;">David Kim</a></td>
+              <td>10:30 AM</td>
+              <td>Dr. Park</td>
+              <td>Consultation</td>
+              <td><span class="timer timer-normal" aria-label="Wait time: 3 minutes">03:42</span></td>
+              <td><span class="badge badge-default">Normal</span></td>
+              <td><span class="badge badge-success">Arrived</span></td>
+              <td>
+                <button class="btn btn-primary btn-sm">In Visit</button>
+                <button class="btn btn-secondary btn-sm">Urgent</button>
+              </td>
+            </tr>
+            <tr>
+              <td>4</td>
+              <td>Jennifer Taylor</td>
+              <td>11:00 AM</td>
+              <td>Dr. Chen</td>
+              <td>Checkup</td>
+              <td><span class="caption">—</span></td>
+              <td><span class="badge badge-default">Normal</span></td>
+              <td><span class="badge badge-default">Scheduled</span></td>
+              <td><button class="btn btn-secondary btn-sm">Arrived</button></td>
+            </tr>
+            <tr style="opacity:0.6;">
+              <td>5</td>
+              <td>Thomas Martinez</td>
+              <td>9:30 AM</td>
+              <td>Dr. Park</td>
+              <td>Follow-up</td>
+              <td><span class="caption">15+ min</span></td>
+              <td><span class="badge badge-default">Normal</span></td>
+              <td><span class="badge badge-error">No-Show</span></td>
+              <td><span class="caption">Auto-marked</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+</body>
+</html>

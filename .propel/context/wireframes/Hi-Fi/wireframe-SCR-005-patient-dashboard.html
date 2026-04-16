@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-005 Patient Dashboard - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+<style>
+  .stat-value { font-size: 2rem; font-weight: 300; color: var(--primary-500); }
+  .stat-label { font-size: 0.75rem; color: var(--neutral-600); text-transform: uppercase; letter-spacing: 0.08em; }
+  .apt-card { display: flex; align-items: center; justify-content: space-between; padding: var(--sp-4); border-left: 4px solid var(--status-scheduled); }
+  .apt-time { font-size: 0.875rem; font-weight: 500; }
+  .apt-detail { font-size: 0.75rem; color: var(--neutral-600); }
+</style>
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #book-apt | click | SCR-006 (Appointment Booking) |
+| #complete-intake | click | SCR-008 (AI Intake) |
+| #view-history | click | SCR-007 (Appointment History) |
+-->
+<div class="shell">
+  <nav class="sidebar" aria-label="Patient navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item active" href="wireframe-SCR-005-patient-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-006-appointment-booking.html"><span class="nav-icon">📅</span><span class="nav-label">Book Appointment</span></a>
+      <a class="nav-item" href="wireframe-SCR-007-appointment-history.html"><span class="nav-icon">📋</span><span class="nav-label">History</span></a>
+      <a class="nav-item" href="wireframe-SCR-008-ai-intake.html"><span class="nav-icon">💬</span><span class="nav-label">Intake</span></a>
+    </div>
+  </nav>
+
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Patient Dashboard</h2></div>
+    <div class="header-right">
+      <span class="body2" style="color:var(--neutral-600);">Sarah Johnson</span>
+      <div class="avatar" aria-label="User menu">SJ</div>
+    </div>
+  </header>
+
+  <main class="main" role="main">
+    <!-- Stats -->
+    <div class="card-grid mb-6">
+      <div class="card text-center">
+        <div class="stat-value">2</div>
+        <div class="stat-label">Upcoming Appointments</div>
+      </div>
+      <div class="card text-center">
+        <div class="stat-value" style="color:var(--warning-main);">1</div>
+        <div class="stat-label">Pending Intake</div>
+      </div>
+      <div class="card text-center">
+        <div class="stat-value" style="color:var(--success-main);">5</div>
+        <div class="stat-label">Completed Visits</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="flex gap-3 mb-6">
+      <a id="book-apt" href="wireframe-SCR-006-appointment-booking.html" class="btn btn-primary">Book Appointment</a>
+      <a id="complete-intake" href="wireframe-SCR-008-ai-intake.html" class="btn btn-secondary">Complete Intake</a>
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="card mb-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="h3">Upcoming Appointments</h3>
+        <a id="view-history" href="wireframe-SCR-007-appointment-history.html" class="btn btn-text btn-sm">View History</a>
+      </div>
+
+      <div class="apt-card card-flat mb-2">
+        <div>
+          <div class="apt-time">Apr 18, 2026 — 10:00 AM</div>
+          <div class="apt-detail">Dr. Emily Chen • General Checkup</div>
+        </div>
+        <div class="flex gap-2 items-center">
+          <span class="badge badge-info">Scheduled</span>
+          <button class="btn btn-text btn-sm" style="color:var(--error-main);">Cancel</button>
+        </div>
+      </div>
+
+      <div class="apt-card card-flat" style="border-left-color:var(--status-confirmed);">
+        <div>
+          <div class="apt-time">Apr 25, 2026 — 2:30 PM</div>
+          <div class="apt-detail">Dr. Michael Park • Follow-up</div>
+        </div>
+        <div class="flex gap-2 items-center">
+          <span class="badge badge-primary">Confirmed</span>
+          <button class="btn btn-text btn-sm" style="color:var(--error-main);">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Intake Status -->
+    <div class="card">
+      <h3 class="h3 mb-4">Intake Status</h3>
+      <div class="alert alert-warning" role="alert">
+        You have a pending intake form. Complete it before your next appointment for a smoother visit.
+      </div>
+      <a href="wireframe-SCR-008-ai-intake.html" class="btn btn-secondary">Start AI Intake</a>
+    </div>
+  </main>
+</div>
+</body>
+</html>

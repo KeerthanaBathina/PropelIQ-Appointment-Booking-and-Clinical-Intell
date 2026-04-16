@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SCR-009 Manual Intake Form - UPACIP</title>
+<link rel="stylesheet" href="shared-tokens.css">
+</head>
+<body>
+<!-- Navigation Map
+| Element | Action | Target Screen |
+|---------|--------|---------------|
+| #submit-intake | click (valid) | SCR-005 (Patient Dashboard) |
+| #back-ai | click | SCR-008 (AI Intake) |
+| #breadcrumb-dash | click | SCR-005 (Patient Dashboard) |
+-->
+<div class="shell">
+  <nav class="sidebar" aria-label="Patient navigation">
+    <div class="sidebar-logo"><span>UPACIP</span></div>
+    <div class="sidebar-nav">
+      <a class="nav-item" href="wireframe-SCR-005-patient-dashboard.html"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a>
+      <a class="nav-item" href="wireframe-SCR-006-appointment-booking.html"><span class="nav-icon">📅</span><span class="nav-label">Book Appointment</span></a>
+      <a class="nav-item" href="wireframe-SCR-007-appointment-history.html"><span class="nav-icon">📋</span><span class="nav-label">History</span></a>
+      <a class="nav-item active" href="wireframe-SCR-008-ai-intake.html"><span class="nav-icon">💬</span><span class="nav-label">Intake</span></a>
+    </div>
+  </nav>
+  <header class="header" role="banner">
+    <div class="header-left"><h2 class="h3">Manual Intake Form</h2></div>
+    <div class="header-right"><div class="avatar">SJ</div></div>
+  </header>
+  <main class="main" role="main">
+    <div class="breadcrumb" aria-label="Breadcrumb">
+      <a id="breadcrumb-dash" href="wireframe-SCR-005-patient-dashboard.html">Dashboard</a><span>/</span><a href="wireframe-SCR-008-ai-intake.html">AI Intake</a><span>/</span><span class="current">Manual Form</span>
+    </div>
+
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="h2">Patient Intake Form</h1>
+      <a id="back-ai" href="wireframe-SCR-008-ai-intake.html" class="btn btn-secondary btn-sm">← Back to AI Intake</a>
+    </div>
+
+    <div class="alert alert-info" role="alert">Fields marked with * are required. Your progress is auto-saved every 30 seconds.</div>
+
+    <form class="card" aria-label="Patient intake form">
+      <h3 class="h3 mb-4">Personal Information</h3>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" for="mi-fname">First Name *</label><input id="mi-fname" class="form-input" value="Sarah" required aria-required="true"></div>
+        <div class="form-group"><label class="form-label" for="mi-lname">Last Name *</label><input id="mi-lname" class="form-input" value="Johnson" required aria-required="true"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" for="mi-dob">Date of Birth *</label><input id="mi-dob" type="date" class="form-input" value="1990-05-15" required aria-required="true"></div>
+        <div class="form-group">
+          <label class="form-label" for="mi-gender">Gender *</label>
+          <select id="mi-gender" class="form-input form-select" required aria-required="true"><option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer not to say</option></select>
+        </div>
+      </div>
+      <div class="form-row mb-6">
+        <div class="form-group"><label class="form-label" for="mi-phone">Phone *</label><input id="mi-phone" type="tel" class="form-input" value="(555) 123-4567" required aria-required="true"></div>
+        <div class="form-group"><label class="form-label" for="mi-emergency">Emergency Contact</label><input id="mi-emergency" class="form-input" placeholder="Name and phone number"></div>
+      </div>
+
+      <h3 class="h3 mb-4">Medical History</h3>
+      <div class="form-group">
+        <label class="form-label" for="mi-allergies">Known Allergies *</label>
+        <textarea id="mi-allergies" class="form-input" rows="3" required aria-required="true" style="resize:vertical;min-height:80px;">Penicillin (rash), Peanuts (swelling)</textarea>
+        <div class="form-helper">Pre-filled from AI intake conversation.</div>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mi-medications">Current Medications</label>
+        <textarea id="mi-medications" class="form-input" rows="3" placeholder="List medications with dosages" style="resize:vertical;min-height:80px;"></textarea>
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="mi-conditions">Pre-existing Conditions</label>
+        <textarea id="mi-conditions" class="form-input" rows="3" placeholder="List any chronic conditions or past surgeries" style="resize:vertical;min-height:80px;"></textarea>
+      </div>
+
+      <h3 class="h3 mb-4 mt-6">Insurance Information</h3>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label" for="mi-insurance">Insurance Provider</label><input id="mi-insurance" class="form-input" placeholder="e.g., Blue Cross Blue Shield"></div>
+        <div class="form-group"><label class="form-label" for="mi-policy">Policy Number</label><input id="mi-policy" class="form-input" placeholder="e.g., BCB-123456789"></div>
+      </div>
+
+      <div class="checkbox-group mb-6 mt-4">
+        <input type="checkbox" id="mi-consent" class="checkbox-input" required aria-required="true">
+        <label for="mi-consent" class="body2">I confirm this information is accurate and consent to its use for my care.</label>
+      </div>
+
+      <div class="flex gap-3">
+        <a id="submit-intake" href="wireframe-SCR-005-patient-dashboard.html" class="btn btn-primary">Submit Intake Form</a>
+        <button type="button" class="btn btn-secondary">Save Draft</button>
+      </div>
+    </form>
+  </main>
+</div>
+</body>
+</html>
