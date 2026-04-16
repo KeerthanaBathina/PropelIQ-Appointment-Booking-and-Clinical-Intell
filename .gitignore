@@ -1,0 +1,5 @@
+# PropelIQ-Copilot Framework
+.env
+.github/*
+.propel/templates/*
+.vscode/mcp.json
