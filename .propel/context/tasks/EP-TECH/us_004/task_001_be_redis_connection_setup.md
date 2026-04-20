@@ -135,17 +135,17 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors and zero warnings after adding Redis packages
-- [ ] Application startup logs "Redis connection established" when Upstash Redis is reachable
-- [ ] Application startup logs a warning (not an error/crash) when Redis is unreachable
-- [ ] `IDistributedCache` is resolvable from the DI container
-- [ ] Redis connection string is not hardcoded — password is read from user secrets or environment variable
-- [ ] Connection uses TLS (`ssl=True` in connection string)
+- [x] `dotnet build` completes with zero errors and zero warnings after adding Redis packages
+- [x] Application startup logs "Redis connection established" when Upstash Redis is reachable
+- [x] Application startup logs a warning (not an error/crash) when Redis is unreachable
+- [x] `IDistributedCache` is resolvable from the DI container
+- [x] Redis connection string is not hardcoded — password is read from user secrets or environment variable
+- [x] Connection uses TLS (`ssl=True` in connection string)
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.Extensions.Caching.StackExchangeRedis` 8.x NuGet package to `UPACIP.Api.csproj`
-- [ ] Add `Redis:ConnectionString` to `appsettings.json` with format `{endpoint}:{port},password={from-secrets},ssl=True,abortConnect=False`
-- [ ] Register `AddStackExchangeRedisCache` in `Program.cs` with `InstanceName = "upacip:"`, `AbortOnConnectFail = false`, and `ReconnectRetryPolicy = new ExponentialRetry(5000)`
-- [ ] Add startup Redis PING health check in `Program.cs` that logs success or warning without blocking application startup
-- [ ] Verify `dotnet build` succeeds with zero errors and zero warnings
+- [x] Add `Microsoft.Extensions.Caching.StackExchangeRedis` 8.x NuGet package to `UPACIP.Api.csproj`
+- [x] Add `Redis:ConnectionString` to `appsettings.json` with format `{endpoint}:{port},password={from-secrets},ssl=True,abortConnect=False`
+- [x] Register `AddStackExchangeRedisCache` in `Program.cs` with `InstanceName = "upacip:"`, `AbortOnConnectFail = false`, and `ReconnectRetryPolicy = new ExponentialRetry(5000)`
+- [x] Add startup Redis PING health check in `Program.cs` that logs success or warning without blocking application startup
+- [x] Verify `dotnet build` succeeds with zero errors and zero warnings

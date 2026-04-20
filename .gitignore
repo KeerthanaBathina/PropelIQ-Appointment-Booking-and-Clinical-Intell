@@ -3,3 +3,10 @@
 .github/*
 .propel/templates/*
 .vscode/mcp.json
+
+# Node.js Tools for Visual Studio
+node_modules/
+dist/
+
+bin/
+obj/

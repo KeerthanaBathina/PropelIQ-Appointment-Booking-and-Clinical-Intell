@@ -202,22 +202,22 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for UPACIP.Service project
-- [ ] `SearchSimilarAsync` returns top-K results ranked by cosine similarity descending
-- [ ] `SearchSimilarAsync` respects the similarity threshold (≥0.75 default per AIR-R02)
-- [ ] `HybridSearchAsync` merges vector similarity and FTS results using RRF scoring
-- [ ] `HybridSearchAsync` returns results that appear in either vector or FTS results (FULL OUTER JOIN)
-- [ ] `UpsertEmbeddingAsync` with wrong dimension (e.g., 256) throws ArgumentException (400 Bad Request at API layer)
-- [ ] `UpsertEmbeddingAsync` correctly inserts new embeddings and updates existing ones
-- [ ] Table name resolution uses whitelist — no dynamic SQL injection possible
+- [x] `dotnet build` completes with zero errors for UPACIP.Service project — **CONFIRMED: 0 errors, 0 warnings**
+- [ ] `SearchSimilarAsync` returns top-K results ranked by cosine similarity descending — **PENDING: requires pgvector extension installed on PostgreSQL**
+- [ ] `SearchSimilarAsync` respects the similarity threshold (≥0.75 default per AIR-R02) — **PENDING: requires pgvector extension**
+- [ ] `HybridSearchAsync` merges vector similarity and FTS results using RRF scoring — **PENDING: requires pgvector extension**
+- [ ] `HybridSearchAsync` returns results that appear in either vector or FTS results (FULL OUTER JOIN) — **PENDING: requires pgvector extension**
+- [ ] `UpsertEmbeddingAsync` with wrong dimension (e.g., 256) throws ArgumentException (400 Bad Request at API layer) — **CONFIRMED: validation throws ArgumentException before touching DB**
+- [ ] `UpsertEmbeddingAsync` correctly inserts new embeddings and updates existing ones — **PENDING: requires pgvector extension**
+- [x] Table name resolution uses whitelist — no dynamic SQL injection possible — **CONFIRMED: compile-time TableMap dictionary**
 
 ## Implementation Checklist
 
-- [ ] Create `IVectorSearchService` interface with `SearchSimilarAsync`, `HybridSearchAsync`, `UpsertEmbeddingAsync`, `DeleteEmbeddingAsync` methods
-- [ ] Create `VectorSearchResult` DTO with `Id`, `Content`, `Similarity`, `FtsRank`, `CombinedScore` properties
-- [ ] Create `EmbeddingCategory` enum (MedicalTerminology, IntakeTemplate, CodingGuideline) and `HybridSearchRequest` DTO
-- [ ] Implement `VectorSearchService.SearchSimilarAsync` using parameterized raw SQL with `<=>` cosine distance operator, `Pgvector.Vector` parameter type, and whitelist table name resolution
-- [ ] Implement `VectorSearchService.HybridSearchAsync` using CTE-based SQL combining cosine similarity with `plainto_tsquery` FTS, merged via Reciprocal Rank Fusion (RRF constant = 60)
-- [ ] Implement `UpsertEmbeddingAsync` with `INSERT ... ON CONFLICT DO UPDATE` and 384-dimension validation, plus `DeleteEmbeddingAsync`
-- [ ] Add input validation: reject embeddings where `Length != 384` with `ArgumentException`, validate `topK` (1-100) and `similarityThreshold` (0.0-1.0)
-- [ ] Register `IVectorSearchService` → `VectorSearchService` as scoped service in `Program.cs` DI container
+- [x] Create `IVectorSearchService` interface with `SearchSimilarAsync`, `HybridSearchAsync`, `UpsertEmbeddingAsync`, `DeleteEmbeddingAsync` methods
+- [x] Create `VectorSearchResult` DTO with `Id`, `Content`, `Similarity`, `FtsRank`, `CombinedScore` properties
+- [x] Create `EmbeddingCategory` enum (MedicalTerminology, IntakeTemplate, CodingGuideline) and `HybridSearchRequest` DTO
+- [x] Implement `VectorSearchService.SearchSimilarAsync` using parameterized raw SQL with `<=>` cosine distance operator, `Pgvector.Vector` parameter type, and whitelist table name resolution
+- [x] Implement `VectorSearchService.HybridSearchAsync` using CTE-based SQL combining cosine similarity with `plainto_tsquery` FTS, merged via Reciprocal Rank Fusion (RRF constant = 60)
+- [x] Implement `UpsertEmbeddingAsync` with `INSERT ... ON CONFLICT DO UPDATE` and 384-dimension validation, plus `DeleteEmbeddingAsync`
+- [x] Add input validation: reject embeddings where `Length != 384` with `ArgumentException`, validate `topK` (1-100) and `similarityThreshold` (0.0-1.0)
+- [x] Register `IVectorSearchService` → `VectorSearchService` as scoped service in `Program.cs` DI container

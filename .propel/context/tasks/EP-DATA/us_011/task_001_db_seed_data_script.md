@@ -176,11 +176,11 @@ psql -U upacip_app -d upacip -c "SELECT COUNT(*) FROM patients;"
 
 ## Implementation Checklist
 
-- [ ] Create `scripts/seed-data.sql` with PL/pgSQL production guard checking `upacip.environment` setting and `TRUNCATE CASCADE` for idempotent reset
-- [ ] Insert 5 users (1 Admin, 2 Staff, 2 Patient) with deterministic UUIDs, bcrypt password hashes, and role assignments into Identity tables
-- [ ] Insert 10 patients with realistic healthcare demographics, unique emails, deterministic UUIDs, and one soft-deleted patient (`deleted_at` set)
-- [ ] Insert 50 appointments distributed across past/current/future dates with all 4 status values, `version = 1`, JSONB `preferred_slot_criteria` on 10 records, and 5 walk-in appointments
-- [ ] Insert 20 clinical documents across all 4 categories with varied `processing_status` values, linked to patients and staff uploaders
-- [ ] Insert 30+ extracted data records with JSONB `data_content`, confidence scores (0.65-0.98), `flagged_for_review` flags, and verification attribution; plus 15 medical codes, 10 intake data, 20 audit logs, 10 queue entries, 25 notification logs
-- [ ] Create `scripts/seed-database.ps1` PowerShell wrapper with `ASPNETCORE_ENVIRONMENT` check, psql invocation, and count verification output
-- [ ] Add verification SELECT queries at end of SQL script confirming row counts meet AC-1 minimums
+- [x] Create `scripts/seed-data.sql` with PL/pgSQL production guard checking `upacip.environment` setting and `TRUNCATE CASCADE` for idempotent reset
+- [x] Insert 5 users (1 Admin, 2 Staff, 2 Patient) with deterministic UUIDs, bcrypt password hashes, and role assignments into Identity tables
+- [x] Insert 10 patients with realistic healthcare demographics, unique emails, deterministic UUIDs, and one soft-deleted patient (`deleted_at` set)
+- [x] Insert 50 appointments distributed across past/current/future dates with all 4 status values, `version = 1`, JSONB `preferred_slot_criteria` on 10 records, and 5 walk-in appointments
+- [x] Insert 20 clinical documents across all 4 categories with varied `processing_status` values, linked to patients and staff uploaders
+- [x] Insert 30+ extracted data records with JSONB `data_content`, confidence scores (0.65-0.98), `flagged_for_review` flags, and verification attribution; plus 15 medical codes, 10 intake data, 20 audit logs, 10 queue entries, 25 notification logs
+- [x] Create `scripts/seed-database.ps1` PowerShell wrapper with `ASPNETCORE_ENVIRONMENT` check, psql invocation, and count verification output
+- [x] Add verification SELECT queries at end of SQL script confirming row counts meet AC-1 minimums

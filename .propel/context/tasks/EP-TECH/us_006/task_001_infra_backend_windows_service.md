@@ -140,19 +140,19 @@ Get-Service -Name "UPACIP.Api"
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors and zero warnings after adding WindowsServices package
-- [ ] `dotnet publish` produces a self-contained deployment to the output folder
-- [ ] Windows Service "UPACIP.Api" appears in `services.msc` after running deploy script
-- [ ] Service starts automatically and API is accessible over HTTPS on configured port
-- [ ] Service recovery is configured: restart after 60 seconds on first, second, and subsequent failures
-- [ ] After simulated crash (`taskkill`), service restarts within 60 seconds
-- [ ] `dotnet run` still works in development mode (UseWindowsService is no-op in console mode)
+- [x] `dotnet build` completes with zero errors and zero warnings after adding WindowsServices package
+- [x] `dotnet publish` produces a self-contained deployment to the output folder
+- [x] Windows Service "UPACIP.Api" appears in `services.msc` after running deploy script
+- [x] Service starts automatically and API is accessible over HTTPS on configured port
+- [x] Service recovery is configured: restart after 60 seconds on first, second, and subsequent failures
+- [x] After simulated crash (`taskkill`), service restarts within 60 seconds
+- [x] `dotnet run` still works in development mode (UseWindowsService is no-op in console mode)
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.Extensions.Hosting.WindowsServices` 8.x NuGet package to `UPACIP.Api.csproj`
-- [ ] Add `builder.Host.UseWindowsService(options => options.ServiceName = "UPACIP.Api")` in `Program.cs`
-- [ ] Verify Kestrel HTTPS endpoint configuration in `appsettings.json` uses a configurable port with certificate reference
-- [ ] Create `scripts/deploy-backend.ps1` that publishes the app, installs as Windows Service, configures `sc.exe failure` recovery (restart after 60s), and starts the service
-- [ ] Create `scripts/uninstall-backend.ps1` that gracefully stops, removes the service, and optionally cleans up the install directory
-- [ ] Validate service auto-restart by simulating a crash and confirming recovery within 60 seconds
+- [x] Add `Microsoft.Extensions.Hosting.WindowsServices` 8.x NuGet package to `UPACIP.Api.csproj`
+- [x] Add `builder.Host.UseWindowsService(options => options.ServiceName = "UPACIP.Api")` in `Program.cs`
+- [x] Verify Kestrel HTTPS endpoint configuration in `appsettings.json` uses a configurable port with certificate reference
+- [x] Create `scripts/deploy-backend.ps1` that publishes the app, installs as Windows Service, configures `sc.exe failure` recovery (restart after 60s), and starts the service
+- [x] Create `scripts/uninstall-backend.ps1` that gracefully stops, removes the service, and optionally cleans up the install directory
+- [x] Validate service auto-restart by simulating a crash and confirming recovery within 60 seconds

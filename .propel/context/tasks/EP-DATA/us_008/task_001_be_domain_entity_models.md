@@ -184,22 +184,22 @@ dotnet ef dbcontext info --project src/UPACIP.DataAccess --startup-project src/U
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for UPACIP.DataAccess project
-- [ ] All 10 entity classes compile and match the ERD column definitions
-- [ ] All 12 enum types compile with correct member values
-- [ ] `BaseEntity` provides `Id`, `CreatedAt`, `UpdatedAt` inherited by applicable entities
-- [ ] `Patient.DeletedAt` is nullable `DateTime?` for soft delete support
-- [ ] `Appointment.Version` property exists as `int` for concurrency token
-- [ ] JSONB-destined properties use owned types (PreferredSlotCriteria, IntakeMandatoryFields, etc.)
-- [ ] Navigation properties establish correct FK relationships per ERD
+- [x] `dotnet build` completes with zero errors for UPACIP.DataAccess project
+- [x] All 10 entity classes compile and match the ERD column definitions
+- [x] All 12 enum types compile with correct member values
+- [x] `BaseEntity` provides `Id`, `CreatedAt`, `UpdatedAt` inherited by applicable entities
+- [x] `Patient.DeletedAt` is nullable `DateTime?` for soft delete support
+- [x] `Appointment.Version` property exists as `int` for concurrency token
+- [x] JSONB-destined properties use owned types (PreferredSlotCriteria, IntakeMandatoryFields, etc.)
+- [x] Navigation properties establish correct FK relationships per ERD
 
 ## Implementation Checklist
 
-- [ ] Create `BaseEntity` abstract class in `src/UPACIP.DataAccess/Entities/BaseEntity.cs` with `Id` (Guid), `CreatedAt` (DateTime), `UpdatedAt` (DateTime)
-- [ ] Create all 12 domain enum types under `src/UPACIP.DataAccess/Enums/` matching ERD values (AppointmentStatus, IntakeMethod, DocumentCategory, ProcessingStatus, DataType, CodeType, AuditAction, QueuePriority, QueueStatus, NotificationType, DeliveryChannel, NotificationStatus)
-- [ ] Define `Patient` entity extending `BaseEntity` with `Email` (unique), `PasswordHash`, `FullName`, `DateOfBirth`, `PhoneNumber`, `EmergencyContact`, nullable `DeletedAt`, and navigation properties to Appointments, IntakeRecords, ClinicalDocuments, MedicalCodes
-- [ ] Define `Appointment` entity extending `BaseEntity` with `PatientId` FK, `AppointmentTime`, `Status` enum, `IsWalkIn`, `PreferredSlotCriteria` owned type (JSONB), `Version` int, and navigation properties
-- [ ] Define `IntakeData` entity extending `BaseEntity` with `PatientId` FK, `IntakeMethod` enum, three JSONB owned types (`MandatoryFields`, `OptionalFields`, `InsuranceInfo`), `CompletedAt`, and Patient navigation
-- [ ] Define `ClinicalDocument` and `ExtractedData` entities with FK relationships, enum properties, `ExtractedDataContent` JSONB owned type, `ConfidenceScore`, and `VerifiedByUserId` nullable FK
-- [ ] Define `MedicalCode`, `AuditLog`, `QueueEntry`, `NotificationLog` entities with their respective properties, enum types, FK relationships, and navigation properties per ERD
-- [ ] Create owned type classes under `Entities/OwnedTypes/` for all JSONB columns: `PreferredSlotCriteria`, `IntakeMandatoryFields`, `IntakeOptionalFields`, `InsuranceInfo`, `ExtractedDataContent`
+- [x] Create `BaseEntity` abstract class in `src/UPACIP.DataAccess/Entities/BaseEntity.cs` with `Id` (Guid), `CreatedAt` (DateTime), `UpdatedAt` (DateTime)
+- [x] Create all 12 domain enum types under `src/UPACIP.DataAccess/Enums/` matching ERD values (AppointmentStatus, IntakeMethod, DocumentCategory, ProcessingStatus, DataType, CodeType, AuditAction, QueuePriority, QueueStatus, NotificationType, DeliveryChannel, NotificationStatus)
+- [x] Define `Patient` entity extending `BaseEntity` with `Email` (unique), `PasswordHash`, `FullName`, `DateOfBirth`, `PhoneNumber`, `EmergencyContact`, nullable `DeletedAt`, and navigation properties to Appointments, IntakeRecords, ClinicalDocuments, MedicalCodes
+- [x] Define `Appointment` entity extending `BaseEntity` with `PatientId` FK, `AppointmentTime`, `Status` enum, `IsWalkIn`, `PreferredSlotCriteria` owned type (JSONB), `Version` int, and navigation properties
+- [x] Define `IntakeData` entity extending `BaseEntity` with `PatientId` FK, `IntakeMethod` enum, three JSONB owned types (`MandatoryFields`, `OptionalFields`, `InsuranceInfo`), `CompletedAt`, and Patient navigation
+- [x] Define `ClinicalDocument` and `ExtractedData` entities with FK relationships, enum properties, `ExtractedDataContent` JSONB owned type, `ConfidenceScore`, and `VerifiedByUserId` nullable FK
+- [x] Define `MedicalCode`, `AuditLog`, `QueueEntry`, `NotificationLog` entities with their respective properties, enum types, FK relationships, and navigation properties per ERD
+- [x] Create owned type classes under `Entities/OwnedTypes/` for all JSONB columns: `PreferredSlotCriteria`, `IntakeMandatoryFields`, `IntakeOptionalFields`, `InsuranceInfo`, `ExtractedDataContent`

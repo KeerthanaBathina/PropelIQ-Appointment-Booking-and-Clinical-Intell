@@ -162,21 +162,21 @@ dotnet ef migrations list --project src/UPACIP.DataAccess --startup-project src/
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors and zero warnings after adding EF Core packages
-- [ ] `dotnet ef migrations add Initial` generates migration files without errors
-- [ ] `dotnet ef database update` applies the migration to the PostgreSQL database successfully
-- [ ] `__EFMigrationsHistory` table exists in the `upacip` database with the Initial migration entry
-- [ ] Application starts and connects to PostgreSQL using the connection string from `appsettings.json`
-- [ ] Connection string includes `Maximum Pool Size=100` parameter
-- [ ] Application logs a clear error message when PostgreSQL is not running (not an unhandled crash)
-- [ ] Application password is not hardcoded in `appsettings.json` (uses user secrets or environment variable)
+- [x] `dotnet build` completes with zero errors and zero warnings after adding EF Core packages
+- [x] `dotnet ef migrations add Initial` generates migration files without errors
+- [x] `dotnet ef database update` applies the migration to the PostgreSQL database successfully
+- [x] `__EFMigrationsHistory` table exists in the `upacip` database with the Initial migration entry
+- [x] Application starts and connects to PostgreSQL using the connection string from `appsettings.json`
+- [x] Connection string includes `Maximum Pool Size=100` parameter
+- [x] Application logs a clear error message when PostgreSQL is not running (not an unhandled crash)
+- [x] Application password is not hardcoded in `appsettings.json` (uses user secrets or environment variable)
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.EntityFrameworkCore` 8.x and `Npgsql.EntityFrameworkCore.PostgreSQL` 8.x NuGet packages to `UPACIP.DataAccess.csproj`
-- [ ] Add `Microsoft.EntityFrameworkCore.Design` 8.x NuGet package to `UPACIP.Api.csproj`
-- [ ] Create `src/UPACIP.DataAccess/ApplicationDbContext.cs` with constructor accepting `DbContextOptions<ApplicationDbContext>` and empty `OnModelCreating` override
-- [ ] Add `ConnectionStrings:DefaultConnection` to `appsettings.json` with `Host=localhost;Port=5432;Database=upacip;Username=upacip_app;Password={from-secrets};Maximum Pool Size=100;Timeout=30`
-- [ ] Register `ApplicationDbContext` in `Program.cs` with `UseNpgsql`, `EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null)`, and `SetPostgresVersion(16, 0)`
-- [ ] Add startup database connection health check in `Program.cs` that logs a descriptive error with retry guidance if PostgreSQL is unreachable
-- [ ] Run `dotnet ef migrations add Initial` and `dotnet ef database update` to validate the full EF Core pipeline works end-to-end
+- [x] Add `Microsoft.EntityFrameworkCore` 8.x and `Npgsql.EntityFrameworkCore.PostgreSQL` 8.x NuGet packages to `UPACIP.DataAccess.csproj`
+- [x] Add `Microsoft.EntityFrameworkCore.Design` 8.x NuGet package to `UPACIP.Api.csproj`
+- [x] Create `src/UPACIP.DataAccess/ApplicationDbContext.cs` with constructor accepting `DbContextOptions<ApplicationDbContext>` and empty `OnModelCreating` override
+- [x] Add `ConnectionStrings:DefaultConnection` to `appsettings.json` with `Host=localhost;Port=5432;Database=upacip;Username=upacip_app;Password=REPLACE_WITH_SECRET;Maximum Pool Size=100;Timeout=30`
+- [x] Register `ApplicationDbContext` in `Program.cs` with `UseNpgsql`, `EnableRetryOnFailure(maxRetryCount: 3, maxRetryDelay: TimeSpan.FromSeconds(10), errorCodesToAdd: null)`, and `SetPostgresVersion(16, 0)`
+- [x] Add startup database connection health check in `Program.cs` that logs a descriptive error with retry guidance if PostgreSQL is unreachable
+- [x] Run `dotnet ef migrations add Initial` and `dotnet ef database update` to validate the full EF Core pipeline works end-to-end
