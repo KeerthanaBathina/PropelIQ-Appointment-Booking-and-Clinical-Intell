@@ -183,11 +183,11 @@ curl -X POST http://localhost:5000/api/appointments -H "Content-Type: applicatio
 
 ## Implementation Checklist
 
-- [ ] Add `FluentValidation.AspNetCore` 11.x to `UPACIP.Api.csproj` and register in `Program.cs` with `AddFluentValidationAutoValidation()` and `AddValidatorsFromAssemblyContaining<>()`
-- [ ] Create `EmailValidator` with reusable email regex rule (`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`) per DR-011
-- [ ] Create `AppointmentDateValidator` enforcing appointment time between now and now+90 days per DR-012
-- [ ] Create `SoftDeleteReferenceValidator` that checks `IgnoreQueryFilters()` to reject references to soft-deleted Patient records
-- [ ] Extend `GlobalExceptionHandlerMiddleware` to handle `DbUpdateException` mapping PostgreSQL SqlState 23505 → 409 Conflict and SqlState 23503 → 400 Bad Request
-- [ ] Ensure `DbUpdateConcurrencyException` returns 409 Conflict with consistent error response format
-- [ ] Configure FluentValidation error response factory in `Program.cs` to return `ErrorResponse` model with `ValidationErrors` dictionary for field-level errors
-- [ ] Verify all validation and constraint error responses follow consistent `ErrorResponse` structure
+- [x] Add `FluentValidation.AspNetCore` 11.x to `UPACIP.Api.csproj` and register in `Program.cs` with `AddFluentValidationAutoValidation()` and `AddValidatorsFromAssemblyContaining<>()`
+- [x] Create `EmailValidator` with reusable email regex rule (`^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$`) per DR-011
+- [x] Create `AppointmentDateValidator` enforcing appointment time between now and now+90 days per DR-012
+- [x] Create `SoftDeleteReferenceValidator` that checks `IgnoreQueryFilters()` to reject references to soft-deleted Patient records
+- [x] Extend `GlobalExceptionHandlerMiddleware` to handle `DbUpdateException` mapping PostgreSQL SqlState 23505 → 409 Conflict and SqlState 23503 → 400 Bad Request
+- [x] Ensure `DbUpdateConcurrencyException` returns 409 Conflict with consistent error response format
+- [x] Configure FluentValidation error response factory in `Program.cs` to return `ErrorResponse` model with `ValidationErrors` dictionary for field-level errors
+- [x] Verify all validation and constraint error responses follow consistent `ErrorResponse` structure

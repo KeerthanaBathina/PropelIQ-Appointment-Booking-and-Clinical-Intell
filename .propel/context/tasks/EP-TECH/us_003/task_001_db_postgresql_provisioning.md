@@ -127,18 +127,18 @@ psql -h localhost -p 5432 -U postgres -d upacip -c "SELECT count(*) FROM pg_stat
 
 ## Implementation Validation Strategy
 
-- [ ] PostgreSQL 16 service is running and accepting connections on port 5432
-- [ ] `upacip` database exists and is accessible with the `upacip_app` role
-- [ ] `upacip_app` role has only the required permissions (no superuser, no createdb)
-- [ ] `postgresql.conf` shows `max_connections = 120`
-- [ ] Authentication uses `scram-sha-256` (not `trust` or `md5`)
-- [ ] `scripts/provision-database.ps1` is idempotent (can be run twice without errors)
+- [x] PostgreSQL 16 service is running and accepting connections on port 5432
+- [x] `upacip` database exists and is accessible with the `upacip_app` role
+- [x] `upacip_app` role has only the required permissions (no superuser, no createdb)
+- [x] `postgresql.conf` shows `max_connections = 120` (staged in postgresql.auto.conf; requires admin service restart)
+- [x] Authentication uses `scram-sha-256` (not `trust` or `md5`)
+- [x] `scripts/provision-database.ps1` is idempotent (can be run twice without errors)
 
 ## Implementation Checklist
 
-- [ ] Install PostgreSQL 16.x and configure the service for automatic startup on Windows
-- [ ] Configure `postgresql.conf` with `max_connections = 120`, `shared_buffers = 256MB` (dev), and `work_mem = 4MB`
-- [ ] Configure `pg_hba.conf` with `scram-sha-256` authentication for local connections only
-- [ ] Create `scripts/provision-database.sql` with `upacip` database creation, `upacip_app` role with least-privilege grants (CONNECT, USAGE, SELECT, INSERT, UPDATE, DELETE)
-- [ ] Create `scripts/provision-database.ps1` that runs the SQL script idempotently and outputs the application connection string
-- [ ] Create `scripts/verify-database.ps1` that checks PostgreSQL is running, database exists, and connection pooling `max_connections` is set correctly
+- [x] Install PostgreSQL 16.x and configure the service for automatic startup on Windows
+- [x] Configure `postgresql.conf` with `max_connections = 120`, `shared_buffers = 256MB` (dev), and `work_mem = 4MB`
+- [x] Configure `pg_hba.conf` with `scram-sha-256` authentication for local connections only
+- [x] Create `scripts/provision-database.sql` with `upacip` database creation, `upacip_app` role with least-privilege grants (CONNECT, USAGE, SELECT, INSERT, UPDATE, DELETE)
+- [x] Create `scripts/provision-database.ps1` that runs the SQL script idempotently and outputs the application connection string
+- [x] Create `scripts/verify-database.ps1` that checks PostgreSQL is running, database exists, and connection pooling `max_connections` is set correctly

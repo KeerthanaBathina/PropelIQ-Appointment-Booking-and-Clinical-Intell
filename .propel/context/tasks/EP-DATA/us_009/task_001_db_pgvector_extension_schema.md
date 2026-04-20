@@ -170,21 +170,21 @@ psql -U upacip_app -d upacip -c "EXPLAIN ANALYZE SELECT * FROM medical_terminolo
 
 ## Implementation Validation Strategy
 
-- [ ] `SELECT extversion FROM pg_extension WHERE extname = 'vector'` returns `0.5.x`
-- [ ] All 3 embedding tables exist with `vector(384)` column and `tsvector` column
-- [ ] Inserting a 384-dimension vector succeeds; inserting a wrong-dimension vector fails with dimension mismatch error
-- [ ] IVFFlat indexes exist on all 3 tables using `vector_cosine_ops` operator class
-- [ ] `EXPLAIN ANALYZE` confirms index scan (not sequential scan) for cosine similarity queries
-- [ ] GIN indexes exist on `content_tsv` columns for full-text search
-- [ ] `upacip_app` role has SELECT/INSERT/UPDATE/DELETE on all 3 embedding tables
-- [ ] `dotnet build` succeeds with embedding entity models and `UseVector()` configuration
+- [ ] `SELECT extversion FROM pg_extension WHERE extname = 'vector'` returns `0.5.x` — **PENDING: pgvector OS-level library not installed; see `scripts/provision-pgvector.sql` prerequisites**
+- [ ] All 3 embedding tables exist with `vector(384)` column and `tsvector` column — **PENDING: requires pgvector extension install**
+- [ ] Inserting a 384-dimension vector succeeds; inserting a wrong-dimension vector fails with dimension mismatch error — **PENDING: requires pgvector extension install**
+- [ ] IVFFlat indexes exist on all 3 tables using `vector_cosine_ops` operator class — **PENDING: requires pgvector extension install**
+- [ ] `EXPLAIN ANALYZE` confirms index scan (not sequential scan) for cosine similarity queries — **PENDING: requires pgvector extension install**
+- [ ] GIN indexes exist on `content_tsv` columns for full-text search — **PENDING: requires pgvector extension install**
+- [ ] `upacip_app` role has SELECT/INSERT/UPDATE/DELETE on all 3 embedding tables — **PENDING: requires pgvector extension install**
+- [x] `dotnet build` succeeds with embedding entity models and `UseVector()` configuration — **CONFIRMED: 0 errors, 0 warnings**
 
 ## Implementation Checklist
 
-- [ ] Create `scripts/provision-pgvector.sql` with `CREATE EXTENSION IF NOT EXISTS vector`, 3 embedding tables (`medical_terminology_embeddings`, `intake_template_embeddings`, `coding_guideline_embeddings`) with `vector(384)` and `tsvector` columns
-- [ ] Add IVFFlat indexes on each embedding table using `vector_cosine_ops` with `lists = 100` for cosine similarity search
-- [ ] Add GIN indexes on `content_tsv` columns for PostgreSQL full-text search support
-- [ ] Grant `SELECT, INSERT, UPDATE, DELETE` on all 3 embedding tables to `upacip_app` role
-- [ ] Create EF Core entity models (`MedicalTerminologyEmbedding`, `IntakeTemplateEmbedding`, `CodingGuidelineEmbedding`) with `Pgvector.Vector` and `NpgsqlTsVector` property types, register DbSets on `ApplicationDbContext`
-- [ ] Configure `UseVector()` in `ApplicationDbContext` Npgsql options to enable pgvector type mapping
-- [ ] Create `scripts/rebuild-vector-indexes.ps1` that drops and recreates IVFFlat indexes with `CONCURRENTLY`, runs `VACUUM ANALYZE`, and validates execution is within 2-4 AM maintenance window
+- [x] Create `scripts/provision-pgvector.sql` with `CREATE EXTENSION IF NOT EXISTS vector`, 3 embedding tables (`medical_terminology_embeddings`, `intake_template_embeddings`, `coding_guideline_embeddings`) with `vector(384)` and `tsvector` columns
+- [x] Add IVFFlat indexes on each embedding table using `vector_cosine_ops` with `lists = 100` for cosine similarity search
+- [x] Add GIN indexes on `content_tsv` columns for PostgreSQL full-text search support
+- [x] Grant `SELECT, INSERT, UPDATE, DELETE` on all 3 embedding tables to `upacip_app` role
+- [x] Create EF Core entity models (`MedicalTerminologyEmbedding`, `IntakeTemplateEmbedding`, `CodingGuidelineEmbedding`) with `Pgvector.Vector` and `NpgsqlTsVector` property types, register DbSets on `ApplicationDbContext`
+- [x] Configure `UseVector()` in `ApplicationDbContext` Npgsql options to enable pgvector type mapping
+- [x] Create `scripts/rebuild-vector-indexes.ps1` that drops and recreates IVFFlat indexes with `CONCURRENTLY`, runs `VACUUM ANALYZE`, and validates execution is within 2-4 AM maintenance window

@@ -150,20 +150,20 @@ Test-Path app\dist\web.config
 
 ## Implementation Validation Strategy
 
-- [ ] `npm run build` produces a `dist/` folder with `index.html`, hashed JS/CSS assets, and `web.config`
-- [ ] `web.config` is present in `dist/` output and contains IIS URL Rewrite rules
-- [ ] Running `npm run dev` and navigating to `/` renders the placeholder page
-- [ ] Running `npm run dev` and navigating to a non-existent route renders the 404 page
-- [ ] After deploying to IIS, navigating to the root URL serves the SPA
-- [ ] After deploying to IIS, navigating directly to a deep route (e.g., `/dashboard`) serves `index.html` and client-side routing resolves the route
-- [ ] Browser refresh on a deep route does not return IIS 404 error
+- [x] `npm run build` produces a `dist/` folder with `index.html`, hashed JS/CSS assets, and `web.config`
+- [x] `web.config` is present in `dist/` output and contains IIS URL Rewrite rules
+- [x] Running `npm run dev` and navigating to `/` renders the placeholder page
+- [x] Running `npm run dev` and navigating to a non-existent route renders the 404 page
+- [x] After deploying to IIS, navigating to the root URL serves the SPA
+- [x] After deploying to IIS, navigating directly to a deep route (e.g., `/dashboard`) serves `index.html` and client-side routing resolves the route
+- [x] Browser refresh on a deep route does not return IIS 404 error
 
 ## Implementation Checklist
 
-- [ ] Install `react-router-dom` v6.x and add to `package.json` dependencies
-- [ ] Create `src/router.tsx` with route definitions: root (`/`) rendering `PlaceholderPage`, catch-all (`*`) rendering `NotFoundPage`, using `React.lazy` for code splitting
-- [ ] Create `src/pages/NotFoundPage.tsx` with MUI `Container` and `Typography` displaying a 404 message
-- [ ] Modify `src/App.tsx` to wrap application in `BrowserRouter` and render the router outlet inside the existing provider hierarchy
-- [ ] Create `app/public/web.config` with IIS URL Rewrite rule: all requests not matching physical files/directories rewrite to `/index.html`
-- [ ] Update `vite.config.ts` to set `base: "/"` and `build.outDir: "dist"` with asset content hashing enabled
-- [ ] Create `scripts/deploy-frontend.ps1` that accepts a `-TargetPath` parameter, runs `npm run build`, validates build success, and copies `dist/*` to the target IIS directory
+- [x] Install `react-router-dom` v6.x and add to `package.json` dependencies
+- [x] Create `src/router.tsx` with route definitions: root (`/`) rendering `PlaceholderPage`, catch-all (`*`) rendering `NotFoundPage`, using `React.lazy` for code splitting
+- [x] Create `src/pages/NotFoundPage.tsx` with MUI `Container` and `Typography` displaying a 404 message
+- [x] Modify `src/App.tsx` to wrap application in `BrowserRouter` and render the router outlet inside the existing provider hierarchy
+- [x] Create `app/public/web.config` with IIS URL Rewrite rule: all requests not matching physical files/directories rewrite to `/index.html`
+- [x] Update `vite.config.ts` to set `base: "/"` and `build.outDir: "dist"` with asset content hashing enabled
+- [x] Create `scripts/deploy-frontend.ps1` that accepts a `-TargetPath` parameter, runs `npm run build`, validates build success, and copies `dist/*` to the target IIS directory

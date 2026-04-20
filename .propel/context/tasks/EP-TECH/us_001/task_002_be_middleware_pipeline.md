@@ -138,21 +138,21 @@ $env:ASPNETCORE_URLS="https://localhost:5010"; dotnet run --project src/UPACIP.A
 
 ## Implementation Validation Strategy
 
-- [ ] Cross-origin request from `http://localhost:3000` receives `Access-Control-Allow-Origin` header in response
-- [ ] CORS preflight (OPTIONS) request returns correct CORS headers
-- [ ] Unhandled exception returns HTTP 500 with structured JSON body containing `statusCode`, `message`, `correlationId`, and `timestamp` fields
-- [ ] Response JSON on error does not contain stack traces or internal implementation details
-- [ ] Every HTTP response includes `X-Correlation-ID` header with a valid GUID
-- [ ] Incoming requests with `X-Correlation-ID` header preserve the provided value in response
-- [ ] Application starts on custom port when configured via `appsettings.json` or `ASPNETCORE_URLS` environment variable
-- [ ] `dotnet build` completes with zero errors and zero warnings after all changes
+- [x] Cross-origin request from `http://localhost:3000` receives `Access-Control-Allow-Origin` header in response
+- [x] CORS preflight (OPTIONS) request returns correct CORS headers
+- [x] Unhandled exception returns HTTP 500 with structured JSON body containing `statusCode`, `message`, `correlationId`, and `timestamp` fields
+- [x] Response JSON on error does not contain stack traces or internal implementation details
+- [x] Every HTTP response includes `X-Correlation-ID` header with a valid GUID
+- [x] Incoming requests with `X-Correlation-ID` header preserve the provided value in response
+- [x] Application starts on custom port when configured via `appsettings.json` or `ASPNETCORE_URLS` environment variable
+- [x] `dotnet build` completes with zero errors and zero warnings after all changes
 
 ## Implementation Checklist
 
-- [ ] Configure named CORS policy in `Program.cs` using `AddCors` with allowed origins loaded from `appsettings.json` (CorsSettings:AllowedOrigins)
-- [ ] Create `Models/ErrorResponse.cs` with properties: `StatusCode`, `Message`, `CorrelationId`, `Timestamp`
-- [ ] Create `Middleware/GlobalExceptionHandlerMiddleware.cs` that catches unhandled exceptions, logs the error, and returns a serialized `ErrorResponse` with the correlation ID from `HttpContext.Items`
-- [ ] Create `Middleware/CorrelationIdMiddleware.cs` that reads or generates `X-Correlation-ID`, stores it in `HttpContext.Items`, and adds it to the response headers
-- [ ] Register middleware in `Program.cs` in correct order: `UseCorrelationId` → `UseGlobalExceptionHandler` → `UseCors` → `UseHttpsRedirection` → `UseRouting` → `UseAuthorization` → `MapControllers`
-- [ ] Add `CorsSettings:AllowedOrigins` and `Kestrel:Endpoints` configuration sections to `appsettings.json` and `appsettings.Development.json`
-- [ ] Verify `dotnet build` succeeds with zero errors and zero warnings after all middleware additions
+- [x] Configure named CORS policy in `Program.cs` using `AddCors` with allowed origins loaded from `appsettings.json` (CorsSettings:AllowedOrigins)
+- [x] Create `Models/ErrorResponse.cs` with properties: `StatusCode`, `Message`, `CorrelationId`, `Timestamp`
+- [x] Create `Middleware/GlobalExceptionHandlerMiddleware.cs` that catches unhandled exceptions, logs the error, and returns a serialized `ErrorResponse` with the correlation ID from `HttpContext.Items`
+- [x] Create `Middleware/CorrelationIdMiddleware.cs` that reads or generates `X-Correlation-ID`, stores it in `HttpContext.Items`, and adds it to the response headers
+- [x] Register middleware in `Program.cs` in correct order: `UseCorrelationId` → `UseGlobalExceptionHandler` → `UseCors` → `UseHttpsRedirection` → `UseRouting` → `UseAuthorization` → `MapControllers`
+- [x] Add `CorsSettings:AllowedOrigins` and `Kestrel:Endpoints` configuration sections to `appsettings.json` and `appsettings.Development.json`
+- [x] Verify `dotnet build` succeeds with zero errors and zero warnings after all middleware additions

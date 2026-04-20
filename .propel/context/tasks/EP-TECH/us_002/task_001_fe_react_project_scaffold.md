@@ -151,21 +151,21 @@ npm run preview
 
 ## Implementation Validation Strategy
 
-- [ ] `npm install` completes without errors on Node.js 18+
-- [ ] `npm install` fails with clear error on Node.js < 18
-- [ ] `npm run build` compiles with zero TypeScript errors
-- [ ] `npm run dev` starts development server and placeholder page loads in browser
-- [ ] Placeholder page renders MUI components with primary color #1976D2
-- [ ] `package.json` lists React 18.x, TypeScript, @mui/material 5.x, @tanstack/react-query 4.x, and zustand 4.x
-- [ ] Build fails with descriptive error when required environment variables are missing
+- [x] `npm install` completes without errors on Node.js 18+
+- [x] `npm install` fails with clear error on Node.js < 18
+- [x] `npm run build` compiles with zero TypeScript errors
+- [x] `npm run dev` starts development server and placeholder page loads in browser
+- [x] Placeholder page renders MUI components with primary color #1976D2
+- [x] `package.json` lists React 18.x, TypeScript, @mui/material 5.x, @tanstack/react-query 4.x, and zustand 4.x
+- [x] Build fails with descriptive error when required environment variables are missing
 
 ## Implementation Checklist
 
-- [ ] Initialize React 18 + TypeScript project using `npm create vite@latest app -- --template react-ts`
-- [ ] Install MUI 5 (`@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`), TanStack React Query 4 (`@tanstack/react-query`), and Zustand 4 (`zustand`)
-- [ ] Configure `tsconfig.json` with `strict: true`, path alias `@/` → `src/`, and `jsx: "react-jsx"`
-- [ ] Create `src/theme.ts` with MUI `createTheme` using primary color `#1976D2` and export the theme object
-- [ ] Configure `src/App.tsx` with `ThemeProvider`, `CssBaseline`, and `QueryClientProvider` wrapping the application
-- [ ] Create `src/pages/PlaceholderPage.tsx` using MUI `AppBar`, `Container`, `Typography`, and `Button` to verify theme rendering
-- [ ] Add `"engines": { "node": ">=18.0.0" }` to `package.json` and create `.npmrc` with `engine-strict=true`
-- [ ] Add environment variable validation in `vite.config.ts` that fails build with descriptive error when required `VITE_*` variables are missing, and create `.env.example` documenting all required variables
+- [x] Initialize React 18 + TypeScript project using `npm create vite@latest app -- --template react-ts`
+- [x] Install MUI 5 (`@mui/material`, `@mui/icons-material`, `@emotion/react`, `@emotion/styled`), TanStack React Query 4 (`@tanstack/react-query`), and Zustand 4 (`zustand`)
+- [x] Configure `tsconfig.json` with `strict: true`, path alias `@/` → `src/`, and `jsx: "react-jsx"`
+- [x] Create `src/theme.ts` with MUI `createTheme` using primary color `#1976D2` and export the theme object
+- [x] Configure `src/App.tsx` with `ThemeProvider`, `CssBaseline`, and `QueryClientProvider` wrapping the application
+- [x] Create `src/pages/PlaceholderPage.tsx` using MUI `AppBar`, `Container`, `Typography`, and `Button` to verify theme rendering
+- [x] Add `"engines": { "node": ">=18.0.0" }` to `package.json` and create `.npmrc` with `engine-strict=true`
+- [x] Add environment variable validation in `vite.config.ts` that fails build with descriptive error when required `VITE_*` variables are missing, and create `.env.example` documenting all required variables

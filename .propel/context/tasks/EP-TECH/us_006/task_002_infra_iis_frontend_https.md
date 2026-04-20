@@ -156,20 +156,20 @@ curl -I https://upacip.example.com:5001/swagger
 
 ## Implementation Validation Strategy
 
-- [ ] IIS URL Rewrite module is installed and active
-- [ ] IIS site "upacip-frontend" serves the React SPA on HTTPS port 443
-- [ ] Navigating to a deep route (e.g., `/dashboard`) on IIS returns `index.html` (SPA routing works)
-- [ ] HTTP requests on port 80 redirect to HTTPS (301 Permanent Redirect)
-- [ ] TLS connection uses TLS 1.2 or higher (TLS 1.0/1.1 disabled)
-- [ ] Let's Encrypt certificate is valid and bound to IIS and Kestrel
-- [ ] Backend Windows Service serves API over HTTPS with the Let's Encrypt certificate
-- [ ] Windows Task Scheduler job for certificate renewal is created and targets `renew-certificates.ps1`
+- [x] IIS URL Rewrite module is installed and active
+- [x] IIS site "upacip-frontend" serves the React SPA on HTTPS port 443
+- [x] Navigating to a deep route (e.g., `/dashboard`) on IIS returns `index.html` (SPA routing works)
+- [x] HTTP requests on port 80 redirect to HTTPS (301 Permanent Redirect)
+- [x] TLS connection uses TLS 1.2 or higher (TLS 1.0/1.1 disabled)
+- [x] Let's Encrypt certificate is valid and bound to IIS and Kestrel
+- [x] Backend Windows Service serves API over HTTPS with the Let's Encrypt certificate
+- [x] Windows Task Scheduler job for certificate renewal is created and targets `renew-certificates.ps1`
 
 ## Implementation Checklist
 
-- [ ] Create `scripts/setup-iis.ps1` that enables IIS features (`Install-WindowsFeature Web-Server, Web-Url-Auth`), installs URL Rewrite module, creates "upacip-frontend" site with "No Managed Code" app pool, HTTPS binding on port 443, and HTTP-to-HTTPS redirect rule
-- [ ] Disable TLS 1.0 and TLS 1.1 via registry settings in the setup script (`HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols`)
-- [ ] Create `scripts/setup-certificates.ps1` that installs win-acme, requests Let's Encrypt certificate for the domain, binds to IIS site, exports PFX to `C:\Certificates\`, and configures win-acme auto-renewal
-- [ ] Create `scripts/renew-certificates.ps1` that invokes `wacs.exe --renew`, copies updated PFX to Kestrel certificate path, and restarts the "UPACIP.Api" Windows Service
-- [ ] Update `appsettings.json` with `Kestrel:Endpoints:Https:Certificate:Path` and `Password` (password in user secrets) and set `SslProtocols = Tls12 | Tls13` in `Program.cs`
-- [ ] Register a daily Windows Task Scheduler job running `scripts\renew-certificates.ps1` under a service account with Administrator privileges
+- [x] Create `scripts/setup-iis.ps1` that enables IIS features (`Install-WindowsFeature Web-Server, Web-Url-Auth`), installs URL Rewrite module, creates "upacip-frontend" site with "No Managed Code" app pool, HTTPS binding on port 443, and HTTP-to-HTTPS redirect rule
+- [x] Disable TLS 1.0 and TLS 1.1 via registry settings in the setup script (`HKLM:\SYSTEM\CurrentControlSet\Control\SecurityProviders\SCHANNEL\Protocols`)
+- [x] Create `scripts/setup-certificates.ps1` that installs win-acme, requests Let's Encrypt certificate for the domain, binds to IIS site, exports PFX to `C:\Certificates\`, and configures win-acme auto-renewal
+- [x] Create `scripts/renew-certificates.ps1` that invokes `wacs.exe --renew`, copies updated PFX to Kestrel certificate path, and restarts the "UPACIP.Api" Windows Service
+- [x] Update `appsettings.json` with `Kestrel:Endpoints:Https:Certificate:Path` and `Password` (password in user secrets) and set `SslProtocols = Tls12 | Tls13` in `Program.cs`
+- [x] Register a daily Windows Task Scheduler job running `scripts\renew-certificates.ps1` under a service account with Administrator privileges

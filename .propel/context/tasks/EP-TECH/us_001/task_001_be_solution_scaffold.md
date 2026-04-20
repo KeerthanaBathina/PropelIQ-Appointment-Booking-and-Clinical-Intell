@@ -125,20 +125,20 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build UPACIP.sln` completes with zero errors and zero warnings
-- [ ] `dotnet run` starts Kestrel and serves the API on configured port
-- [ ] Navigating to `/swagger` loads Swagger UI with OpenAPI 3.0 documentation
-- [ ] Swagger UI displays registered controller endpoints
-- [ ] Solution structure shows three separate projects (Api, Service, DataAccess)
-- [ ] Project references follow Presentation → Service → Data Access dependency direction
-- [ ] `scripts/check-sdk.ps1` correctly detects .NET 8 SDK presence/absence
+- [x] `dotnet build UPACIP.sln` completes with zero errors and zero warnings
+- [x] `dotnet run` starts Kestrel and serves the API on configured port
+- [x] Navigating to `/swagger` loads Swagger UI with OpenAPI 3.0 documentation
+- [x] Swagger UI displays registered controller endpoints
+- [x] Solution structure shows three separate projects (Api, Service, DataAccess)
+- [x] Project references follow Presentation → Service → Data Access dependency direction
+- [x] `scripts/check-sdk.ps1` correctly detects .NET 8 SDK presence/absence
 
 ## Implementation Checklist
 
-- [ ] Create .NET 8 solution file (`UPACIP.sln`) in repository root
-- [ ] Create ASP.NET Core Web API project (`src/UPACIP.Api/`) targeting `net8.0`
-- [ ] Create Service layer class library (`src/UPACIP.Service/`) targeting `net8.0`
-- [ ] Create Data Access layer class library (`src/UPACIP.DataAccess/`) targeting `net8.0`
-- [ ] Add project references: Api → Service, Service → DataAccess
-- [ ] Configure `Program.cs` with `AddControllers`, `AddEndpointsApiExplorer`, `AddSwaggerGen` (OpenAPI 3.0 info metadata), `UseSwagger`, `UseSwaggerUI`, and `UseHttpsRedirection`
-- [ ] Create `scripts/check-sdk.ps1` that validates .NET 8 SDK is installed and prints installation URL if missing
+- [x] Create .NET 8 solution file (`UPACIP.sln`) in repository root
+- [x] Create ASP.NET Core Web API project (`src/UPACIP.Api/`) targeting `net8.0`
+- [x] Create Service layer class library (`src/UPACIP.Service/`) targeting `net8.0`
+- [x] Create Data Access layer class library (`src/UPACIP.DataAccess/`) targeting `net8.0`
+- [x] Add project references: Api → Service, Service → DataAccess
+- [x] Configure `Program.cs` with `AddControllers`, `AddEndpointsApiExplorer`, `AddSwaggerGen` (OpenAPI 3.0 info metadata), `UseSwagger`, `UseSwaggerUI`, and `UseHttpsRedirection`
+- [x] Create `scripts/check-sdk.ps1` that validates .NET 8 SDK is installed and prints installation URL if missing

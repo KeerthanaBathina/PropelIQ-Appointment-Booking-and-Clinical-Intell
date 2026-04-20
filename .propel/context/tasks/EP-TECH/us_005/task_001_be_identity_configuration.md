@@ -150,20 +150,20 @@ psql -h localhost -p 5432 -U upacip_app -d upacip -c "SELECT * FROM asp_net_role
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors and zero warnings
-- [ ] `dotnet ef migrations add` generates Identity schema migration without errors
-- [ ] `dotnet ef database update` creates Identity tables in PostgreSQL
-- [ ] Three roles (Patient, Staff, Admin) exist in the roles table after migration
-- [ ] Password hashing uses bcrypt with work factor 10 (verify by inspecting hash prefix `$2a$10$`)
-- [ ] Plaintext passwords are never stored in the database
-- [ ] Lockout activates after 5 failed login attempts for 30 minutes
+- [x] `dotnet build` completes with zero errors and zero warnings
+- [x] `dotnet ef migrations add` generates Identity schema migration without errors
+- [x] `dotnet ef database update` creates Identity tables in PostgreSQL
+- [x] Three roles (Patient, Staff, Admin) exist in the roles table after migration
+- [x] Password hashing uses bcrypt with work factor 10 (verify by inspecting hash prefix `$2a$10$`)
+- [x] Plaintext passwords are never stored in the database
+- [x] Lockout activates after 5 failed login attempts for 30 minutes
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 8.x to `UPACIP.DataAccess.csproj`
-- [ ] Create `src/UPACIP.DataAccess/Entities/ApplicationUser.cs` extending `IdentityUser<Guid>` with `FullName`, `DateOfBirth`, `CreatedAt`, `UpdatedAt`, `DeletedAt` properties
-- [ ] Create `src/UPACIP.DataAccess/Entities/ApplicationRole.cs` extending `IdentityRole<Guid>` with `Description` property
-- [ ] Update `ApplicationDbContext` to inherit `IdentityDbContext<ApplicationUser, ApplicationRole, Guid>`, configure table naming, and seed Patient/Staff/Admin roles with stable GUIDs
-- [ ] Add `BCrypt.Net-Next` NuGet to `UPACIP.Api.csproj` and create `Security/BcryptPasswordHasher.cs` implementing `IPasswordHasher<ApplicationUser>` with work factor 10
-- [ ] Register Identity in `Program.cs` with `AddIdentity`, EF stores, password policy (8+ chars, upper, lower, digit, special), lockout (5 attempts / 30 min), unique email, and custom bcrypt hasher
-- [ ] Run `dotnet ef migrations add AddIdentitySchema` and `dotnet ef database update` to create Identity tables and seed roles
+- [x] Add `Microsoft.AspNetCore.Identity.EntityFrameworkCore` 8.x to `UPACIP.DataAccess.csproj`
+- [x] Create `src/UPACIP.DataAccess/Entities/ApplicationUser.cs` extending `IdentityUser<Guid>` with `FullName`, `DateOfBirth`, `CreatedAt`, `UpdatedAt`, `DeletedAt` properties
+- [x] Create `src/UPACIP.DataAccess/Entities/ApplicationRole.cs` extending `IdentityRole<Guid>` with `Description` property
+- [x] Update `ApplicationDbContext` to inherit `IdentityDbContext<ApplicationUser, ApplicationRole, Guid>`, configure table naming, and seed Patient/Staff/Admin roles with stable GUIDs
+- [x] Add `BCrypt.Net-Next` NuGet to `UPACIP.Api.csproj` and create `Security/BcryptPasswordHasher.cs` implementing `IPasswordHasher<ApplicationUser>` with work factor 10
+- [x] Register Identity in `Program.cs` with `AddIdentity`, EF stores, password policy (8+ chars, upper, lower, digit, special), lockout (5 attempts / 30 min), unique email, and custom bcrypt hasher
+- [x] Run `dotnet ef migrations add AddIdentitySchema` and `dotnet ef database update` to create Identity tables and seed roles

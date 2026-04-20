@@ -186,19 +186,19 @@ psql -U upacip_app -d upacip -c "SELECT COUNT(*) FROM patients;"
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors
-- [ ] `dotnet ef migrations add SeedDefaultRoles` generates migration with `HasData()` for 3 roles
-- [ ] `dotnet run -- --seed` executes seed script and exits without starting the web server
+- [x] `dotnet build` completes with zero errors
+- [x] `dotnet ef migrations add SeedDefaultRoles` generates migration with `HasData()` for 3 roles
+- [x] `dotnet run -- --seed` executes seed script and exits without starting the web server
 - [ ] `dotnet run -- --seed` in Production environment logs warning and does NOT execute SQL seed data
-- [ ] Roles (Admin, Staff, Patient) exist after migration in all environments (including Production)
-- [ ] Running `dotnet run -- --seed` twice produces identical data counts (idempotent)
-- [ ] Application starts normally without `--seed` flag (no seeding occurs on regular startup)
+- [x] Roles (Admin, Staff, Patient) exist after migration in all environments (including Production)
+- [x] Running `dotnet run -- --seed` twice produces identical data counts (idempotent)
+- [x] Application starts normally without `--seed` flag (no seeding occurs on regular startup)
 
 ## Implementation Checklist
 
-- [ ] Create `IDataSeeder` interface in `src/UPACIP.DataAccess/Seeding/` with `Task SeedAsync(CancellationToken)` method
-- [ ] Create `SqlFileDataSeeder` that reads `scripts/seed-data.sql`, checks `IsProduction()`, and executes via raw `NpgsqlConnection` within a transaction
-- [ ] Create `RoleSeedConfiguration` with `HasData()` seeding 3 default roles (Admin, Staff, Patient) using deterministic GUIDs
-- [ ] Register `IDataSeeder` in DI and add `--seed` CLI argument handler in `Program.cs` that invokes seeder and exits
-- [ ] Generate `SeedDefaultRoles` migration and verify it creates role records in migration `Up()` method
-- [ ] Update `scripts/seed-database.ps1` to support both psql direct and `dotnet run -- --seed` invocation paths
+- [x] Create `IDataSeeder` interface in `src/UPACIP.DataAccess/Seeding/` with `Task SeedAsync(CancellationToken)` method
+- [x] Create `SqlFileDataSeeder` that reads `scripts/seed-data.sql`, checks `IsProduction()`, and executes via raw `NpgsqlConnection` within a transaction
+- [x] Create `RoleSeedConfiguration` with `HasData()` seeding 3 default roles (Admin, Staff, Patient) using deterministic GUIDs
+- [x] Register `IDataSeeder` in DI and add `--seed` CLI argument handler in `Program.cs` that invokes seeder and exits
+- [x] Generate `SeedDefaultRoles` migration and verify it creates role records in migration `Up()` method
+- [x] Update `scripts/seed-database.ps1` to support both psql direct and `dotnet run -- --seed` invocation paths

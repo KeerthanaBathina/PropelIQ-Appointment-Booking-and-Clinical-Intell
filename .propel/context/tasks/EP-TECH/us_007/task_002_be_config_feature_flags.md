@@ -156,22 +156,22 @@ curl -s -o NUL -w "%{http_code}" http://localhost:5000/api/ai/document-parse
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors after adding FeatureManagement package
+- [x] `dotnet build` completes with zero errors after adding FeatureManagement package
 - [ ] Changing a value in `appsettings.json` (e.g., log level) is reflected in the running application without restart
 - [ ] Feature flag set to `true` allows endpoint access (returns expected response)
 - [ ] Feature flag set to `false` returns 404 Not Found (or custom feature-disabled message)
 - [ ] Toggling a feature flag in `appsettings.json` while app is running takes effect without restart
 - [ ] Application logs a validation error and fails to start when a `[Required]` configuration value is missing
 - [ ] Malformed configuration values (e.g., non-numeric port) are caught at startup with descriptive error log
-- [ ] `FeatureFlags.cs` constants match the keys in `appsettings.json` `FeatureManagement` section
+- [x] `FeatureFlags.cs` constants match the keys in `appsettings.json` `FeatureManagement` section
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.FeatureManagement.AspNetCore` 3.x to `UPACIP.Api.csproj`
-- [ ] Confirm `reloadOnChange: true` is set for `appsettings.json` and environment-specific override files in `Program.cs`
-- [ ] Create `Configuration/AppSettings.cs` with strongly-typed sections and `[Required]` annotations, register with `AddOptionsWithValidateOnStart<AppSettings>()`
-- [ ] Register feature management services via `builder.Services.AddFeatureManagement()` in `Program.cs`
-- [ ] Create `Configuration/FeatureFlags.cs` with `const string` entries for each feature flag name
-- [ ] Add `FeatureManagement` section to `appsettings.json` with initial flags (AiDocumentParsing: false, SmsNotifications: false, ConversationalIntake: false, WaitlistManagement: true)
-- [ ] Apply `[FeatureGate]` attribute example on a sample controller action and verify 404 behavior when flag is disabled
-- [ ] Implement `IDisabledFeaturesHandler` to return a JSON `{ "error": "Feature is currently disabled" }` response instead of bare 404
+- [x] Add `Microsoft.FeatureManagement.AspNetCore` 3.x to `UPACIP.Api.csproj`
+- [x] Confirm `reloadOnChange: true` is set for `appsettings.json` and environment-specific override files in `Program.cs`
+- [x] Create `Configuration/AppSettings.cs` with strongly-typed sections and `[Required]` annotations, register with `AddOptionsWithValidateOnStart<AppSettings>()`
+- [x] Register feature management services via `builder.Services.AddFeatureManagement()` in `Program.cs`
+- [x] Create `Configuration/FeatureFlags.cs` with `const string` entries for each feature flag name
+- [x] Add `FeatureManagement` section to `appsettings.json` with initial flags (AiDocumentParsing: false, SmsNotifications: false, ConversationalIntake: false, WaitlistManagement: true)
+- [x] Apply `[FeatureGate]` attribute example on a sample controller action and verify 404 behavior when flag is disabled
+- [x] Implement `IDisabledFeaturesHandler` to return a JSON `{ "error": "Feature is currently disabled" }` response instead of bare 404

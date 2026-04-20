@@ -169,22 +169,22 @@ curl -X POST https://localhost:{port}/api/auth/logout --cookie "refreshToken={to
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors and zero warnings
-- [ ] `POST /api/auth/login` with valid credentials returns a JWT access token in the response body
-- [ ] `POST /api/auth/login` sets a refresh token as an HttpOnly, Secure, SameSite=Strict cookie
-- [ ] Decoded JWT contains `sub` (user ID), `email`, `role`, and `jti` claims
-- [ ] Access token expires after 15 minutes (verify with token decode)
-- [ ] `POST /api/auth/refresh` with valid refresh token cookie returns new access token without re-authentication
-- [ ] `POST /api/auth/refresh` with expired refresh token returns 401 with "Session expired. Please log in again."
-- [ ] `POST /api/auth/logout` blacklists refresh token — subsequent refresh attempt returns 401
-- [ ] JWT signing key is not hardcoded in appsettings.json (loaded from user secrets or environment variable)
+- [x] `dotnet build` completes with zero errors and zero warnings
+- [x] `POST /api/auth/login` with valid credentials returns a JWT access token in the response body
+- [x] `POST /api/auth/login` sets a refresh token as an HttpOnly, Secure, SameSite=Strict cookie
+- [x] Decoded JWT contains `sub` (user ID), `email`, `role`, and `jti` claims
+- [x] Access token expires after 15 minutes (verify with token decode)
+- [x] `POST /api/auth/refresh` with valid refresh token cookie returns new access token without re-authentication
+- [x] `POST /api/auth/refresh` with expired refresh token returns 401 with "Session expired. Please log in again."
+- [x] `POST /api/auth/logout` blacklists refresh token — subsequent refresh attempt returns 401
+- [x] JWT signing key is not hardcoded in appsettings.json (loaded from user secrets or environment variable)
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.AspNetCore.Authentication.JwtBearer` 8.x NuGet package to `UPACIP.Api.csproj`
-- [ ] Create `src/UPACIP.Service/Auth/JwtSettings.cs` with Issuer, Audience, SigningKey, AccessTokenExpiryMinutes (15), RefreshTokenExpiryDays (7)
-- [ ] Create `src/UPACIP.Service/Auth/ITokenService.cs` and `TokenService.cs` with JWT generation (sub, email, role, jti claims, HmacSha256), refresh token generation (RandomNumberGenerator 64 bytes), and Redis blacklist integration via ICacheService
-- [ ] Create `src/UPACIP.Api/Controllers/AuthController.cs` with login (credential validation via SignInManager, token issuance), refresh (cookie read, blacklist check, new token pair), and logout (blacklist in Redis, clear cookie) endpoints
-- [ ] Register `AddAuthentication` + `AddJwtBearer` in `Program.cs` with `TokenValidationParameters` (validate issuer, audience, signing key, expiration, zero clock skew) and bind `JwtSettings` from configuration
-- [ ] Add `UseAuthentication()` and `UseAuthorization()` to the middleware pipeline after CORS and before endpoint mapping
-- [ ] Add `JwtSettings` section to `appsettings.json` and store the signing key in user secrets (minimum 256-bit key for HMAC-SHA256)
+- [x] Add `Microsoft.AspNetCore.Authentication.JwtBearer` 8.x NuGet package to `UPACIP.Api.csproj`
+- [x] Create `src/UPACIP.Service/Auth/JwtSettings.cs` with Issuer, Audience, SigningKey, AccessTokenExpiryMinutes (15), RefreshTokenExpiryDays (7)
+- [x] Create `src/UPACIP.Service/Auth/ITokenService.cs` and `TokenService.cs` with JWT generation (sub, email, role, jti claims, HmacSha256), refresh token generation (RandomNumberGenerator 64 bytes), and Redis blacklist integration via ICacheService
+- [x] Create `src/UPACIP.Api/Controllers/AuthController.cs` with login (credential validation via SignInManager, token issuance), refresh (cookie read, blacklist check, new token pair), and logout (blacklist in Redis, clear cookie) endpoints
+- [x] Register `AddAuthentication` + `AddJwtBearer` in `Program.cs` with `TokenValidationParameters` (validate issuer, audience, signing key, expiration, zero clock skew) and bind `JwtSettings` from configuration
+- [x] Add `UseAuthentication()` and `UseAuthorization()` to the middleware pipeline after CORS and before endpoint mapping
+- [x] Add `JwtSettings` section to `appsettings.json` and store the signing key in user secrets (minimum 256-bit key for HMAC-SHA256)

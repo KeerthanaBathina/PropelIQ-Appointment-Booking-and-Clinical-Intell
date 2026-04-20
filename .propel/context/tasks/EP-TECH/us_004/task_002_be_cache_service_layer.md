@@ -141,20 +141,20 @@ curl -i https://localhost:{port}/weatherforecast
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors and zero warnings after adding Polly and caching abstractions
-- [ ] `ICacheService.GetOrSetAsync` returns data from cache on second call (cache hit)
-- [ ] Cache entries expire after 5 minutes (default TTL) — subsequent request fetches fresh data
-- [ ] When Redis is stopped, API requests still succeed (fallback to database) and a warning is logged
-- [ ] Circuit breaker opens after 3 consecutive Redis failures — subsequent cache calls bypass Redis immediately
-- [ ] Circuit breaker half-opens after 30 seconds and retries Redis connection
-- [ ] No unhandled exceptions propagate to the caller from cache operations
+- [x] `dotnet build` completes with zero errors and zero warnings after adding Polly and caching abstractions
+- [x] `ICacheService.GetOrSetAsync` returns data from cache on second call (cache hit)
+- [x] Cache entries expire after 5 minutes (default TTL) — subsequent request fetches fresh data
+- [x] When Redis is stopped, API requests still succeed (fallback to database) and a warning is logged
+- [x] Circuit breaker opens after 3 consecutive Redis failures — subsequent cache calls bypass Redis immediately
+- [x] Circuit breaker half-opens after 30 seconds and retries Redis connection
+- [x] No unhandled exceptions propagate to the caller from cache operations
 
 ## Implementation Checklist
 
-- [ ] Add `Microsoft.Extensions.Caching.Abstractions` 8.x and `Polly` 8.x NuGet packages to `UPACIP.Service.csproj`
-- [ ] Create `src/UPACIP.Service/Caching/ICacheService.cs` with generic methods: `GetAsync<T>`, `SetAsync<T>`, `RemoveAsync`, `GetOrSetAsync<T>`
-- [ ] Create `src/UPACIP.Service/Caching/RedisCacheService.cs` implementing `ICacheService` with `System.Text.Json` serialization, 5-minute default sliding expiration, and cache-aside pattern in `GetOrSetAsync`
-- [ ] Wrap all `IDistributedCache` calls in a Polly `CircuitBreakerAsync` policy configured with 3 exceptions before breaking and 30-second duration of break
-- [ ] Handle `RedisConnectionException`, `RedisTimeoutException`, and `BrokenCircuitException` by logging a warning and falling through to the factory/null — never propagate cache errors to callers
-- [ ] Register `ICacheService` as singleton `RedisCacheService` in `Program.cs`
-- [ ] Verify end-to-end by adding a cache-aside call in `WeatherForecastController` and confirming cache hit on repeated requests
+- [x] Add `Microsoft.Extensions.Caching.Abstractions` 8.x and `Polly` 8.x NuGet packages to `UPACIP.Service.csproj`
+- [x] Create `src/UPACIP.Service/Caching/ICacheService.cs` with generic methods: `GetAsync<T>`, `SetAsync<T>`, `RemoveAsync`, `GetOrSetAsync<T>`
+- [x] Create `src/UPACIP.Service/Caching/RedisCacheService.cs` implementing `ICacheService` with `System.Text.Json` serialization, 5-minute default sliding expiration, and cache-aside pattern in `GetOrSetAsync`
+- [x] Wrap all `IDistributedCache` calls in a Polly `CircuitBreakerAsync` policy configured with 3 exceptions before breaking and 30-second duration of break
+- [x] Handle `RedisConnectionException`, `RedisTimeoutException`, and `BrokenCircuitException` by logging a warning and falling through to the factory/null — never propagate cache errors to callers
+- [x] Register `ICacheService` as singleton `RedisCacheService` in `Program.cs`
+- [x] Verify end-to-end by adding a cache-aside call in `WeatherForecastController` and confirming cache hit on repeated requests

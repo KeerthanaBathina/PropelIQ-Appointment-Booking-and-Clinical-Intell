@@ -152,20 +152,20 @@ Measure-Command { Invoke-WebRequest -Uri http://localhost:5000/health -UseBasicP
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors after adding health check packages
-- [ ] GET `/health` returns 200 OK with JSON `{ "status": "Healthy" }` when the app is running
-- [ ] GET `/health` does NOT probe database or Redis (returns immediately)
+- [x] `dotnet build` completes with zero errors after adding health check packages
+- [x] GET `/health` returns 200 OK with JSON `{ "status": "Healthy" }` when the app is running
+- [x] GET `/health` does NOT probe database or Redis (returns immediately)
 - [ ] GET `/ready` returns 200 OK with JSON details when database and Redis are both healthy
 - [ ] GET `/ready` returns 503 Service Unavailable when database is unreachable, with `"database": "Unhealthy"` in response
-- [ ] GET `/ready` returns 503 Service Unavailable when Redis is unreachable, with `"redis": "Unhealthy"` in response
-- [ ] Both endpoints respond within 500ms under normal conditions
-- [ ] Both endpoints are accessible without authentication (anonymous)
+- [x] GET `/ready` returns 503 Service Unavailable when Redis is unreachable, with `"redis": "Unhealthy"` in response
+- [x] Both endpoints respond within 500ms under normal conditions
+- [x] Both endpoints are accessible without authentication (anonymous)
 
 ## Implementation Checklist
 
-- [ ] Add `AspNetCore.HealthChecks.NpgSql` 8.x, `AspNetCore.HealthChecks.Redis` 8.x, and `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore` 8.x to `UPACIP.Api.csproj`
-- [ ] Register health check services in `Program.cs` with `AddHealthChecks()`, chain `AddDbContextCheck<ApplicationDbContext>` (tag: "ready") and `AddRedis` (tag: "ready") with 3-second timeouts
-- [ ] Create `HealthChecks/HealthCheckResponseWriter.cs` with `WriteAsync` method that serializes `HealthReport` to JSON with `status`, `totalDuration`, and per-entry details using `System.Text.Json`
-- [ ] Map `/health` liveness endpoint with `Predicate = _ => false` (no dependency probes) and custom response writer
-- [ ] Map `/ready` readiness endpoint filtering to `"ready"` tag, returning 503 for Unhealthy status, with custom response writer
-- [ ] Ensure both endpoints allow anonymous access (`.AllowAnonymous()`)
+- [x] Add `AspNetCore.HealthChecks.NpgSql` 8.x, `AspNetCore.HealthChecks.Redis` 8.x, and `Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore` 8.x to `UPACIP.Api.csproj`
+- [x] Register health check services in `Program.cs` with `AddHealthChecks()`, chain `AddDbContextCheck<ApplicationDbContext>` (tag: "ready") and `AddRedis` (tag: "ready") with 3-second timeouts
+- [x] Create `HealthChecks/HealthCheckResponseWriter.cs` with `WriteAsync` method that serializes `HealthReport` to JSON with `status`, `totalDuration`, and per-entry details using `System.Text.Json`
+- [x] Map `/health` liveness endpoint with `Predicate = _ => false` (no dependency probes) and custom response writer
+- [x] Map `/ready` readiness endpoint filtering to `"ready"` tag, returning 503 for Unhealthy status, with custom response writer
+- [x] Ensure both endpoints allow anonymous access (`.AllowAnonymous()`)

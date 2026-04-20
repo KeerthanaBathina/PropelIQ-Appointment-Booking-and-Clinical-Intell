@@ -190,22 +190,22 @@ dotnet ef database update 0 --project src/UPACIP.DataAccess --startup-project sr
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors after adding all configurations
-- [ ] `dotnet ef migrations add CreateDomainEntities` generates a migration without errors
-- [ ] Generated migration DDL creates all 10 tables: patients, appointments, intake_data, clinical_documents, extracted_data, medical_codes, audit_logs, queue_entries, notification_logs (+ existing identity tables for users)
-- [ ] `Appointment.Version` is configured as concurrency token — concurrent updates throw `DbUpdateConcurrencyException`
-- [ ] `Patient` global query filter excludes records where `DeletedAt` is not null from default queries
+- [x] `dotnet build` completes with zero errors after adding all configurations
+- [x] `dotnet ef migrations add CreateDomainEntities` generates a migration without errors
+- [x] Generated migration DDL creates all 10 tables: patients, appointments, intake_data, clinical_documents, extracted_data, medical_codes, audit_logs, queue_entries, notification_logs (+ existing identity tables for users)
+- [x] `Appointment.Version` is configured as concurrency token — concurrent updates throw `DbUpdateConcurrencyException`
+- [x] `Patient` global query filter excludes records where `DeletedAt` is not null from default queries
 - [ ] `IgnoreQueryFilters()` returns soft-deleted Patient records
-- [ ] JSONB columns (preferred_slot_criteria, mandatory_fields, optional_fields, insurance_info, data_content) store valid JSON in PostgreSQL
-- [ ] All enum columns store string values (e.g., "Scheduled", "Completed") not integer ordinals
+- [x] JSONB columns (preferred_slot_criteria, mandatory_fields, optional_fields, insurance_info, data_content) store valid JSON in PostgreSQL
+- [x] All enum columns store string values (e.g., "Scheduled", "Completed") not integer ordinals
 
 ## Implementation Checklist
 
-- [ ] Create `PatientConfiguration` implementing `IEntityTypeConfiguration<Patient>` with unique email index and `HasQueryFilter(p => p.DeletedAt == null)` soft delete global query filter
-- [ ] Create `AppointmentConfiguration` with `IsConcurrencyToken()` on `Version`, `OwnsOne(a => a.PreferredSlotCriteria, b => b.ToJson())` for JSONB, and `HasConversion<string>()` on `Status` enum
-- [ ] Create `IntakeDataConfiguration` with `OwnsOne(...).ToJson()` for `MandatoryFields`, `OptionalFields`, `InsuranceInfo` JSONB columns and `HasConversion<string>()` on `IntakeMethod`
-- [ ] Create `ClinicalDocumentConfiguration` and `ExtractedDataConfiguration` with FK constraints, enum-to-string conversions, and `OwnsOne(e => e.DataContent, b => b.ToJson())` for JSONB
-- [ ] Create `MedicalCodeConfiguration`, `AuditLogConfiguration`, `QueueEntryConfiguration`, `NotificationLogConfiguration` with enum-to-string conversions, indexes, and FK constraints
-- [ ] Register all `DbSet<T>` properties on `ApplicationDbContext` and call `ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly())` in `OnModelCreating`
-- [ ] Generate migration via `dotnet ef migrations add CreateDomainEntities` and verify DDL creates all 10 tables with correct columns, constraints, and indexes
-- [ ] Validate migration `Down()` method provides rollback capability and generated SQL script is reviewable via `dotnet ef migrations script`
+- [x] Create `PatientConfiguration` implementing `IEntityTypeConfiguration<Patient>` with unique email index and `HasQueryFilter(p => p.DeletedAt == null)` soft delete global query filter
+- [x] Create `AppointmentConfiguration` with `IsConcurrencyToken()` on `Version`, `OwnsOne(a => a.PreferredSlotCriteria, b => b.ToJson())` for JSONB, and `HasConversion<string>()` on `Status` enum
+- [x] Create `IntakeDataConfiguration` with `OwnsOne(...).ToJson()` for `MandatoryFields`, `OptionalFields`, `InsuranceInfo` JSONB columns and `HasConversion<string>()` on `IntakeMethod`
+- [x] Create `ClinicalDocumentConfiguration` and `ExtractedDataConfiguration` with FK constraints, enum-to-string conversions, and `OwnsOne(e => e.DataContent, b => b.ToJson())` for JSONB
+- [x] Create `MedicalCodeConfiguration`, `AuditLogConfiguration`, `QueueEntryConfiguration`, `NotificationLogConfiguration` with enum-to-string conversions, indexes, and FK constraints
+- [x] Register all `DbSet<T>` properties on `ApplicationDbContext` and call `ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly())` in `OnModelCreating`
+- [x] Generate migration via `dotnet ef migrations add CreateDomainEntities` and verify DDL creates all 10 tables with correct columns, constraints, and indexes
+- [x] Validate migration `Down()` method provides rollback capability and generated SQL script is reviewable via `dotnet ef migrations script`
