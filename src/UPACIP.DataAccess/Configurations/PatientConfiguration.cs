@@ -37,6 +37,21 @@ public sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.DeletedAt)
             .IsRequired(false);
 
+        // Auto-swap control fields (US_021, AC-3) — safe defaults keep all existing patients eligible.
+        builder.Property(p => p.AutoSwapEnabled)
+            .IsRequired()
+            .HasDefaultValue(true);
+
+        builder.Property(p => p.AutoSwapDisabledReason)
+            .HasMaxLength(500)
+            .IsRequired(false);
+
+        builder.Property(p => p.AutoSwapDisabledAtUtc)
+            .IsRequired(false);
+
+        builder.Property(p => p.AutoSwapDisabledByUserId)
+            .IsRequired(false);
+
         // Soft-delete global query filter — excludes logically deleted patients from all queries
         // unless .IgnoreQueryFilters() is explicitly called (e.g. admin dashboards, audit views).
         builder.HasQueryFilter(p => p.DeletedAt == null);

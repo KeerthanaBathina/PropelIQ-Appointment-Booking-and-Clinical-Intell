@@ -380,6 +380,39 @@ builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 // Appointment slot service — slot availability queries with Redis cache-aside (US_017 AC-1, AC-4).
 builder.Services.AddScoped<IAppointmentSlotService, AppointmentSlotService>();
 
+// Slot hold service — Redis-backed 60-second TTL slot reservation (US_018 AC-3).
+builder.Services.AddScoped<ISlotHoldService, SlotHoldService>();
+
+// Appointment booking service — optimistic-locking booking with Polly retry (US_018 AC-1, EC-1).
+builder.Services.AddScoped<IAppointmentBookingService, AppointmentBookingService>();
+
+// Appointment cancellation service — 24-hour UTC policy, slot release, audit log (US_019 AC-1–AC-4).
+builder.Services.AddScoped<IAppointmentCancellationService, AppointmentCancellationService>();
+
+// Waitlist orchestration — registration, offer dispatch, and claim-link redemption (US_020).
+// WaitlistOfferProcessor is registered as both IWaitlistOfferQueue (singleton) and IHostedService
+// so the same channel instance is shared between the cancellation enqueue path and the processor.
+builder.Services.AddSingleton<WaitlistOfferProcessor>();
+builder.Services.AddSingleton<IWaitlistOfferQueue>(sp => sp.GetRequiredService<WaitlistOfferProcessor>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<WaitlistOfferProcessor>());
+builder.Services.AddScoped<IWaitlistService, WaitlistService>();
+
+// Preferred-slot swap engine (US_021) — evaluates freed slots against waiting patients'
+// preferred criteria and auto-swaps or sends manual confirmation offers.
+builder.Services.AddSingleton<PreferredSlotSwapProcessor>();
+builder.Services.AddSingleton<IPreferredSlotSwapQueue>(sp => sp.GetRequiredService<PreferredSlotSwapProcessor>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<PreferredSlotSwapProcessor>());
+builder.Services.AddScoped<IPreferredSlotSwapService, PreferredSlotSwapService>();
+
+// Walk-in registration (US_022) — staff-only same-day booking with queue insertion.
+builder.Services.AddScoped<IWalkInRegistrationService, WalkInRegistrationService>();
+
+// Patient appointment rescheduling (US_023) — atomic slot swap with rule enforcement.
+builder.Services.AddScoped<IAppointmentReschedulingService, AppointmentReschedulingService>();
+
+// Patient appointment history (US_024) — paginated history with sort and all-status visibility.
+builder.Services.AddScoped<IAppointmentHistoryService, AppointmentHistoryService>();
+
 // ASP.NET Core built-in rate limiting (Microsoft.AspNetCore.RateLimiting — included in .NET 7+).
 // Policy "check-email-limit": 30 req/min per IP — anti-enumeration guard (OWASP A07).
 // The resend-verification endpoint uses application-level Redis rate limiting inside

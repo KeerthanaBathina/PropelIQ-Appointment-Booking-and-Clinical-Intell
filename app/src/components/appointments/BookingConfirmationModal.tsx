@@ -18,6 +18,8 @@
  * @param onCancel         - Called when patient clicks "Cancel" or closes dialog
  * @param isLoading        - True while booking API is in-flight
  * @param bookingError     - Optional error string to show (503 or generic)
+ * @param isWaitlistOffer  - US_020 AC-3: true when slot was offered via waitlist notification
+ * @param offerWithin24Hours - US_020 EC-2: true when offered slot is < 24 h from now
  */
 
 import Alert from '@mui/material/Alert';
@@ -62,6 +64,10 @@ interface Props {
   onCancel: () => void;
   isLoading: boolean;
   bookingError?: string | null;
+  /** US_020 AC-3: true when slot was surfaced via a waitlist notification link. */
+  isWaitlistOffer?: boolean;
+  /** US_020 EC-2: true when offered slot starts within 24 hours of now. */
+  offerWithin24Hours?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -75,6 +81,8 @@ export default function BookingConfirmationModal({
   onCancel,
   isLoading,
   bookingError,
+  isWaitlistOffer = false,
+  offerWithin24Hours = false,
 }: Props) {
   const showCountdown = secondsRemaining > 0;
   const urgentCountdown = secondsRemaining > 0 && secondsRemaining <= 15;
@@ -90,6 +98,19 @@ export default function BookingConfirmationModal({
       <DialogTitle id="confirm-modal-title">Confirm Appointment</DialogTitle>
 
       <DialogContent>
+        {/* US_020 AC-3: waitlist offer banner */}
+        {isWaitlistOffer && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            This slot was offered from your waitlist — book now to secure your appointment.
+          </Alert>
+        )}
+
+        {/* US_020 EC-2: within-24h notice (informational only, does not block booking) */}
+        {isWaitlistOffer && offerWithin24Hours && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            This appointment is within 24 hours. Please confirm promptly.
+          </Alert>
+        )}
         {slot && (
           <Box>
             <Typography variant="body2" sx={{ mb: 1 }}>

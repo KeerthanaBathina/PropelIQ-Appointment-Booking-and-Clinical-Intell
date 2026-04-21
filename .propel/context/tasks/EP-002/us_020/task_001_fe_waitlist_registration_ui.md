@@ -155,12 +155,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Add a Join Waitlist CTA to the SCR-006 fully-booked empty state and open a confirmation dialog with the selected criteria
-- [ ] Implement `JoinWaitlistDialog` and `useJoinWaitlist` for registration success, duplicate registration handling, and recoverable error states
-- [ ] Show a post-registration confirmation state that summarizes the active waitlist criteria and clarifies persistence of the entry
-- [ ] Support notification-link entry on the booking page and exchange the claim token for a held slot before showing booking confirmation
-- [ ] Reuse the existing 60-second hold UX for waitlist offers, including countdown expiry and actionable error messaging
-- [ ] Highlight when an offered slot is within 24 hours without blocking booking from the notification link
-- [ ] Validate keyboard navigation, focus order, and accessible announcements for the dialog and countdown states
+- [x] Add a Join Waitlist CTA to the SCR-006 fully-booked empty state and open a confirmation dialog with the selected criteria
+- [x] Implement `JoinWaitlistDialog` and `useJoinWaitlist` for registration success, duplicate registration handling, and recoverable error states
+- [x] Show a post-registration confirmation state that summarizes the active waitlist criteria and clarifies persistence of the entry
+- [x] Support notification-link entry on the booking page and exchange the claim token for a held slot before showing booking confirmation
+- [x] Reuse the existing 60-second hold UX for waitlist offers, including countdown expiry and actionable error messaging
+- [x] Highlight when an offered slot is within 24 hours without blocking booking from the notification link
+- [x] Validate keyboard navigation, focus order, and accessible announcements for the dialog and countdown states
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

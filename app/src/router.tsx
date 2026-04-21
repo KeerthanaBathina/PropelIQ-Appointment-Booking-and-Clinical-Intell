@@ -18,6 +18,7 @@ const PatientDashboard = lazy(() => import('@/pages/PatientDashboard'));
 const StaffDashboard = lazy(() => import('@/pages/StaffDashboard'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AppointmentBookingPage = lazy(() => import('@/pages/AppointmentBookingPage'));
+const AppointmentHistoryPage = lazy(() => import('@/pages/AppointmentHistoryPage'));
 
 function RouteLoadingFallback() {
   return (
@@ -65,6 +66,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['Patient']}>
               <AppointmentBookingPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* SCR-007 — Appointment History */}
+        <Route
+          path="/patient/appointments/history"
+          element={
+            <ProtectedRoute allowedRoles={['Patient']}>
+              <AppointmentHistoryPage />
             </ProtectedRoute>
           }
         />

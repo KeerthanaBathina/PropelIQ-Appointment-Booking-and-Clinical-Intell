@@ -13,6 +13,14 @@ public sealed class Appointment : BaseEntity
     /// <summary>FK to the owning <see cref="Patient"/>.</summary>
     public Guid PatientId { get; set; }
 
+    /// <summary>
+    /// Unique booking reference generated on creation (AC-4, US_018).
+    /// Format: BK-{YYYYMMDD}-{6-char-uppercase-alphanumeric} (e.g. BK-20260421-X7R2KP).
+    /// Null for walk-in appointments and appointments created before US_018 was deployed.
+    /// Max 20 characters: "BK-" (3) + "YYYYMMDD" (8) + "-" (1) + 6-char suffix (6) + 2 spare = 20.
+    /// </summary>
+    public string? BookingReference { get; set; }
+
     /// <summary>UTC date and time the appointment is scheduled to start.</summary>
     public DateTime AppointmentTime { get; set; }
 

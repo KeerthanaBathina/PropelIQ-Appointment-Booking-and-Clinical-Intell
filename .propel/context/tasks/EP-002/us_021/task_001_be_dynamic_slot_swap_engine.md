@@ -160,10 +160,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Build preferred-slot swap service logic that filters eligible appointments by preferred-slot match, auto-swap setting, and arrival state
-- [ ] Rank multiple eligible patients by longest wait time and lowest no-show risk score with deterministic tie-breaking
-- [ ] Skip automatic swap for slots opening within 24 hours and emit manual-confirmation notifications instead
-- [ ] Execute automatic swaps with optimistic locking, release the original slot, and retry the next eligible candidate on conflict
-- [ ] Invalidate slot availability cache entries for both the released and claimed slots within the swap flow
-- [ ] Send swap-complete notifications containing old and new appointment times and log all delivery outcomes
-- [ ] Record structured logs and audit entries for swaps, skips, conflicts, and manual-confirmation fallbacks
+- [x] Build preferred-slot swap service logic that filters eligible appointments by preferred-slot match, auto-swap setting, and arrival state
+- [x] Rank multiple eligible patients by longest wait time and lowest no-show risk score with deterministic tie-breaking
+- [x] Skip automatic swap for slots opening within 24 hours and emit manual-confirmation notifications instead
+- [x] Execute automatic swaps with optimistic locking, release the original slot, and retry the next eligible candidate on conflict
+- [x] Invalidate slot availability cache entries for both the released and claimed slots within the swap flow
+- [x] Send swap-complete notifications containing old and new appointment times and log all delivery outcomes
+- [x] Record structured logs and audit entries for swaps, skips, conflicts, and manual-confirmation fallbacks

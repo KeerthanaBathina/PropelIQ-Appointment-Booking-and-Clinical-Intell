@@ -130,9 +130,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add patient-level auto-swap control fields with safe defaults so existing accounts remain eligible unless staff disables the feature
-- [ ] Persist staff override reason, timestamp, and actor so skipped swaps are queryable and auditable
-- [ ] Add a JSONB index strategy for efficient matching on `preferred_slot_criteria`
-- [ ] Add indexes or mappings that support excluding `arrived` and `in-visit` appointments during swap evaluation
-- [ ] Extend notification typing support so auto-swap and manual-confirmation notifications can be differentiated if required by the code model
-- [ ] Verify migration defaults and constraints keep current booking behavior backward compatible
+- [x] Add patient-level auto-swap control fields with safe defaults so existing accounts remain eligible unless staff disables the feature
+- [x] Persist staff override reason, timestamp, and actor so skipped swaps are queryable and auditable
+- [x] Add a JSONB index strategy for efficient matching on `preferred_slot_criteria`
+- [x] Add indexes or mappings that support excluding `arrived` and `in-visit` appointments during swap evaluation
+- [x] Extend notification typing support so auto-swap and manual-confirmation notifications can be differentiated if required by the code model
+- [x] Verify migration defaults and constraints keep current booking behavior backward compatible

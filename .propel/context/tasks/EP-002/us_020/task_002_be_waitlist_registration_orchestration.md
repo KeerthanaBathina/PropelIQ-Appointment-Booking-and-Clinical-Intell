@@ -159,11 +159,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add waitlist registration request/response contracts and an authenticated API for joining the waitlist with preferred criteria
-- [ ] Implement waitlist registration logic that prevents duplicate active entries and preserves active status until explicit removal
-- [ ] Trigger waitlist matching when a slot becomes available and dispatch offers to all matching patients within 5 minutes
-- [ ] Use existing email and SMS integrations to send waitlist offers and record delivery outcomes per channel
-- [ ] Generate secure claim links and convert them into 60-second slot holds through the existing hold infrastructure
-- [ ] Route final booking confirmation through the existing optimistic booking flow so the first patient to confirm wins safely
-- [ ] Return explicit outcomes for expired, invalid, and already-claimed waitlist offer links
-- [ ] Add structured logging, audit events, and OpenAPI docs for registration, offer dispatch, and claim flows
+- [x] Add waitlist registration request/response contracts and an authenticated API for joining the waitlist with preferred criteria
+- [x] Implement waitlist registration logic that prevents duplicate active entries and preserves active status until explicit removal
+- [x] Trigger waitlist matching when a slot becomes available and dispatch offers to all matching patients within 5 minutes
+- [x] Use existing email and SMS integrations to send waitlist offers and record delivery outcomes per channel
+- [x] Generate secure claim links and convert them into 60-second slot holds through the existing hold infrastructure
+- [x] Route final booking confirmation through the existing optimistic booking flow so the first patient to confirm wins safely
+- [x] Return explicit outcomes for expired, invalid, and already-claimed waitlist offer links
+- [x] Add structured logging, audit events, and OpenAPI docs for registration, offer dispatch, and claim flows

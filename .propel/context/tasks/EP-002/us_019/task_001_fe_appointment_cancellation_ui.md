@@ -149,11 +149,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `CancelAppointmentDialog` with appointment summary, destructive confirmation action, and accessible focus management for SCR-005 and SCR-007
-- [ ] Implement `useCancelAppointment` to handle success, within-24-hours rejection, and already-cancelled responses without duplicating request logic in pages
-- [ ] Add cancellation actions to patient dashboard and appointment history surfaces only for scheduled appointments that remain cancellable
-- [ ] Refresh appointment status in-place after success so the UI immediately shows the cancelled badge and removes repeat cancel affordances
-- [ ] Display the exact policy message for blocked cancellations and the exact idempotent message for already-cancelled appointments
-- [ ] Preserve UTC-based cancellation eligibility while displaying appointment details in the patient's local timezone
+- [x] Create `CancelAppointmentDialog` with appointment summary, destructive confirmation action, and accessible focus management for SCR-005 and SCR-007
+- [x] Implement `useCancelAppointment` to handle success, within-24-hours rejection, and already-cancelled responses without duplicating request logic in pages
+- [x] Add cancellation actions to patient dashboard and appointment history surfaces only for scheduled appointments that remain cancellable
+- [x] Refresh appointment status in-place after success so the UI immediately shows the cancelled badge and removes repeat cancel affordances
+- [x] Display the exact policy message for blocked cancellations and the exact idempotent message for already-cancelled appointments
+- [x] Preserve UTC-based cancellation eligibility while displaying appointment details in the patient's local timezone
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

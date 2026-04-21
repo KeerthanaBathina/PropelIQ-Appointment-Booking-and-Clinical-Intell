@@ -48,6 +48,9 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<ProviderAvailabilityTemplate> ProviderAvailabilityTemplates => Set<ProviderAvailabilityTemplate>();
 
+    /// <summary>Patient waitlist registrations for fully-booked slots (US_020).</summary>
+    public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

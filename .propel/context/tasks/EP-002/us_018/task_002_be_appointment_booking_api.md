@@ -152,11 +152,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `BookingRequest` model with SlotId, PatientId (from JWT), ProviderId, AppointmentTime, AppointmentType and 90-day advance booking validation (FR-013, EC-2)
-- [ ] Create `BookingResponse` DTO with AppointmentId, BookingReference (format `BK-{YYYYMMDD}-{6-char}`), appointment details, and status (AC-4)
-- [ ] Implement `SlotHoldService` with Redis-based `AcquireHoldAsync`/`ReleaseHoldAsync`/`IsHeldAsync` using 60-second TTL for temporary slot reservation (AC-3)
-- [ ] Implement `AppointmentBookingService.BookAppointmentAsync` with EF Core optimistic locking via version concurrency token, catch `DbUpdateConcurrencyException` for conflict handling (FR-012, TR-015, AC-1)
-- [ ] Return 409 Conflict response with next 3 alternative available slots from `IAppointmentSlotService` on concurrency failure (AC-2)
-- [ ] Create `AppointmentBookingController` with POST /api/appointments (booking), POST /api/appointments/hold (acquire), DELETE /api/appointments/hold/{slotId} (release) endpoints with `[Authorize]` (AC-1, AC-3)
-- [ ] Add Polly single-retry resilience pipeline with 500ms delay for transient DB failures, returning 503 on exhaustion (EC-1, NFR-032)
-- [ ] Register services in DI, add OpenAPI docs, and implement structured Serilog logging with correlation IDs for hold/booking/conflict events (NFR-035, NFR-038)
+- [x] Create `BookingRequest` model with SlotId, PatientId (from JWT), ProviderId, AppointmentTime, AppointmentType and 90-day advance booking validation (FR-013, EC-2)
+- [x] Create `BookingResponse` DTO with AppointmentId, BookingReference (format `BK-{YYYYMMDD}-{6-char}`), appointment details, and status (AC-4)
+- [x] Implement `SlotHoldService` with Redis-based `AcquireHoldAsync`/`ReleaseHoldAsync`/`IsHeldAsync` using 60-second TTL for temporary slot reservation (AC-3)
+- [x] Implement `AppointmentBookingService.BookAppointmentAsync` with EF Core optimistic locking via version concurrency token, catch `DbUpdateConcurrencyException` for conflict handling (FR-012, TR-015, AC-1)
+- [x] Return 409 Conflict response with next 3 alternative available slots from `IAppointmentSlotService` on concurrency failure (AC-2)
+- [x] Create `AppointmentBookingController` with POST /api/appointments (booking), POST /api/appointments/hold (acquire), DELETE /api/appointments/hold/{slotId} (release) endpoints with `[Authorize]` (AC-1, AC-3)
+- [x] Add Polly single-retry resilience pipeline with 500ms delay for transient DB failures, returning 503 on exhaustion (EC-1, NFR-032)
+- [x] Register services in DI, add OpenAPI docs, and implement structured Serilog logging with correlation IDs for hold/booking/conflict events (NFR-035, NFR-038)
