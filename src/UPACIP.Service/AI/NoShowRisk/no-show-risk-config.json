@@ -1,0 +1,56 @@
+{
+  "_comment": "No-show risk scoring configuration (AIR-006, AIR-O04). All weights are normalized so that a patient who never shows up scores 100 and a patient with a perfect attendance history scores near 0.",
+
+  "features": {
+    "noShowRateWeight": 0.45,
+    "cancellationRateWeight": 0.20,
+    "appointmentCountWeight": 0.05,
+    "timeOfDayWeight": 0.15,
+    "dayOfWeekWeight": 0.15
+  },
+
+  "timeOfDayBuckets": {
+    "earlyMorning": { "range": "06:00-08:59", "riskMultiplier": 1.10 },
+    "morning":      { "range": "09:00-11:59", "riskMultiplier": 0.90 },
+    "midday":       { "range": "12:00-13:59", "riskMultiplier": 1.05 },
+    "afternoon":    { "range": "14:00-16:59", "riskMultiplier": 1.00 },
+    "lateAfternoon":{ "range": "17:00-19:59", "riskMultiplier": 1.15 }
+  },
+
+  "dayOfWeekRiskMultipliers": {
+    "Monday":    0.95,
+    "Tuesday":   0.90,
+    "Wednesday": 0.90,
+    "Thursday":  0.95,
+    "Friday":    1.15,
+    "Saturday":  1.10,
+    "Sunday":    1.20
+  },
+
+  "fallback": {
+    "minimumHistoryAppointments": 3,
+    "defaultBaseScore": 35,
+    "newPatientBaseScore": 30,
+    "comment": "Scores produced via rule-based fallback are marked isEstimated=true (AC-3)."
+  },
+
+  "guardrails": {
+    "minScore": 0,
+    "maxScore": 100,
+    "highRiskOutreachThreshold": 70,
+    "comment": "Scores are clamped to [0,100]. Scores >= 70 set outreach flag (EC-2)."
+  },
+
+  "circuitBreaker": {
+    "consecutiveFailuresBeforeOpen": 5,
+    "halfOpenRetryDelaySeconds": 30,
+    "comment": "AIR-O04: open after 5 consecutive failures; retry after 30 seconds."
+  },
+
+  "audit": {
+    "logScoreBand": true,
+    "logScoringPath": true,
+    "logPatientId": false,
+    "comment": "AIR-S01/NFR-017: log score band and path (classification vs fallback). Never log raw patient history values or identifiers."
+  }
+}

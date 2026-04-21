@@ -19,8 +19,7 @@
  * @param isLoading        - True while booking API is in-flight
  * @param bookingError     - Optional error string to show (503 or generic)
  * @param isWaitlistOffer  - US_020 AC-3: true when slot was offered via waitlist notification
- * @param offerWithin24Hours - US_020 EC-2: true when offered slot is < 24 h from now
- */
+ * @param offerWithin24Hours - US_020 EC-2: true when offered slot is < 24 h from now * @param isMinorConsentRequired - US_031 AC-1: true when patient is a minor and guardian consent is incomplete */
 
 import Alert from '@mui/material/Alert';
 import Box from '@mui/material/Box';
@@ -68,6 +67,11 @@ interface Props {
   isWaitlistOffer?: boolean;
   /** US_020 EC-2: true when offered slot starts within 24 hours of now. */
   offerWithin24Hours?: boolean;
+  /**
+   * US_031 AC-1: true when the patient is a minor and guardian consent has not been
+   * completed. Blocks the Confirm Booking button and shows an explanatory notice.
+   */
+  isMinorConsentRequired?: boolean;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -83,6 +87,7 @@ export default function BookingConfirmationModal({
   bookingError,
   isWaitlistOffer = false,
   offerWithin24Hours = false,
+  isMinorConsentRequired = false,
 }: Props) {
   const showCountdown = secondsRemaining > 0;
   const urgentCountdown = secondsRemaining > 0 && secondsRemaining <= 15;
@@ -98,6 +103,14 @@ export default function BookingConfirmationModal({
       <DialogTitle id="confirm-modal-title">Confirm Appointment</DialogTitle>
 
       <DialogContent>
+        {/* US_031 AC-1: minor consent blocker */}
+        {isMinorConsentRequired && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            This booking is for a minor patient. Please complete the Guardian Consent section
+            in the intake form before confirming this appointment.
+          </Alert>
+        )}
+
         {/* US_020 AC-3: waitlist offer banner */}
         {isWaitlistOffer && (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -154,7 +167,7 @@ export default function BookingConfirmationModal({
         <Button
           id="modal-confirm"
           onClick={onConfirm}
-          disabled={isLoading}
+          disabled={isLoading || isMinorConsentRequired}
           variant="contained"
           startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : null}
         >

@@ -147,11 +147,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Build SCR-009 with personal information, medical history, and insurance sections matching the wireframe structure
-- [ ] Display AI-prefilled values with a clear visual indicator while keeping fields editable
-- [ ] Deliver inline validation feedback for required fields within 200ms and again on submit
-- [ ] Restore the last auto-saved draft when the patient returns after navigating away or timing out
-- [ ] Prevent duplicate submission and preserve draft state during browser back navigation or in-flight submission
-- [ ] Validate responsive layout, keyboard navigation, and descriptive accessible error messaging
+- [x] Build SCR-009 with personal information, medical history, and insurance sections matching the wireframe structure
+- [x] Display AI-prefilled values with a clear visual indicator while keeping fields editable
+- [x] Deliver inline validation feedback for required fields within 200ms and again on submit
+- [x] Restore the last auto-saved draft when the patient returns after navigating away or timing out
+- [x] Prevent duplicate submission and preserve draft state during browser back navigation or in-flight submission
+- [x] Validate responsive layout, keyboard navigation, and descriptive accessible error messaging
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

@@ -1,5 +1,5 @@
 /**
- * AppointmentCard — shared appointment display card (US_019, UXR-401).
+ * AppointmentCard — shared appointment display card (US_019, US_025, UXR-401).
  *
  * Renders a single appointment with:
  *   - Date/time in the patient's local timezone (EC-2)
@@ -9,15 +9,17 @@
  *       Completed  = Green #388E3C
  *       Cancelled  = Gray  #757575
  *       No-show    = Red   #D32F2F
+ *   - Add to Calendar button for Scheduled appointments when onAddToCalendar is provided (US_025)
  *   - Cancel button only when status=Scheduled AND cancellable=true (AC-1, AC-2)
  *   - Disabled (non-interactive) cancel slot when status=Scheduled AND cancellable=false
  *     (within-24h window, hint displayed via tooltip copy)
  *
  * Used on SCR-005 (Patient Dashboard) and SCR-007 (Appointment History).
  *
- * @param appointment  The appointment to display
- * @param onCancel     Called when patient clicks Cancel; receives appointment
- * @param compact      When true, renders in table-row style (SCR-007); default card style (SCR-005)
+ * @param appointment       The appointment to display
+ * @param onCancel          Called when patient clicks Cancel; receives appointment
+ * @param onAddToCalendar   When provided, shows the Add to Calendar action for Scheduled appointments (US_025)
+ * @param compact           When true, renders in table-row style (SCR-007); default card style (SCR-005)
  */
 
 import Box from '@mui/material/Box';
@@ -28,6 +30,7 @@ import Tooltip from '@mui/material/Tooltip';
 import Typography from '@mui/material/Typography';
 import CancelOutlinedIcon from '@mui/icons-material/CancelOutlined';
 import EventRepeatIcon from '@mui/icons-material/EventRepeat';
+import AppointmentCalendarAction from '@/components/appointments/AppointmentCalendarAction';
 import type { PatientAppointment, AppointmentStatus } from '@/hooks/usePatientAppointments';
 
 // ─── Design tokens (UXR-401) ──────────────────────────────────────────────────
@@ -77,11 +80,17 @@ interface Props {
   onCancel?: (appointment: PatientAppointment) => void;
   /** Called when the patient clicks Reschedule (US_023). */
   onReschedule?: (appointment: PatientAppointment) => void;
+  /**
+   * When provided, the Add to Calendar action is rendered for Scheduled appointments (US_025).
+   * The callback is invoked after the download is initiated; the action component manages
+   * its own loading and error states internally.
+   */
+  onAddToCalendar?: (appointment: PatientAppointment) => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function AppointmentCard({ appointment, onCancel, onReschedule }: Props) {
+export default function AppointmentCard({ appointment, onCancel, onReschedule, onAddToCalendar }: Props) {
   const { status, cancellable } = appointment;
   const isScheduled = status === 'Scheduled';
   const showCancelButton = isScheduled;
@@ -142,6 +151,14 @@ export default function AppointmentCard({ appointment, onCancel, onReschedule }:
             height: 22,
           }}
         />
+
+        {/* Add to Calendar action — shown for Scheduled appointments when parent opts in (US_025) */}
+        {isScheduled && onAddToCalendar && (
+          <AppointmentCalendarAction
+            appointmentId={appointment.id}
+            bookingReference={appointment.bookingReference}
+          />
+        )}
 
         {/* Reschedule action — shown for scheduled appointments (US_023) */}
         {showCancelButton && (

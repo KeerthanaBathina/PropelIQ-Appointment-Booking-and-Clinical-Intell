@@ -147,11 +147,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Show a guardian consent section only when patient DOB indicates age under 18
-- [ ] Block invalid guardian entries when the guardian is also under 18
-- [ ] Display inline insurance pre-check status as "Valid" or "Needs Review" with explanation text
-- [ ] Explain when insurance was skipped and staff will collect it during the visit
-- [ ] Surface booking-readiness feedback when guardian consent is still required for a minor
-- [ ] Keep guardian and insurance validation inline and accessible per existing SCR-009 patterns
+- [x] Show a guardian consent section only when patient DOB indicates age under 18
+- [x] Block invalid guardian entries when the guardian is also under 18
+- [x] Display inline insurance pre-check status as "Valid" or "Needs Review" with explanation text
+- [x] Explain when insurance was skipped and staff will collect it during the visit
+- [x] Surface booking-readiness feedback when guardian consent is still required for a minor
+- [x] Keep guardian and insurance validation inline and accessible per existing SCR-009 patterns
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

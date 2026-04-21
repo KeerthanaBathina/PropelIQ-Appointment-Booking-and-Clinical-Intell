@@ -6,7 +6,13 @@
  *   - Success icon + "Appointment Confirmed" heading
  *   - Prominent booking reference number in a highlighted box
  *   - Appointment details: date (MM/DD/YYYY), time (12-hour AM/PM), provider, type
- *   - CTAs: "View in Dashboard" (navigates to /patient/dashboard) + "Add to Calendar" (placeholder)
+ *   - CTAs: "View in Dashboard" (navigates to /patient/dashboard) + "Add to Calendar" (US_025)
+ *
+ * The Add to Calendar action (US_025, FR-025) reuses AppointmentCalendarAction so the
+ * interaction pattern is consistent with the dashboard appointment cards.
+ *
+ * Manual fallback (EC-1): All appointment details remain visible on the card so patients
+ * can manually enter the event if their calendar app does not support .ics files.
  *
  * Design tokens (designsystem.md):
  *   - Success colour: #2E7D32 (semantic success)
@@ -24,6 +30,7 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
 import Typography from '@mui/material/Typography';
+import AppointmentCalendarAction from '@/components/appointments/AppointmentCalendarAction';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -60,6 +67,7 @@ export interface BookingSuccessProps {
 
 export default function BookingSuccessView({
   bookingReference,
+  appointmentId,
   date,
   startTime,
   endTime,
@@ -139,10 +147,12 @@ export default function BookingSuccessView({
             <Button variant="contained" component={RouterLink} to="/patient/dashboard">
               View in Dashboard
             </Button>
-            {/* Add to Calendar: placeholder — ICS generation is a future enhancement */}
-            <Button variant="outlined" disabled aria-disabled="true">
-              Add to Calendar
-            </Button>
+            {/* Add to Calendar — downloads .ics for Google Calendar / Outlook (US_025, FR-025) */}
+            <AppointmentCalendarAction
+              appointmentId={appointmentId}
+              bookingReference={bookingReference}
+              variant="outlined"
+            />
           </Box>
         </CardContent>
       </Card>

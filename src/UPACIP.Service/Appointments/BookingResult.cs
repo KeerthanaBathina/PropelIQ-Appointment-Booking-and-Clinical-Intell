@@ -67,6 +67,16 @@ public sealed record BookingResult
             Status       = BookingResultStatus.PatientNotFound,
             ErrorMessage = "Patient record not found for the authenticated user.",
         };
+
+    /// <summary>
+    /// Minor patient booking blocked: guardian consent is required but not yet completed (US_031 AC-1).
+    /// </summary>
+    public static BookingResult GuardianConsentRequired()
+        => new()
+        {
+            Status       = BookingResultStatus.GuardianConsentRequired,
+            ErrorMessage = "This booking is for a minor patient. Guardian consent must be completed in the intake form before confirming this appointment.",
+        };
 }
 
 /// <summary>Possible outcomes of an appointment booking attempt.</summary>
@@ -86,4 +96,9 @@ public enum BookingResultStatus
 
     /// <summary>No active Patient record found for the authenticated user's email.</summary>
     PatientNotFound,
+
+    /// <summary>
+    /// Minor patient booking blocked — guardian consent incomplete (US_031 AC-1, FR-032).
+    /// </summary>
+    GuardianConsentRequired,
 }

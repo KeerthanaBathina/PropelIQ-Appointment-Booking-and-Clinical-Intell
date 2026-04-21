@@ -547,16 +547,47 @@ namespace UPACIP.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("AiSessionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("ai_session_id");
+
+                    b.Property<string>("AiSessionStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("ai_session_status");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<bool>("InsuranceRequiresStaffFollowup")
+                        .HasDefaultValue(false)
+                        .HasColumnType("boolean")
+                        .HasColumnName("insurance_requires_staff_followup");
+
+                    b.Property<string>("InsuranceReviewReason")
+                        .HasColumnType("text")
+                        .HasColumnName("insurance_review_reason");
+
+                    b.Property<DateTime?>("InsuranceValidatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("insurance_validated_at");
+
+                    b.Property<string>("InsuranceValidationStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("insurance_validation_status");
+
                     b.Property<string>("IntakeMethod")
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
+
+                    b.Property<DateTime?>("LastAutoSavedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_auto_saved_at");
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
@@ -566,10 +597,63 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AiSessionId")
+                        .HasDatabaseName("ix_intake_data_ai_session_id")
+                        .HasFilter("ai_session_id IS NOT NULL");
+
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_intake_data_patient_id");
 
+                    b.HasIndex("PatientId", "AiSessionStatus")
+                        .HasDatabaseName("ix_intake_data_patient_ai_status")
+                        .HasFilter("ai_session_status IS NOT NULL");
+
+                    b.HasIndex("PatientId", "InsuranceRequiresStaffFollowup")
+                        .HasDatabaseName("ix_intake_data_insurance_staff_followup")
+                        .HasFilter("insurance_requires_staff_followup = true AND completed_at IS NOT NULL");
+
                     b.ToTable("intake_data", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.InsuranceValidationRecord", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityAlwaysColumn);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsActive")
+                        .HasDefaultValue(true)
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_active");
+
+                    b.Property<string>("PolicyPrefix")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("policy_prefix");
+
+                    b.Property<string>("ProviderKeyword")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasColumnName("provider_keyword");
+
+                    b.Property<string>("ProviderName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderKeyword")
+                        .HasDatabaseName("ix_insurance_validation_records_provider_keyword");
+
+                    b.ToTable("insurance_validation_records", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.MedicalCode", b =>
@@ -1374,6 +1458,217 @@ namespace UPACIP.DataAccess.Migrations
                             b1.WithOwner()
                                 .HasForeignKey("IntakeDataId");
                         });
+
+                    b.OwnsOne("UPACIP.DataAccess.Entities.OwnedTypes.AiSessionSnapshot", "AiSessionSnapshot", b1 =>
+                        {
+                            b1.Property<Guid>("IntakeDataId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<int>("ConsecutiveProviderFailures")
+                                .HasColumnType("integer");
+
+                            b1.Property<string>("CurrentFieldKey")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("Status")
+                                .IsRequired()
+                                .HasColumnType("text");
+
+                            b1.Property<int>("TurnCount")
+                                .HasColumnType("integer");
+
+                            b1.HasKey("IntakeDataId");
+
+                            b1.ToTable("intake_data");
+
+                            b1.ToJson("ai_session_snapshot");
+
+                            b1.WithOwner()
+                                .HasForeignKey("IntakeDataId");
+
+                            b1.OwnsMany("UPACIP.DataAccess.Entities.OwnedTypes.AiCollectedField", "CollectedFields", b2 =>
+                                {
+                                    b2.Property<Guid>("AiSessionSnapshotIntakeDataId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<string>("Key")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("Value")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.HasKey("AiSessionSnapshotIntakeDataId", "Id");
+
+                                    b2.ToTable("intake_data");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AiSessionSnapshotIntakeDataId");
+                                });
+
+                            b1.Navigation("CollectedFields");
+                        });
+
+                    b.OwnsOne("UPACIP.DataAccess.Entities.OwnedTypes.IntakeAttributionSnapshot", "AttributionSnapshot", b1 =>
+                        {
+                            b1.Property<Guid>("IntakeDataId")
+                                .HasColumnType("uuid");
+
+                            b1.HasKey("IntakeDataId");
+
+                            b1.ToTable("intake_data");
+
+                            b1.ToJson("intake_attribution");
+
+                            b1.WithOwner()
+                                .HasForeignKey("IntakeDataId");
+
+                            b1.OwnsMany("UPACIP.DataAccess.Entities.OwnedTypes.IntakeFieldAttribution", "FieldAttributions", b2 =>
+                                {
+                                    b2.Property<Guid>("AttributionSnapshotIntakeDataId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<DateTime>("CollectedAt")
+                                        .HasColumnType("timestamp with time zone");
+
+                                    b2.Property<string>("FieldKey")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("Source")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.HasKey("AttributionSnapshotIntakeDataId", "Id");
+
+                                    b2.ToTable("intake_data");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AttributionSnapshotIntakeDataId");
+                                });
+
+                            b1.OwnsMany("UPACIP.DataAccess.Entities.OwnedTypes.IntakeConflictNote", "ConflictNotes", b2 =>
+                                {
+                                    b2.Property<Guid>("AttributionSnapshotIntakeDataId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<string>("FieldKey")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<DateTime>("RecordedAt")
+                                        .HasColumnType("timestamp with time zone");
+
+                                    b2.Property<string>("ReplacedSource")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("ReplacedValue")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("WinningSource")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("WinningValue")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.HasKey("AttributionSnapshotIntakeDataId", "Id");
+
+                                    b2.ToTable("intake_data");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AttributionSnapshotIntakeDataId");
+                                });
+
+                            b1.OwnsMany("UPACIP.DataAccess.Entities.OwnedTypes.IntakeModeSwitchEvent", "ModeSwitchEvents", b2 =>
+                                {
+                                    b2.Property<Guid>("AttributionSnapshotIntakeDataId")
+                                        .HasColumnType("uuid");
+
+                                    b2.Property<int>("Id")
+                                        .ValueGeneratedOnAdd()
+                                        .HasColumnType("integer");
+
+                                    b2.Property<string>("CorrelationId")
+                                        .HasColumnType("text");
+
+                                    b2.Property<string>("FromMode")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.Property<DateTime>("SwitchedAt")
+                                        .HasColumnType("timestamp with time zone");
+
+                                    b2.Property<string>("ToMode")
+                                        .IsRequired()
+                                        .HasColumnType("text");
+
+                                    b2.HasKey("AttributionSnapshotIntakeDataId", "Id");
+
+                                    b2.ToTable("intake_data");
+
+                                    b2.WithOwner()
+                                        .HasForeignKey("AttributionSnapshotIntakeDataId");
+                                });
+
+                            b1.Navigation("ConflictNotes");
+
+                            b1.Navigation("FieldAttributions");
+
+                            b1.Navigation("ModeSwitchEvents");
+                        });
+
+                    b.OwnsOne("UPACIP.DataAccess.Entities.OwnedTypes.GuardianConsentSnapshot", "GuardianConsent", b1 =>
+                        {
+                            b1.Property<Guid>("IntakeDataId")
+                                .HasColumnType("uuid");
+
+                            b1.Property<bool>("ConsentAcknowledged")
+                                .HasColumnType("boolean");
+
+                            b1.Property<DateTime?>("ConsentRecordedAt")
+                                .HasColumnType("timestamp with time zone");
+
+                            b1.Property<string>("GuardianDateOfBirth")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("GuardianName")
+                                .HasColumnType("text");
+
+                            b1.Property<string>("GuardianRelationship")
+                                .HasColumnType("text");
+
+                            b1.HasKey("IntakeDataId");
+
+                            b1.ToTable("intake_data");
+
+                            b1.ToJson("guardian_consent");
+
+                            b1.WithOwner()
+                                .HasForeignKey("IntakeDataId");
+                        });
+
+                    b.Navigation("AiSessionSnapshot");
+
+                    b.Navigation("AttributionSnapshot");
+
+                    b.Navigation("GuardianConsent");
 
                     b.Navigation("InsuranceInfo");
 

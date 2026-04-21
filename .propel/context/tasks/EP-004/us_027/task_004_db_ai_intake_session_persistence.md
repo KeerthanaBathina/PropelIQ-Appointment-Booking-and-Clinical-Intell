@@ -122,9 +122,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add conversational session-state fields to `IntakeData` for autosave, resume, and summary readiness
-- [ ] Persist collected mandatory and optional field data in a structure reusable by both AI and manual intake flows
-- [ ] Configure indexes for fast active-session lookup by patient and recent autosave timestamp
-- [ ] Support switch-to-manual data carryover without creating duplicate intake records
-- [ ] Create a migration that safely introduces AI intake state fields for existing records
-- [ ] Validate autosave and resume integrity for partially completed sessions
+- [x] Add conversational session-state fields to `IntakeData` for autosave, resume, and summary readiness
+- [x] Persist collected mandatory and optional field data in a structure reusable by both AI and manual intake flows
+- [x] Configure indexes for fast active-session lookup by patient and recent autosave timestamp
+- [x] Support switch-to-manual data carryover without creating duplicate intake records
+- [x] Create a migration that safely introduces AI intake state fields for existing records
+- [x] Validate autosave and resume integrity for partially completed sessions

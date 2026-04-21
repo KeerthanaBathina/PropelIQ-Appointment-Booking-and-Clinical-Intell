@@ -141,9 +141,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Reuse a shared autosave service for AI and manual intake draft persistence
-- [ ] Persist only the latest 30-second boundary snapshot as the current autosaved draft
-- [ ] Return the last autosaved state and timestamp for interruption recovery
-- [ ] Keep autosave writes idempotent and safe for one client retry after failure
-- [ ] Prevent stale or cross-patient draft writes from overwriting current intake state
-- [ ] Add structured logging and correlation data for autosave and restore operations
+- [x] Reuse a shared autosave service for AI and manual intake draft persistence
+- [x] Persist only the latest 30-second boundary snapshot as the current autosaved draft
+- [x] Return the last autosaved state and timestamp for interruption recovery
+- [x] Keep autosave writes idempotent and safe for one client retry after failure
+- [x] Prevent stale or cross-patient draft writes from overwriting current intake state
+- [x] Add structured logging and correlation data for autosave and restore operations

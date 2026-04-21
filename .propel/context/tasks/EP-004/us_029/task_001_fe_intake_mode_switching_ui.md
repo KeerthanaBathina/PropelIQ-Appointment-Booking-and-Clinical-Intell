@@ -150,12 +150,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Keep switch actions available on both intake surfaces and preserve draft state across transitions
-- [ ] Load manual intake with AI-collected values prefilled after switching from SCR-008
-- [ ] Resume AI intake at the next uncollected field after switching from SCR-009
-- [ ] Disable switch-to-AI when the service is unavailable and display the required fallback alert text
-- [ ] Show most-recent-value precedence with source attribution when AI and manual values conflict
-- [ ] Prevent duplicate switches and restore focus predictably after each route transition
-- [ ] Validate responsive layout, keyboard navigation, and wireframe alignment for both intake screens
+- [x] Keep switch actions available on both intake surfaces and preserve draft state across transitions
+- [x] Load manual intake with AI-collected values prefilled after switching from SCR-008
+- [x] Resume AI intake at the next uncollected field after switching from SCR-009
+- [x] Disable switch-to-AI when the service is unavailable and display the required fallback alert text
+- [x] Show most-recent-value precedence with source attribution when AI and manual values conflict
+- [x] Prevent duplicate switches and restore focus predictably after each route transition
+- [x] Validate responsive layout, keyboard navigation, and wireframe alignment for both intake screens
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

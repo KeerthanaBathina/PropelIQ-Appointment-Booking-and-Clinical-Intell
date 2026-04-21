@@ -145,10 +145,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Validate insurance against dummy records and return "Valid" or "Needs Review" with explanation text
-- [ ] Skip insurance pre-check cleanly when insurance information is absent and mark for staff collection
-- [ ] Enforce guardian consent and guardian age >= 18 for minor patient bookings
-- [ ] Reject invalid guardian scenarios with deterministic field-level validation errors
-- [ ] Flag failed or missing insurance states for staff review notification
-- [ ] Return guardian and insurance status metadata needed by the patient UI and booking flow
-- [ ] Add structured logging and OpenAPI metadata for validation and review outcomes
+- [x] Validate insurance against dummy records and return "Valid" or "Needs Review" with explanation text
+- [x] Skip insurance pre-check cleanly when insurance information is absent and mark for staff collection
+- [x] Enforce guardian consent and guardian age >= 18 for minor patient bookings
+- [x] Reject invalid guardian scenarios with deterministic field-level validation errors
+- [x] Flag failed or missing insurance states for staff review notification
+- [x] Return guardian and insurance status metadata needed by the patient UI and booking flow
+- [x] Add structured logging and OpenAPI metadata for validation and review outcomes

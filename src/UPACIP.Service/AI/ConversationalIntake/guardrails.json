@@ -1,0 +1,33 @@
+{
+  "ConversationalIntake": {
+    "TokenBudget": {
+      "MaxInputTokens": 500,
+      "MaxOutputTokens": 200
+    },
+    "ConfidenceThreshold": 0.80,
+    "MaxTurnsPerSession": 30,
+    "MaxPatientInputLengthChars": 1000,
+    "PromptInjectionKeywords": [
+      "ignore previous instructions",
+      "disregard above",
+      "system prompt",
+      "jailbreak",
+      "act as",
+      "you are now",
+      "</system>",
+      "<|im_end|>",
+      "DAN mode",
+      "developer mode"
+    ],
+    "CircuitBreaker": {
+      "FailureThreshold": 5,
+      "BreakDurationSeconds": 30
+    },
+    "FallbackConsecutiveFailuresBeforeManual": 3,
+    "Rag": {
+      "TopK": 5,
+      "SimilarityThreshold": 0.75,
+      "MaxContextChars": 400
+    }
+  }
+}

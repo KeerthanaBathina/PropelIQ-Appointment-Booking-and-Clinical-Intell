@@ -137,10 +137,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add start and resume endpoints that return greeting, session identifier, and current progress state
-- [ ] Add a message endpoint that round-trips patient responses through AI orchestration and persists the resulting state
-- [ ] Return summary-review data that supports correction before final submission
-- [ ] Support switch-to-manual and final-complete flows without losing previously collected data
-- [ ] Restore the last auto-saved session state after timeout or return visit
-- [ ] Enforce patient-only access, payload bounds, and structured request tracing on all session endpoints
-- [ ] Add OpenAPI docs and structured logs for session lifecycle and AI exchange outcomes
+- [x] Add start and resume endpoints that return greeting, session identifier, and current progress state
+- [x] Add a message endpoint that round-trips patient responses through AI orchestration and persists the resulting state
+- [x] Return summary-review data that supports correction before final submission
+- [x] Support switch-to-manual and final-complete flows without losing previously collected data
+- [x] Restore the last auto-saved session state after timeout or return visit
+- [x] Enforce patient-only access, payload bounds, and structured request tracing on all session endpoints
+- [x] Add OpenAPI docs and structured logs for session lifecycle and AI exchange outcomes

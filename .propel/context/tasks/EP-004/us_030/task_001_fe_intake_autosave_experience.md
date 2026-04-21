@@ -147,11 +147,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Save the latest intake state at each 30-second boundary for both AI and manual modes
-- [ ] Show a brief "Auto-saved" confirmation without interrupting typing or navigation
-- [ ] Retry one failed autosave after 5 seconds and then fall back to local cache with the required error message
-- [ ] Restore the last saved intake state after timeout, reload, or network interruption
-- [ ] Avoid persisting every intermediate edit between autosave boundaries
-- [ ] Keep focus, typing flow, and responsive layout stable while autosave runs in the background
+- [x] Save the latest intake state at each 30-second boundary for both AI and manual modes
+- [x] Show a brief "Auto-saved" confirmation without interrupting typing or navigation
+- [x] Retry one failed autosave after 5 seconds and then fall back to local cache with the required error message
+- [x] Restore the last saved intake state after timeout, reload, or network interruption
+- [x] Avoid persisting every intermediate edit between autosave boundaries
+- [x] Keep focus, typing flow, and responsive layout stable while autosave runs in the background
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

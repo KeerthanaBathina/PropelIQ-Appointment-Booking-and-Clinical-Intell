@@ -122,9 +122,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add persisted appointment fields for no-show risk score, band, estimated-state, outreach-needed, and calculation timestamp
-- [ ] Constrain score values to 0-100 and limit band values to the supported risk categories
-- [ ] Configure EF Core mappings and indexes that support staff list and slot-swap prioritization queries
-- [ ] Create a migration that rolls existing appointments forward safely without breaking current data access
-- [ ] Support recalculation updates for future appointments when patient history changes
-- [ ] Validate capped high-risk values and estimated-state persistence during migration and runtime writes
+- [x] Add persisted appointment fields for no-show risk score, band, estimated-state, outreach-needed, and calculation timestamp
+- [x] Constrain score values to 0-100 and limit band values to the supported risk categories
+- [x] Configure EF Core mappings and indexes that support staff list and slot-swap prioritization queries
+- [x] Create a migration that rolls existing appointments forward safely without breaking current data access
+- [x] Support recalculation updates for future appointments when patient history changes
+- [x] Validate capped high-risk values and estimated-state persistence during migration and runtime writes

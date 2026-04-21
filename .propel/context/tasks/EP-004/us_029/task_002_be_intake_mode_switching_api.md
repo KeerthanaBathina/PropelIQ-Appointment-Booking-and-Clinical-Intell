@@ -141,10 +141,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add explicit AI-to-manual and manual-to-AI endpoints with patient-only authorization
-- [ ] Merge AI and manual values without data loss and apply most-recent-entry-wins conflict resolution
-- [ ] Return source attribution and conflict notes needed by the UI and final submit flow
-- [ ] Resume AI intake at the next uncollected field after switching from manual mode
-- [ ] Expose and enforce deterministic AI availability state for switch-to-AI behavior
-- [ ] Make switch operations retry-safe and robust to browser refresh or replay
-- [ ] Add structured logging and OpenAPI metadata for all switch outcomes
+- [x] Add explicit AI-to-manual and manual-to-AI endpoints with patient-only authorization
+- [x] Merge AI and manual values without data loss and apply most-recent-entry-wins conflict resolution
+- [x] Return source attribution and conflict notes needed by the UI and final submit flow
+- [x] Resume AI intake at the next uncollected field after switching from manual mode
+- [x] Expose and enforce deterministic AI availability state for switch-to-AI behavior
+- [x] Make switch operations retry-safe and robust to browser refresh or replay
+- [x] Add structured logging and OpenAPI metadata for all switch outcomes
