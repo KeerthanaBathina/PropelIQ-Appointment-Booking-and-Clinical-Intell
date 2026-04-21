@@ -208,11 +208,11 @@ Server/                                # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Implement `ISessionService` and `RedisSessionService` with Redis HSET/EXPIRE for 15-min sliding TTL
-- [ ] Implement `ConcurrentSessionGuard` rejecting second login with 409 when active session exists (FR-007, NFR-015)
-- [ ] Implement `SessionManagementMiddleware` resetting Redis TTL on every authenticated request
-- [ ] Create `POST /api/session/extend` endpoint resetting TTL and issuing new JWT
-- [ ] Implement JWT jti blacklist in Redis for immediate token revocation on logout/expiry
-- [ ] Modify login flow to check concurrent sessions and create Redis session on success
-- [ ] Modify logout flow to delete Redis session, blacklist JWT, and clear refresh token
-- [ ] Register Redis connection, services, middleware, and Polly circuit breaker in Program.cs
+- [X] Implement `ISessionService` and `RedisSessionService` with Redis HSET/EXPIRE for 15-min sliding TTL
+- [X] Implement `ConcurrentSessionGuard` rejecting second login with 409 when active session exists (FR-007, NFR-015)
+- [X] Implement `SessionManagementMiddleware` resetting Redis TTL on every authenticated request
+- [X] Create `POST /api/session/extend` endpoint resetting TTL and issuing new JWT
+- [X] Implement JWT jti blacklist in Redis for immediate token revocation on logout/expiry
+- [X] Modify login flow to check concurrent sessions and create Redis session on success
+- [X] Modify logout flow to delete Redis session, blacklist JWT, and clear refresh token
+- [X] Register Redis connection, services, middleware, and Polly circuit breaker in Program.cs

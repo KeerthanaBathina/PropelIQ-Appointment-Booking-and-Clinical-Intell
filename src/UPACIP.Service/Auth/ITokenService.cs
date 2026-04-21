@@ -39,4 +39,33 @@ public interface ITokenService
     /// Returns <c>true</c> when <paramref name="refreshToken"/> has been blacklisted.
     /// </summary>
     Task<bool> IsRefreshTokenBlacklistedAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Adds the JWT ID (<paramref name="jti"/>) to the Redis access-token blacklist so
+    /// the corresponding access token cannot be used again after logout or forced session
+    /// invalidation (AC-1, task_002 step 5).
+    /// TTL is set to <paramref name="remaining"/> so the entry self-expires once the token
+    /// would have expired naturally — no permanent entries are created.
+    /// </summary>
+    Task BlacklistJtiAsync(string jti, TimeSpan remaining, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns <c>true</c> when the JWT ID <paramref name="jti"/> has been blacklisted.
+    /// JWT validation middleware checks this before allowing any authenticated request.
+    /// </summary>
+    Task<bool> IsJtiBlacklistedAsync(string jti, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Generates a short-lived (5-minute) MFA verification token for the given user.
+    /// The token contains <c>sub</c> (userId), <c>jti</c>, and a <c>purpose=mfa-verification</c>
+    /// claim. It carries NO role claims and must not be accepted as a full access token.
+    /// </summary>
+    string GenerateMfaToken(ApplicationUser user);
+
+    /// <summary>
+    /// Validates an MFA token: checks signature, expiry, and that the <c>purpose</c> claim
+    /// equals <c>mfa-verification</c>. Returns the claims principal on success, or <c>null</c>
+    /// when the token is invalid, expired, or tampered.
+    /// </summary>
+    ClaimsPrincipal? ValidateMfaToken(string mfaToken);
 }

@@ -226,9 +226,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add MFA columns (TotpSecretEncrypted, MfaRecoveryCodes, MfaEnabled) to ApplicationUser entity with EF Core property mappings
-- [ ] Add login tracking columns (LastLoginAt, LastLoginIp) to ApplicationUser entity; evaluate using Identity's built-in LockoutEnd/AccessFailedCount for lockout
-- [ ] Create AuditLog entity with all columns, FK to User (ON DELETE SET NULL), and insert-only design intent
-- [ ] Configure EF Core indexes: (UserId, Timestamp), (Action, Timestamp), (Timestamp DESC) on audit_logs
-- [ ] Define Redis key patterns (lockout:attempts, lockout:until, mfa:rate) with TTL documentation
-- [ ] Generate and validate EF Core migration, verify Up and Down methods
+- [X] Add MFA columns (TotpSecretEncrypted, MfaRecoveryCodes, MfaEnabled) to ApplicationUser entity with EF Core property mappings
+- [X] Add login tracking columns (LastLoginAt, LastLoginIp) to ApplicationUser entity; evaluate using Identity's built-in LockoutEnd/AccessFailedCount for lockout
+- [X] Create AuditLog entity with all columns, FK to User (ON DELETE SET NULL), and insert-only design intent
+- [X] Configure EF Core indexes: (UserId, Timestamp), (Action, Timestamp), (Timestamp DESC) on audit_logs
+- [X] Define Redis key patterns (lockout:attempts, lockout:until, mfa:rate) with TTL documentation
+- [X] Generate and validate EF Core migration, verify Up and Down methods

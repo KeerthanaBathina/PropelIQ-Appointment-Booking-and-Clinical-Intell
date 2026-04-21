@@ -1,12 +1,19 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement.Mvc;
+using UPACIP.Api.Authorization;
 using UPACIP.Api.Configuration;
 using UPACIP.Service.Caching;
 
 namespace UPACIP.Api.Controllers;
 
+/// <summary>
+/// Demo / health-check controller. Protected with StaffOrAdmin to demonstrate RBAC
+/// enforcement — Patient users will receive 403 Forbidden (AC-1).
+/// </summary>
 [ApiController]
 [Route("[controller]")]
+[Authorize(Policy = RbacPolicies.StaffOrAdmin)]
 public class WeatherForecastController : ControllerBase
 {
     private static readonly string[] Summaries =

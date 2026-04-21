@@ -31,11 +31,38 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
             owned.ToJson();
         });
 
+        // Provider fields (US_017) — nullable to remain compatible with pre-US_017 records
+        builder.Property(a => a.ProviderId)
+            .IsRequired(false);
+
+        builder.Property(a => a.ProviderName)
+            .HasMaxLength(100)
+            .IsRequired(false);
+
+        builder.Property(a => a.AppointmentType)
+            .HasMaxLength(50)
+            .IsRequired(false);
+
         builder.HasIndex(a => a.PatientId)
             .HasDatabaseName("ix_appointments_patient_id");
 
         builder.HasIndex(a => a.AppointmentTime)
             .HasDatabaseName("ix_appointments_appointment_time");
+
+        // Composite index (US_017 AC-1): supports the slot availability query pattern
+        //   WHERE appointment_time BETWEEN @from AND @to AND status != 'Cancelled'
+        // The leading column is appointment_time so PostgreSQL can range-scan within
+        // a date window, then the status predicate is evaluated in-index (covering).
+        builder.HasIndex(a => new { a.AppointmentTime, a.Status })
+            .HasDatabaseName("ix_appointments_appointment_time_status");
+
+        // Composite index (US_017 AC-1): extends the above index with provider_id to avoid
+        // a heap fetch when filtering by provider:
+        //   WHERE appointment_time BETWEEN @from AND @to
+        //     AND status != 'Cancelled'
+        //     AND provider_id = @providerId
+        builder.HasIndex(a => new { a.AppointmentTime, a.Status, a.ProviderId })
+            .HasDatabaseName("ix_appointments_appointment_time_status_provider_id");
 
         // Composite unique constraint (DR-014): prevents duplicate bookings for the same
         // patient at the same time slot. PostgreSQL will reject any INSERT/UPDATE that

@@ -165,8 +165,8 @@ Server/                                # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Create `PasswordResetToken` entity with Id, UserId, TokenHash, ExpiresAt, IsUsed, InvalidatedAt, CreatedAt
-- [ ] Configure Fluent API: indexes on TokenHash, UserId, ExpiresAt; FK with CASCADE delete; column constraints
-- [ ] Generate and verify EF Core migration with `dotnet ef migrations add AddPasswordResetTokens`
-- [ ] Document token lifecycle states (Active, Used, Expired, Invalidated) and validation query
+- [X] Create `PasswordResetToken` entity with Id, UserId, TokenHash, ExpiresAt, IsUsed, InvalidatedAt, CreatedAt
+- [X] Configure Fluent API: indexes on TokenHash, UserId, ExpiresAt; FK with CASCADE delete; column constraints
+- [X] Generate and verify EF Core migration with `dotnet ef migrations add AddPasswordResetTokens`
+- [X] Document token lifecycle states (Active, Used, Expired, Invalidated) and validation query
 - [ ] Test migration apply and rollback on clean database

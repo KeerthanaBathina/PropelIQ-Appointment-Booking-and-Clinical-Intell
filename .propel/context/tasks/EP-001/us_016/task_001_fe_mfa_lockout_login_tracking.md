@@ -212,12 +212,12 @@ app/                          # Frontend React application
 
 ## Implementation Checklist
 
-- [ ] Modify `useLogin` hook to handle MFA-required (200 + mfaRequired), lockout (423 + lockedUntil), and lastLogin responses
-- [ ] Build `MfaTotpStep` with 6-digit numeric input, auto-submit, verify/cancel actions, backup code fallback
-- [ ] Build `MfaSetupModal` with QR code display, verify-setup step, and backup codes (3-step flow)
-- [ ] Build `AccountLockoutAlert` with dynamic countdown timer and actionable error message
-- [ ] Build `LastLoginBanner` reading last-login data from auth state, auto-dismiss after 10 seconds
-- [ ] Integrate MfaTotpStep and AccountLockoutAlert into LoginPage (SCR-001)
-- [ ] Integrate LastLoginBanner into PatientDashboard, StaffDashboard, AdminDashboard
+- [X] Modify `useLogin` hook to handle MFA-required (200 + mfaRequired), lockout (423 + lockedUntil), and lastLogin responses
+- [X] Build `MfaTotpStep` with 6-digit numeric input, auto-submit, verify/cancel actions, backup code fallback
+- [X] Build `MfaSetupModal` with QR code display, verify-setup step, and backup codes (3-step flow)
+- [X] Build `AccountLockoutAlert` with dynamic countdown timer and actionable error message
+- [X] Build `LastLoginBanner` reading last-login data from auth state, auto-dismiss after 10 seconds
+- [X] Integrate MfaTotpStep and AccountLockoutAlert into LoginPage (SCR-001)
+- [X] Integrate LastLoginBanner into PatientDashboard, StaffDashboard, AdminDashboard
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

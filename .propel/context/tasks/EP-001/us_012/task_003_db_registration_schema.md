@@ -164,9 +164,9 @@ Server/                               # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Extend `ApplicationUser` with FirstName, LastName, DateOfBirth, AccountStatus, CreatedAt, UpdatedAt, DeletedAt
-- [ ] Create `AccountStatus` enum (PendingVerification, Active, Suspended, Deactivated)
-- [ ] Create `EmailVerificationToken` entity (Id, UserId, TokenHash, ExpiresAt, IsUsed, CreatedAt)
-- [ ] Configure Fluent API: unique index on Email, indexes on TokenHash and UserId, FK constraint, soft delete filter
-- [ ] Generate and verify EF Core migration with `dotnet ef migrations add`
+- [x] Extend `ApplicationUser` with FirstName, LastName, DateOfBirth, AccountStatus, CreatedAt, UpdatedAt, DeletedAt
+- [x] Create `AccountStatus` enum (PendingVerification, Active, Suspended, Deactivated)
+- [x] Create `EmailVerificationToken` entity (Id, UserId, TokenHash, ExpiresAt, IsUsed, CreatedAt)
+- [x] Configure Fluent API: unique index on Email, indexes on TokenHash and UserId, FK constraint, soft delete filter
+- [x] Generate and verify EF Core migration with `dotnet ef migrations add`
 - [ ] Test migration apply and rollback on clean database

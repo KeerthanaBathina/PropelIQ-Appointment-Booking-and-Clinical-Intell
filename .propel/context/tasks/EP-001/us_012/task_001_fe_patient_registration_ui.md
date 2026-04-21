@@ -179,13 +179,13 @@ app/                          # Frontend React application
 
 ## Implementation Checklist
 
-- [ ] Create `registrationSchema.ts` with Zod/Yup validation rules (password: 8+ chars, 1 uppercase, 1 number, 1 special char; email format; required fields)
-- [ ] Build `PasswordStrengthIndicator` component with MUI LinearProgress and criteria checklist
-- [ ] Build `RegistrationForm` component with react-hook-form + MUI TextFields, terms checkbox, submit button
-- [ ] Build `RegistrationPage` with centered card layout, screen state management (Default/Loading/Success/Error)
-- [ ] Implement email-on-blur uniqueness check with 300ms debounce
-- [ ] Build `EmailVerificationPage` handling token verification, expired link, and resend flow
-- [ ] Create React Query hooks (`useRegistration`, `useVerifyEmail`, `useResendVerification`, `useCheckEmail`)
-- [ ] Add `/register` and `/verify-email` routes; wire navigation links from login page
+- [x] Create `registrationSchema.ts` with Zod/Yup validation rules (password: 8+ chars, 1 uppercase, 1 number, 1 special char; email format; required fields)
+- [x] Build `PasswordStrengthIndicator` component with MUI LinearProgress and criteria checklist
+- [x] Build `RegistrationForm` component with react-hook-form + MUI TextFields, terms checkbox, submit button
+- [x] Build `RegistrationPage` with centered card layout, screen state management (Default/Loading/Success/Error)
+- [x] Implement email-on-blur uniqueness check with 300ms debounce
+- [x] Build `EmailVerificationPage` handling token verification, expired link, and resend flow
+- [x] Create React Query hooks (`useRegistration`, `useVerifyEmail`, `useResendVerification`, `useCheckEmail`)
+- [x] Add `/register` and `/verify-email` routes; wire navigation links from login page
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

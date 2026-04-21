@@ -191,6 +191,13 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("integer");
 
+                    b.Property<string>("AccountStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("PendingVerification");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("text");
@@ -211,15 +218,42 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
 
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
                     b.Property<string>("FullName")
                         .IsRequired()
-                        .HasColumnType("text");
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTimeOffset?>("LastLoginAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("LastLoginIp")
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("boolean");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("MfaEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("MfaRecoveryCodes")
+                        .HasMaxLength(2048)
+                        .HasColumnType("character varying(2048)");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -240,6 +274,10 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("text");
+
+                    b.Property<string>("TotpSecretEncrypted")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
@@ -272,6 +310,10 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime>("AppointmentTime")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("AppointmentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -280,6 +322,13 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProviderName")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -301,9 +350,15 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_appointments_patient_id");
 
+                    b.HasIndex("AppointmentTime", "Status")
+                        .HasDatabaseName("ix_appointments_appointment_time_status");
+
                     b.HasIndex("PatientId", "AppointmentTime")
                         .IsUnique()
                         .HasDatabaseName("ix_appointments_patient_id_appointment_time");
+
+                    b.HasIndex("AppointmentTime", "Status", "ProviderId")
+                        .HasDatabaseName("ix_appointments_appointment_time_status_provider_id");
 
                     b.ToTable("appointments", (string)null);
                 });
@@ -316,8 +371,8 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.Property<string>("Action")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("character varying(20)");
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
 
                     b.Property<string>("IpAddress")
                         .IsRequired()
@@ -340,16 +395,20 @@ namespace UPACIP.DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid?>("UserId")
                         .HasColumnType("uuid");
 
                     b.HasKey("LogId");
 
                     b.HasIndex("Timestamp")
+                        .IsDescending()
                         .HasDatabaseName("ix_audit_logs_timestamp");
 
-                    b.HasIndex("UserId")
-                        .HasDatabaseName("ix_audit_logs_user_id");
+                    b.HasIndex("Action", "Timestamp")
+                        .HasDatabaseName("ix_audit_logs_action_timestamp");
+
+                    b.HasIndex("UserId", "Timestamp")
+                        .HasDatabaseName("ix_audit_logs_user_id_timestamp");
 
                     b.ToTable("audit_logs", (string)null);
                 });
@@ -401,6 +460,41 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("UploaderUserId");
 
                     b.ToTable("clinical_documents", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.EmailVerificationToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TokenHash")
+                        .HasDatabaseName("ix_email_verification_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_email_verification_tokens_user_id");
+
+                    b.ToTable("email_verification_tokens", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ExtractedData", b =>
@@ -573,6 +667,47 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("notification_logs", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PasswordResetToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("InvalidatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsUsed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("TokenHash")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("character varying(64)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("ix_password_reset_tokens_expires_at");
+
+                    b.HasIndex("TokenHash")
+                        .HasDatabaseName("ix_password_reset_tokens_token_hash");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_password_reset_tokens_user_id");
+
+                    b.ToTable("password_reset_tokens", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.Patient", b =>
                 {
                     b.Property<Guid>("Id")
@@ -623,6 +758,256 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("patients", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.ProviderAvailabilityTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AppointmentType")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("General Checkup");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ProviderName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("SlotDurationMinutes")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(30);
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderId")
+                        .HasDatabaseName("ix_provider_availability_templates_provider_id");
+
+                    b.HasIndex("ProviderId", "DayOfWeek")
+                        .HasDatabaseName("ix_provider_availability_templates_provider_id_day_of_week");
+
+                    b.HasIndex("ProviderId", "DayOfWeek", "StartTime")
+                        .IsUnique()
+                        .HasDatabaseName("uq_provider_availability_templates_provider_day_start");
+
+                    b.ToTable("provider_availability_templates", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_provider_availability_templates_end_after_start", "end_time > start_time");
+
+                            t.HasCheckConstraint("ck_provider_availability_templates_slot_duration_positive", "slot_duration_minutes > 0");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("d1e2ecb5-b5c6-7890-abcd-ef1234567892"),
+                            AppointmentType = "General Checkup",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 1,
+                            EndTime = new TimeOnly(17, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("d1e2f3a4-b5c6-7890-abcd-ef1234567890"),
+                            ProviderName = "Dr. Emily Chen",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("d1e2ec86-b5c6-7890-abcd-ef1234567893"),
+                            AppointmentType = "General Checkup",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 2,
+                            EndTime = new TimeOnly(17, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("d1e2f3a4-b5c6-7890-abcd-ef1234567890"),
+                            ProviderName = "Dr. Emily Chen",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("d1e2ec97-b5c6-7890-abcd-ef1234567894"),
+                            AppointmentType = "General Checkup",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 3,
+                            EndTime = new TimeOnly(17, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("d1e2f3a4-b5c6-7890-abcd-ef1234567890"),
+                            ProviderName = "Dr. Emily Chen",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("d1e2ece0-b5c6-7890-abcd-ef1234567895"),
+                            AppointmentType = "General Checkup",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 4,
+                            EndTime = new TimeOnly(17, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("d1e2f3a4-b5c6-7890-abcd-ef1234567890"),
+                            ProviderName = "Dr. Emily Chen",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("d1e2ecf1-b5c6-7890-abcd-ef1234567896"),
+                            AppointmentType = "General Checkup",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 5,
+                            EndTime = new TimeOnly(17, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("d1e2f3a4-b5c6-7890-abcd-ef1234567890"),
+                            ProviderName = "Dr. Emily Chen",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("e2f39aa4-c6d7-8901-bcde-f12345678902"),
+                            AppointmentType = "Consultation",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 1,
+                            EndTime = new TimeOnly(16, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("e2f3a4b5-c6d7-8901-bcde-f12345678901"),
+                            ProviderName = "Dr. Michael Park",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(9, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("e2f39a97-c6d7-8901-bcde-f12345678905"),
+                            AppointmentType = "Consultation",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 2,
+                            EndTime = new TimeOnly(16, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("e2f3a4b5-c6d7-8901-bcde-f12345678901"),
+                            ProviderName = "Dr. Michael Park",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(9, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("e2f39a86-c6d7-8901-bcde-f12345678904"),
+                            AppointmentType = "Consultation",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 3,
+                            EndTime = new TimeOnly(16, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("e2f3a4b5-c6d7-8901-bcde-f12345678901"),
+                            ProviderName = "Dr. Michael Park",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(9, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("e2f39af1-c6d7-8901-bcde-f12345678907"),
+                            AppointmentType = "Consultation",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 4,
+                            EndTime = new TimeOnly(16, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("e2f3a4b5-c6d7-8901-bcde-f12345678901"),
+                            ProviderName = "Dr. Michael Park",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(9, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("e2f39ae0-c6d7-8901-bcde-f12345678906"),
+                            AppointmentType = "Consultation",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 5,
+                            EndTime = new TimeOnly(16, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("e2f3a4b5-c6d7-8901-bcde-f12345678901"),
+                            ProviderName = "Dr. Michael Park",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(9, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("f3a4e8d7-d7e8-9012-cdef-123456789016"),
+                            AppointmentType = "Follow-up",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 1,
+                            EndTime = new TimeOnly(15, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("f3a4b5c6-d7e8-9012-cdef-123456789012"),
+                            ProviderName = "Dr. Lisa Wang",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(10, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("f3a4e8f5-d7e8-9012-cdef-123456789014"),
+                            AppointmentType = "Follow-up",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 3,
+                            EndTime = new TimeOnly(15, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("f3a4b5c6-d7e8-9012-cdef-123456789012"),
+                            ProviderName = "Dr. Lisa Wang",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(10, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("f3a4e893-d7e8-9012-cdef-12345678901a"),
+                            AppointmentType = "Follow-up",
+                            CreatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DayOfWeek = 5,
+                            EndTime = new TimeOnly(15, 0, 0),
+                            IsActive = true,
+                            ProviderId = new Guid("f3a4b5c6-d7e8-9012-cdef-123456789012"),
+                            ProviderName = "Dr. Lisa Wang",
+                            SlotDurationMinutes = 30,
+                            StartTime = new TimeOnly(10, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 20, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -661,6 +1046,54 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("ix_queue_entries_appointment_id");
 
                     b.ToTable("queue_entries", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.UserSession", b =>
+                {
+                    b.Property<Guid>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("ExpirationReason")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("character varying(45)");
+
+                    b.Property<DateTime>("LoginAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime?>("LogoutAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("UserAgent")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LogId");
+
+                    b.HasIndex("LoginAt")
+                        .HasDatabaseName("ix_user_sessions_login_at");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("ix_user_sessions_session_id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("ix_user_sessions_user_id");
+
+                    b.ToTable("user_sessions", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -760,8 +1193,7 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
                         .WithMany("AuditLogs")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
@@ -783,6 +1215,17 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("UploaderUser");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.EmailVerificationToken", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany("EmailVerificationTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ExtractedData", b =>
@@ -970,6 +1413,28 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Appointment");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PasswordResetToken", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany("PasswordResetTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.ProviderAvailabilityTemplate", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Provider");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueEntry", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.Appointment", "Appointment")
@@ -981,9 +1446,24 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Appointment");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.UserSession", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ApplicationUser", b =>
                 {
                     b.Navigation("AuditLogs");
+
+                    b.Navigation("EmailVerificationTokens");
+
+                    b.Navigation("PasswordResetTokens");
 
                     b.Navigation("UploadedDocuments");
                 });

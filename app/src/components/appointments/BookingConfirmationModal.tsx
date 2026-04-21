@@ -1,0 +1,145 @@
+/**
+ * BookingConfirmationModal — UXR-102 confirmation dialog preventing accidental bookings.
+ *
+ * Displays selected slot details (date, time, provider, appointment type) for patient
+ * review before committing the booking. A Chip shows the hold countdown timer so the
+ * patient knows how long the slot is reserved; at ≤ 15 seconds remaining the Chip
+ * switches to 'warning' colour with an ARIA live announcement (WCAG 2.1 AA).
+ *
+ * Loading state: "Confirm Booking" button is replaced with a spinner during API call.
+ * Error state: a service-unavailable or generic error Alert is shown above the actions
+ * when the booking API returns non-409 errors (EC-1).
+ *
+ * @param open             - Whether the dialog is open
+ * @param slot             - Selected appointment slot
+ * @param visitType        - Patient-selected visit type label
+ * @param secondsRemaining - Seconds left on the hold timer (0 = not counting)
+ * @param onConfirm        - Called when patient clicks "Confirm Booking"
+ * @param onCancel         - Called when patient clicks "Cancel" or closes dialog
+ * @param isLoading        - True while booking API is in-flight
+ * @param bookingError     - Optional error string to show (503 or generic)
+ */
+
+import Alert from '@mui/material/Alert';
+import Box from '@mui/material/Box';
+import Button from '@mui/material/Button';
+import Chip from '@mui/material/Chip';
+import CircularProgress from '@mui/material/CircularProgress';
+import Dialog from '@mui/material/Dialog';
+import DialogActions from '@mui/material/DialogActions';
+import DialogContent from '@mui/material/DialogContent';
+import DialogTitle from '@mui/material/DialogTitle';
+import Typography from '@mui/material/Typography';
+import type { AppointmentSlot } from '@/hooks/useAppointmentSlots';
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function formatDateFull(dateStr: string): string {
+  const [y, m, day] = dateStr.split('-').map(Number);
+  return new Date(y, m - 1, day).toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  });
+}
+
+function formatTime(time24: string): string {
+  const [hStr, mStr] = time24.split(':');
+  const h = parseInt(hStr, 10);
+  const period = h >= 12 ? 'PM' : 'AM';
+  const hour12 = h % 12 === 0 ? 12 : h % 12;
+  return `${hour12}:${mStr ?? '00'} ${period}`;
+}
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+interface Props {
+  open: boolean;
+  slot: AppointmentSlot | null;
+  visitType: string;
+  secondsRemaining: number;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isLoading: boolean;
+  bookingError?: string | null;
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export default function BookingConfirmationModal({
+  open,
+  slot,
+  visitType,
+  secondsRemaining,
+  onConfirm,
+  onCancel,
+  isLoading,
+  bookingError,
+}: Props) {
+  const showCountdown = secondsRemaining > 0;
+  const urgentCountdown = secondsRemaining > 0 && secondsRemaining <= 15;
+
+  return (
+    <Dialog
+      open={open}
+      onClose={isLoading ? undefined : onCancel}
+      aria-labelledby="confirm-modal-title"
+      maxWidth="xs"
+      fullWidth
+    >
+      <DialogTitle id="confirm-modal-title">Confirm Appointment</DialogTitle>
+
+      <DialogContent>
+        {slot && (
+          <Box>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>Date:</strong> {formatDateFull(slot.date)}
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>Time:</strong> {formatTime(slot.startTime)}
+            </Typography>
+            <Typography variant="body2" sx={{ mb: 1 }}>
+              <strong>Provider:</strong> {slot.providerName}
+            </Typography>
+            <Typography variant="body2" sx={{ mb: showCountdown ? 1.5 : 0 }}>
+              <strong>Type:</strong> {visitType}
+            </Typography>
+
+            {/* Hold countdown — ARIA live region for screen-reader announcements (WCAG 2.1 AA) */}
+            {showCountdown && (
+              <Box aria-live="polite" aria-atomic="true">
+                <Chip
+                  label={`Slot held for ${secondsRemaining}s`}
+                  color={urgentCountdown ? 'warning' : 'default'}
+                  size="small"
+                />
+              </Box>
+            )}
+          </Box>
+        )}
+
+        {/* EC-1 / generic booking error */}
+        {bookingError && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {bookingError}
+          </Alert>
+        )}
+      </DialogContent>
+
+      <DialogActions>
+        <Button onClick={onCancel} disabled={isLoading} variant="outlined">
+          Cancel
+        </Button>
+        <Button
+          id="modal-confirm"
+          onClick={onConfirm}
+          disabled={isLoading}
+          variant="contained"
+          startIcon={isLoading ? <CircularProgress size={16} color="inherit" /> : null}
+        >
+          {isLoading ? 'Booking…' : 'Confirm Booking'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+  );
+}

@@ -105,19 +105,24 @@ Implement the appointment booking confirmation flow on the SCR-006 Appointment B
 ## Current Project State
 
 ```text
-[Placeholder - to be updated based on dependent task completion]
 app/
-  components/
-    appointments/
-      SlotCalendar.tsx (from US_017)
-      TimeSlotGrid.tsx (from US_017 - to modify)
-      ProviderFilter.tsx (from US_017)
-      (new modal and view files to be created here)
-  hooks/
-    useAppointmentSlots.ts (from US_017)
-    (new hook files to be created here)
-  pages/
-    AppointmentBookingPage.tsx (from US_017 - to modify)
+  src/
+    lib/
+      apiClient.ts                              ✅ Modified — added apiDelete
+    hooks/
+      useAppointmentSlots.ts                    ✅ Existing (US_017)
+      useBookAppointment.ts                     ✅ Created — React Query mutation, 503 retry (EC-1)
+      useSlotHold.ts                            ✅ Created — 60s countdown, optimistic hold (UXR-503)
+    components/
+      appointments/
+        SlotCalendar.tsx                        ✅ Existing (US_017)
+        TimeSlotGrid.tsx                        ✅ Modified — heldSlotId prop + "Reserved" badge
+        ProviderFilter.tsx                      ✅ Existing (US_017)
+        BookingConfirmationModal.tsx             ✅ Created — UXR-102, countdown chip, loading state
+        SlotConflictModal.tsx                   ✅ Created — UXR-602, 3 alternative slot cards
+        BookingSuccessView.tsx                  ✅ Created — AC-4, booking reference, CTAs
+    pages/
+      AppointmentBookingPage.tsx                ✅ Modified — full booking flow integration
 ```
 
 ## Expected Changes
@@ -154,12 +159,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Build `BookingConfirmationModal` with MUI Dialog displaying slot details (date, time, provider, type), confirm/cancel buttons, and loading state on confirm (UXR-102, AC-1)
-- [ ] Implement optimistic UI slot reservation in `TimeSlotGrid` — visually mark slot as "held" on selection with automatic rollback on hold failure (UXR-503, AC-3)
-- [ ] Build `SlotConflictModal` displaying "Slot no longer available" message with 3 alternative available slots as selectable cards on 409 Conflict response (UXR-602, AC-2)
-- [ ] Implement `useSlotHold` hook with 60-second countdown timer, visual countdown in confirmation modal, auto-release on timeout with toast notification (AC-3)
-- [ ] Build `BookingSuccessView` showing appointment date, time, provider, appointment type, and booking reference number with "View in Dashboard" CTA (AC-4)
-- [ ] Implement service unavailability error handling with "Service temporarily unavailable" message and retry button on 503 responses (EC-1)
-- [ ] Add ARIA live region announcements for booking state transitions and keyboard navigation for all modal interactions (WCAG 2.1 AA)
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Build `BookingConfirmationModal` with MUI Dialog displaying slot details (date, time, provider, type), confirm/cancel buttons, and loading state on confirm (UXR-102, AC-1)
+- [x] Implement optimistic UI slot reservation in `TimeSlotGrid` — visually mark slot as "held" on selection with automatic rollback on hold failure (UXR-503, AC-3)
+- [x] Build `SlotConflictModal` displaying "Slot no longer available" message with 3 alternative available slots as selectable cards on 409 Conflict response (UXR-602, AC-2)
+- [x] Implement `useSlotHold` hook with 60-second countdown timer, visual countdown in confirmation modal, auto-release on timeout with toast notification (AC-3)
+- [x] Build `BookingSuccessView` showing appointment date, time, provider, appointment type, and booking reference number with "View in Dashboard" CTA (AC-4)
+- [x] Implement service unavailability error handling with "Service temporarily unavailable" message and retry button on 503 responses (EC-1)
+- [x] Add ARIA live region announcements for booking state transitions and keyboard navigation for all modal interactions (WCAG 2.1 AA)
+- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation ✅
+- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete ✅

@@ -14,27 +14,46 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
         builder.HasKey(a => a.LogId);
         builder.Property(a => a.LogId).ValueGeneratedOnAdd();
 
+        // Action stored as string; max 50 to accommodate all AuditAction enum member names
+        // (e.g. "PasswordResetRequest" = 20 chars; headroom for future actions).
         builder.Property(a => a.Action)
             .HasConversion<string>()
-            .HasMaxLength(20)
+            .HasMaxLength(50)
             .IsRequired();
 
         builder.Property(a => a.ResourceType).IsRequired().HasMaxLength(100);
         builder.Property(a => a.ResourceId).IsRequired(false);
+
+        // UserId is nullable: ON DELETE SET NULL preserves audit records when a user is
+        // soft-deleted or hard-deleted (DR-016). Nullable also supports future system events.
+        builder.Property(a => a.UserId).IsRequired(false);
+
         builder.Property(a => a.IpAddress).IsRequired().HasMaxLength(45);   // IPv6 max = 39 chars
         builder.Property(a => a.UserAgent).IsRequired().HasMaxLength(500);
 
-        // Indexes for the two most common query patterns: per-user audit trail and time-range scans.
-        builder.HasIndex(a => a.UserId)
-            .HasDatabaseName("ix_audit_logs_user_id");
+        // ─────────────────────────────────────────────────────────────────────
+        // Indexes (US_016 TASK_003 spec)
+        // ─────────────────────────────────────────────────────────────────────
 
+        // Composite index for per-user audit trail queries (most common access pattern).
+        builder.HasIndex(a => new { a.UserId, a.Timestamp })
+            .HasDatabaseName("ix_audit_logs_user_id_timestamp");
+
+        // Composite index for event-type queries (e.g. all FailedLogin events in a time range).
+        builder.HasIndex(a => new { a.Action, a.Timestamp })
+            .HasDatabaseName("ix_audit_logs_action_timestamp");
+
+        // Single timestamp index for chronological listing and retention cleanup.
         builder.HasIndex(a => a.Timestamp)
-            .HasDatabaseName("ix_audit_logs_timestamp");
+            .HasDatabaseName("ix_audit_logs_timestamp")
+            .IsDescending();
 
-        // Restrict delete so that removing a user account does not erase their audit history.
+        // ─────────────────────────────────────────────────────────────────────
+        // FK: ON DELETE SET NULL preserves audit history when user is removed.
+        // ─────────────────────────────────────────────────────────────────────
         builder.HasOne(a => a.User)
             .WithMany(u => u.AuditLogs)
             .HasForeignKey(a => a.UserId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

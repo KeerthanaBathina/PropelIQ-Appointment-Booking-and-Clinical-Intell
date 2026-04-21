@@ -104,15 +104,17 @@ Implement the Appointment Slot Viewing & Filtering UI on the SCR-006 Appointment
 ## Current Project State
 
 ```
-[Placeholder - to be updated based on dependent task completion]
 app/
   components/
     appointments/
-      (new files to be created here)
+      ProviderFilter.tsx       ✅ Created
+      SlotCalendar.tsx         ✅ Created
+      TimeSlotGrid.tsx         ✅ Created
   hooks/
-    (new hook file to be created here)
+    useAppointmentSlots.ts     ✅ Created
   pages/
-    (new page file to be created here)
+    AppointmentBookingPage.tsx ✅ Created
+  router.tsx                   ✅ Updated — /patient/appointments/book route added
 ```
 
 ## Expected Changes
@@ -147,12 +149,15 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `AppointmentBookingPage` component with responsive MUI Grid layout and breadcrumb navigation for SCR-006 route
-- [ ] Build `SlotCalendar` component with MUI DateCalendar, 90-day date restriction (FR-013), availability dot indicators on dates (AC-2), and grayed-out unavailable dates
-- [ ] Build `TimeSlotGrid` component displaying 30-minute slot cards with provider name, appointment type, and status color coding (UXR-401, AC-3)
-- [ ] Build `ProviderFilter` component using MUI Select with "All Providers" default option and re-filtering on selection change
-- [ ] Implement `useAppointmentSlots` React Query hook with 5-minute staleTime, error/loading state handling, and query parameter management (AC-1, AC-4)
-- [ ] Implement skeleton loading placeholders for calendar and slot grid during data fetch (UXR-502)
-- [ ] Implement empty state display with "No available slots" message and actionable suggestions when zero slots match criteria (EC-1)
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Create `AppointmentBookingPage` component with responsive MUI Grid layout and breadcrumb navigation for SCR-006 route
+- [x] Build `SlotCalendar` component with custom 7-column CSS-grid calendar, 90-day date restriction (FR-013), availability dot indicators on dates (AC-2), and grayed-out unavailable dates
+- [x] Build `TimeSlotGrid` component displaying 30-minute slot cards with provider name, appointment type, and status color coding (UXR-401, AC-3)
+- [x] Build `ProviderFilter` component using MUI Select with "Any Provider" default option and re-filtering on selection change
+- [x] Implement `useAppointmentSlots` React Query hook with 5-minute staleTime, error/loading state handling, and query parameter management (AC-1, AC-4)
+- [x] Implement skeleton loading placeholders for calendar and slot grid during data fetch (UXR-502)
+- [x] Implement empty state display with "No available slots" message and actionable suggestions when zero slots match criteria (EC-1)
+- [x] Implement booking confirmation modal (UXR-102) with UXR-503 optimistic close + UXR-602 conflict error with alternative slots
+- [x] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
+- [x] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] `tsc --noEmit` → exit 0 (no TypeScript errors)
+- [x] `eslint` → exit 0 (no lint errors)

@@ -96,15 +96,26 @@ Implement the appointment slot availability REST API endpoint with Redis caching
 ## Current Project State
 
 ```
-[Placeholder - to be updated based on dependent task completion]
-Server/
-  Controllers/
-    (new controller file to be created here)
-  Services/
-    (new service files to be created here)
-  Models/
-    DTOs/
-      (new DTO files to be created here)
+src/
+  UPACIP.DataAccess/
+    Entities/
+      Appointment.cs                       ✅ Extended — ProviderId, ProviderName, AppointmentType added
+    Configurations/
+      AppointmentConfiguration.cs          ✅ Updated — column configs for 3 new fields
+    Migrations/
+      20260420..._AddAppointmentProviderAndTypeFields.cs  ✅ Created
+  UPACIP.Service/
+    Appointments/
+      IAppointmentSlotService.cs           ✅ Created
+      AppointmentSlotService.cs            ✅ Created (cache-aside, 30-min slot gen, Mon–Fri)
+      SlotQueryParameters.cs               ✅ Created (in Service project)
+      SlotAvailabilityResponse.cs          ✅ Created (in Service project)
+    Validation/
+      SlotQueryParametersValidator.cs      ✅ Created (FR-013 90-day validation)
+  UPACIP.Api/
+    Controllers/
+      AppointmentSlotsController.cs        ✅ Created (GET /api/appointments/slots)
+    Program.cs                             ✅ Updated — DI registration + using added
 ```
 
 ## Expected Changes
@@ -138,11 +149,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `SlotQueryParameters` request model with DateFrom, DateTo, ProviderId, AppointmentType properties and 90-day range validation (FR-013)
-- [ ] Create `SlotAvailabilityResponse` DTO with `SlotItem` list (slot ID, start/end time, provider name, appointment type) and `DateSummary` list for calendar indicators
-- [ ] Implement `AppointmentSlotCacheService` with Redis `IDistributedCache`, 5-minute TTL, composite cache key generation, and `InvalidateSlotsAsync` method (AC-4, NFR-030)
-- [ ] Implement `AppointmentSlotService.GetAvailableSlotsAsync` with cache-first strategy, EF Core query fallback, and 30-minute slot computation from provider availability templates (AC-1, AC-3)
-- [ ] Create `AppointmentSlotsController` with `GET /api/appointments/slots` endpoint, `[Authorize]` attribute, model validation, and OpenAPI attributes (NFR-038)
-- [ ] Implement cache invalidation integration point for appointment booking/cancellation flows to clear stale slot data
-- [ ] Add Serilog structured logging with correlation IDs for request tracing, cache hit/miss metrics, and query duration (NFR-035)
-- [ ] Register `IAppointmentSlotService` and `AppointmentSlotCacheService` in DI container in Program.cs
+- [x] Create `SlotQueryParameters` request model with DateFrom/StartDate, DateTo/EndDate, ProviderId, AppointmentType and 90-day range validation (FR-013) — placed in `UPACIP.Service.Appointments`
+- [x] Create `SlotAvailabilityResponse` DTO with `SlotItem` list (slot ID, start/end time, provider name, appointment type, available flag), `ProviderSummary` list, and `DateAvailabilitySummary` list for calendar indicators — placed in `UPACIP.Service.Appointments`
+- [x] Implement `AppointmentSlotService.GetAvailableSlotsAsync` with `ICacheService` cache-aside strategy, EF Core query fallback, 30-minute slot generation Mon–Fri 08:00–17:00 per provider (AC-1, AC-3, AC-4)
+- [x] Extend `Appointment` entity with `ProviderId` (Guid?), `ProviderName` (string?, max 100), `AppointmentType` (string?, max 50); updated `AppointmentConfiguration`; generated EF migration
+- [x] Create `AppointmentSlotsController` with `GET /api/appointments/slots` endpoint, `[Authorize(Policy = AnyAuthenticated)]`, model validation via FluentValidation, OpenAPI attributes (NFR-038)
+- [x] Implement cache invalidation via `IAppointmentSlotService.InvalidateCacheAsync` (single-date, optional provider scope) for booking/cancellation flow integration
+- [x] Add Serilog structured logging: request params, cache hit/miss, result count (NFR-035) — correlation ID injected by `CorrelationIdMiddleware`
+- [x] Register `IAppointmentSlotService → AppointmentSlotService` as scoped in Program.cs
+- [x] `dotnet build UPACIP.sln` → `Build succeeded. 0 Warning(s) 0 Error(s)`

@@ -176,11 +176,11 @@ app/                          # Frontend React application
 
 ## Implementation Checklist
 
-- [ ] Extend `useAuth` hook with role extraction from JWT (getUserRole, hasRole, isPatient, isStaff, isAdmin)
-- [ ] Build `DashboardRouterPage` with 3 role cards, auto-redirect, and screen states (Default/Loading/Error)
-- [ ] Build `ProtectedRoute` component enforcing allowedRoles against user's JWT role claim
-- [ ] Build `AccessDeniedPage` with error alert, "Go to Dashboard" and "Sign Out" buttons
-- [ ] Build `RoleThemeProvider` applying primary accent for patient, secondary accent for staff (UXR-403)
-- [ ] Wire routes: /dashboard, /patient/*, /staff/*, /admin/*, /access-denied with ProtectedRoute guards
+- [x] Extend `useAuth` hook with role extraction from JWT (getUserRole, hasRole, isPatient, isStaff, isAdmin)
+- [x] Build `DashboardRouterPage` with 3 role cards, auto-redirect, and screen states (Default/Loading/Error)
+- [x] Build `ProtectedRoute` component enforcing allowedRoles against user's JWT role claim
+- [x] Build `AccessDeniedPage` with error alert, "Go to Dashboard" and "Sign Out" buttons
+- [x] Build `RoleThemeProvider` applying primary accent for patient, secondary accent for staff (UXR-403)
+- [x] Wire routes: /dashboard, /patient/*, /staff/*, /admin/*, /access-denied with ProtectedRoute guards
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

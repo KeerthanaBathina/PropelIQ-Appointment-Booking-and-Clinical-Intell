@@ -150,9 +150,9 @@ Server/                                # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Create `RoleSeedData` class seeding Patient, Staff, Admin roles with deterministic GUIDs
-- [ ] Seed default admin account from configuration (email, password from appsettings.json)
-- [ ] Configure `OnModelCreating` or `IHostedService` to invoke role seed data
-- [ ] Generate and verify EF Core migration with `dotnet ef migrations add SeedRbacRoles`
-- [ ] Validate idempotency: re-running seed does not create duplicates
+- [x] Create `RoleSeedData` class seeding Patient, Staff, Admin roles with deterministic GUIDs
+- [x] Seed default admin account from configuration (email, password from appsettings.json)
+- [x] Configure `OnModelCreating` or `IHostedService` to invoke role seed data
+- [x] Generate and verify EF Core migration with `dotnet ef migrations add SeedRbacRoles`
+- [x] Validate idempotency: re-running seed does not create duplicates
 - [ ] Test migration apply and rollback on clean database

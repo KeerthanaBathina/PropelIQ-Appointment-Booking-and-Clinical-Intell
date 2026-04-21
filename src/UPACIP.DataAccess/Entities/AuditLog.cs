@@ -14,8 +14,12 @@ public sealed class AuditLog
     /// <summary>Surrogate UUID primary key.</summary>
     public Guid LogId { get; set; } = Guid.NewGuid();
 
-    /// <summary>FK to the <see cref="ApplicationUser"/> who performed the action.</summary>
-    public Guid UserId { get; set; }
+    /// <summary>
+    /// FK to the <see cref="ApplicationUser"/> who performed the action.
+    /// Nullable so that audit records are preserved when the user account is deleted
+    /// (ON DELETE SET NULL) and for potential future system-generated events (DR-016).
+    /// </summary>
+    public Guid? UserId { get; set; }
 
     /// <summary>Type of action that was performed.</summary>
     public AuditAction Action { get; set; }
@@ -39,5 +43,5 @@ public sealed class AuditLog
     // Navigation properties
     // -------------------------------------------------------------------------
 
-    public ApplicationUser User { get; set; } = null!;
+    public ApplicationUser? User { get; set; }
 }

@@ -1,20 +1,25 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.FeatureManagement;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using Npgsql;
 using Pgvector;
 using StackExchange.Redis;
 using System.Net;
 using System.Text;
 using System.Text.Json;
+using UPACIP.Api.Authorization;
+using UPACIP.Api.Claims;
 using UPACIP.Api.Configuration;
 using UPACIP.Api.HealthChecks;
 using UPACIP.Api.Middleware;
@@ -27,6 +32,7 @@ using UPACIP.Service.Caching;
 using UPACIP.DataAccess.Seeding;
 using UPACIP.Service.Validation;
 using UPACIP.Service.VectorSearch;
+using UPACIP.Service.Appointments;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,11 +100,28 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
 
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "UPACIP API",
         Version = "v1",
         Description = "Unified Patient Access & Clinical Intelligence Platform – Backend API"
+    });
+
+    // JWT Bearer security definition — enables the Authorize button in Swagger UI (NFR-038).
+    var jwtScheme = new OpenApiSecurityScheme
+    {
+        Name         = "Authorization",
+        Type         = SecuritySchemeType.Http,
+        Scheme       = "bearer",
+        BearerFormat = "JWT",
+        In           = ParameterLocation.Header,
+        Description  = "Enter your JWT access token (without the 'Bearer' prefix).",
+        Reference    = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
+    };
+    options.AddSecurityDefinition("Bearer", jwtScheme);
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        { jwtScheme, Array.Empty<string>() },
     });
 });
 
@@ -182,6 +205,9 @@ if (jwtSettings.SigningKey.Length < 32)
 
 builder.Services.AddSingleton(jwtSettings); // Injected directly — no IOptions wrapper needed
 
+// Custom 401/403 response handler — returns structured JSON instead of empty responses
+// and writes 403 events to the audit trail (NFR-012).
+// Uses JwtBearerEvents so no external interface reference is needed.
 builder.Services
     .AddAuthentication(options =>
     {
@@ -204,10 +230,93 @@ builder.Services
             ValidateLifetime         = true,
             ClockSkew                = TimeSpan.Zero, // Exact 15-minute window (no tolerance)
         };
+
+        // Override default empty 401/403 responses with structured JSON (NFR-012).
+        // OnChallenge fires for unauthenticated requests (no valid JWT / expired token).
+        // OnForbidden fires when an authenticated user fails a policy check.
+        options.Events = new JwtBearerEvents
+        {
+            OnTokenValidated = async context =>
+            {
+                // Check JWT jti blacklist — rejects tokens that were revoked on logout
+                // or session invalidation before their natural expiry (AC-1, task_002 step 5).
+                var jti = context.Principal?
+                    .FindFirst(System.IdentityModel.Tokens.Jwt.JwtRegisteredClaimNames.Jti)?.Value;
+
+                if (!string.IsNullOrEmpty(jti))
+                {
+                    var tokenService = context.HttpContext.RequestServices
+                        .GetRequiredService<ITokenService>();
+
+                    if (await tokenService.IsJtiBlacklistedAsync(jti, context.HttpContext.RequestAborted))
+                    {
+                        context.Fail("Token has been revoked.");
+                    }
+                }
+            },
+
+            OnChallenge = async context =>
+            {
+                // Suppress the default WWW-Authenticate challenge and write our own body.
+                context.HandleResponse();
+
+                var logger       = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+                var scopeFactory = context.HttpContext.RequestServices
+                    .GetRequiredService<IServiceScopeFactory>();
+
+                await AuthorizationResultHandler.HandleChallengedAsync(
+                    context.HttpContext, logger);
+            },
+
+            OnForbidden = async context =>
+            {
+                var logger       = context.HttpContext.RequestServices
+                    .GetRequiredService<ILogger<Program>>();
+                var scopeFactory = context.HttpContext.RequestServices
+                    .GetRequiredService<IServiceScopeFactory>();
+
+                await AuthorizationResultHandler.HandleForbiddenAsync(
+                    context.HttpContext, logger, scopeFactory);
+            },
+        };
     });
+
+// ── RBAC Authorization policies (AC-1, AC-2, AC-3, AC-4) ─────────────────────
+// Named policies map directly to the three application roles.  Controllers reference
+// these by name via [Authorize(Policy = RbacPolicies.XXX)] so role strings are never
+// scattered as raw literals across the codebase.
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy(RbacPolicies.PatientOnly,
+        policy => policy.RequireRole("Patient"));
+
+    options.AddPolicy(RbacPolicies.StaffOnly,
+        policy => policy.RequireRole("Staff"));
+
+    options.AddPolicy(RbacPolicies.AdminOnly,
+        policy => policy.RequireRole("Admin"));
+
+    options.AddPolicy(RbacPolicies.StaffOrAdmin,
+        policy => policy.RequireRole("Staff", "Admin"));
+
+    options.AddPolicy(RbacPolicies.AnyAuthenticated,
+        policy => policy.RequireAuthenticatedUser());
+});
+
+// Claims transformer — normalizes short-form "role" claims to ClaimTypes.Role so that
+// [Authorize(Policy)] checks work with tokens from any identity provider.
+builder.Services.AddScoped<IClaimsTransformation, RoleClaimsTransformer>();
 
 // Token service — scoped so it participates in per-request DI scopes correctly.
 builder.Services.AddScoped<ITokenService, TokenService>();
+
+// Session management — Redis-backed active session tracking with 15-min sliding TTL (NFR-014, FR-003).
+// Scoped per-request because it depends on ICacheService (singleton) via constructor injection.
+builder.Services.AddScoped<ISessionService, RedisSessionService>();
+
+// Concurrent session guard — scoped; depends on ISessionService.
+builder.Services.AddScoped<ConcurrentSessionGuard>();
 
 // NpgsqlDataSource singleton — exposes the same pooled data source used by EF Core
 // to downstream services that execute raw SQL (e.g. pgvector cosine queries).
@@ -223,6 +332,12 @@ builder.Services.AddScoped<IVectorSearchService, VectorSearchService>();
 // Only invoked when the application is started with the '--seed' CLI argument in non-Production
 // environments. No-op at runtime (never called during normal HTTP request handling).
 builder.Services.AddScoped<IDataSeeder, SqlFileDataSeeder>();
+
+// Admin seed service — IHostedService that runs on every startup (non-Production only).
+// Creates the default admin account if it does not yet exist (idempotent).
+// Credentials are read from DefaultAdmin:Email / DefaultAdmin:Password in configuration.
+// Production is guarded inside AdminSeedService itself (defence-in-depth).
+builder.Services.AddHostedService<AdminSeedService>();
 
 // Redis / IDistributedCache — Upstash Redis with TLS; AbortOnConnectFail=false so the
 // application starts even when Redis is temporarily unavailable (AC-4 cache-bypass requirement).
@@ -243,6 +358,71 @@ builder.Services.AddStackExchangeRedisCache(options =>
 // Cache service — singleton so Polly circuit breaker state persists across requests.
 // Feature services inject ICacheService; the Redis implementation is swappable.
 builder.Services.AddSingleton<ICacheService, RedisCacheService>();
+
+// Registration service — scoped per-request (depends on scoped DbContext and UserManager).
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
+
+// Email service — scoped; MailKit SmtpClient is instantiated per-send, so scoped is correct.
+builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+
+// Custom password complexity validator (NFR-013 / AC-5).
+builder.Services.AddScoped<IPasswordValidator<ApplicationUser>, PasswordComplexityValidator>();
+
+// Password reset service — token generation, validation, post-reset session cleanup (US_015).
+builder.Services.AddScoped<IPasswordResetService, PasswordResetService>();
+
+// MFA service — TOTP secret generation, AES-256 encryption, backup code hashing (US_016 AC-1).
+builder.Services.AddScoped<IMfaService, MfaService>();
+
+// Audit log service — append-only auth event logging (US_016 AC-5).
+builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
+// Appointment slot service — slot availability queries with Redis cache-aside (US_017 AC-1, AC-4).
+builder.Services.AddScoped<IAppointmentSlotService, AppointmentSlotService>();
+
+// ASP.NET Core built-in rate limiting (Microsoft.AspNetCore.RateLimiting — included in .NET 7+).
+// Policy "check-email-limit": 30 req/min per IP — anti-enumeration guard (OWASP A07).
+// The resend-verification endpoint uses application-level Redis rate limiting inside
+// RegistrationService for per-email granularity (edge case: max 3 per 5 min per email).
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("check-email-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit      = 30;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
+    // Generic registration limiter: 10 registrations per minute per IP.
+    options.AddFixedWindowLimiter("register-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit      = 10;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
+    // Forgot-password limiter: max 5 requests per 15 minutes per IP (US_015 abuse prevention).
+    options.AddFixedWindowLimiter("forgot-password-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromMinutes(15);
+        limiterOptions.PermitLimit      = 5;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
+    // MFA verify limiter: 5 attempts per minute per IP — prevents TOTP brute force (US_016 AC-1).
+    options.AddFixedWindowLimiter("mfa-verify-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit      = 5;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
+    options.RejectionStatusCode = 429;
+});
 
 // Strongly-typed configuration validation — fails fast at startup if required fields
 // are missing or out of range (fail-fast per TR-022 and 12-factor config principle).
@@ -323,7 +503,9 @@ if (app.Environment.IsDevelopment())
 // 4–7. Standard ASP.NET Core pipeline order
 app.UseHttpsRedirection();
 app.UseCors("ReactFrontend");
+app.UseRateLimiter();        // Rate limiting policies (register-limit, check-email-limit)
 app.UseAuthentication(); // Must precede UseAuthorization to populate HttpContext.User
+app.UseSessionManagement(); // Sliding 15-min TTL reset + expired session 401 (NFR-014, AC-1/AC-2)
 app.UseAuthorization();
 app.MapControllers();
 
