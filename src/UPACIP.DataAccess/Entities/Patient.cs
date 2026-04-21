@@ -34,6 +34,31 @@ public sealed class Patient : BaseEntity
     public DateTime? DeletedAt { get; set; }
 
     // -------------------------------------------------------------------------
+    // Auto-swap controls (US_021, AC-3)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// When true the system may automatically swap this patient to a preferred slot.
+    /// Defaults to true — all patients are eligible unless staff explicitly disables.
+    /// </summary>
+    public bool AutoSwapEnabled { get; set; } = true;
+
+    /// <summary>
+    /// Human-readable reason recorded when staff disables auto-swap (AC-3).
+    /// Null when auto-swap is enabled or has never been disabled.
+    /// </summary>
+    public string? AutoSwapDisabledReason { get; set; }
+
+    /// <summary>UTC timestamp when auto-swap was last disabled by staff. Null when enabled.</summary>
+    public DateTime? AutoSwapDisabledAtUtc { get; set; }
+
+    /// <summary>
+    /// ApplicationUser.Id of the staff member who disabled auto-swap (audit trail, AC-3).
+    /// Null when auto-swap is enabled or was never manually overridden.
+    /// </summary>
+    public Guid? AutoSwapDisabledByUserId { get; set; }
+
+    // -------------------------------------------------------------------------
     // Navigation properties
     // -------------------------------------------------------------------------
 

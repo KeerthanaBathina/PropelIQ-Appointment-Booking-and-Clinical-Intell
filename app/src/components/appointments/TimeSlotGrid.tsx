@@ -1,5 +1,5 @@
 /**
- * TimeSlotGrid — 4-column grid of bookable time slots (US_017, AC-3).
+ * TimeSlotGrid — 4-column grid of bookable time slots (US_017, AC-3, US_020).
  *
  * Wireframe (SCR-006):
  *   - 4 columns on ≥768px, 2 columns on mobile (responsive)
@@ -7,7 +7,7 @@
  *   - Selected slot: primary-color filled
  *   - Unavailable slot: gray background, not interactive
  *   - Skeleton placeholders while loading (UXR-502 — shown after 300ms delay via CSS)
- *   - Empty state: "No available slots" + "Try Different Date" CTA (EC-1)
+ *   - Empty state: "No available slots" + "Try Different Date" CTA + optional "Join Waitlist" CTA (EC-1, US_020 AC-1)
  *
  * Accessibility (WCAG 2.1 AA):
  *   - role="radiogroup" on the container, role="radio" on each slot
@@ -65,6 +65,11 @@ interface Props {
    * to provide immediate visual feedback of the hold reservation.
    */
   heldSlotId?: string | null;
+  /**
+   * US_020 AC-1 — Called when the patient clicks "Join Waitlist" in the empty state.
+   * When omitted the button is not rendered (e.g. unauthenticated context).
+   */
+  onJoinWaitlist?: () => void;
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -77,6 +82,7 @@ export default function TimeSlotGrid({
   loading,
   selectedDate,
   heldSlotId,
+  onJoinWaitlist,
 }: Props) {
   const dateLabel = formatDateLabel(selectedDate);
 
@@ -147,9 +153,21 @@ export default function TimeSlotGrid({
           <Typography variant="body2" color="text.secondary">
             No available slots for this date.
           </Typography>
-          <Button variant="outlined" size="small" onClick={onTryDifferentDate}>
-            Try Different Date
-          </Button>
+          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+            <Button variant="outlined" size="small" onClick={onTryDifferentDate}>
+              Try Different Date
+            </Button>
+            {onJoinWaitlist && (
+              <Button
+                variant="contained"
+                size="small"
+                onClick={onJoinWaitlist}
+                aria-label="Join the waitlist for this date"
+              >
+                Join Waitlist
+              </Button>
+            )}
+          </Box>
         </Box>
       </Box>
     );

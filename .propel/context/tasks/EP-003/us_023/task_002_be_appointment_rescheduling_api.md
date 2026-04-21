@@ -157,10 +157,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add request/response contracts for patient-initiated rescheduling with both original and new appointment details
-- [ ] Enforce patient ownership, 24-hour reschedule cutoff, and walk-in restriction before any slot mutation occurs
-- [ ] Perform the replacement-slot booking and original-slot release atomically with optimistic-locking protection
-- [ ] Return a conflict outcome when the selected replacement slot is no longer available and support refreshed availability handling
-- [ ] Trigger updated email/SMS confirmation workflows containing original and new appointment times
-- [ ] Preserve calendar event update semantics so regenerated iCal output updates the existing event rather than duplicating it
-- [ ] Add structured logs, audit events, and OpenAPI docs for reschedule attempts, rejections, conflicts, and successful updates
+- [x] Add request/response contracts for patient-initiated rescheduling with both original and new appointment details
+- [x] Enforce patient ownership, 24-hour reschedule cutoff, and walk-in restriction before any slot mutation occurs
+- [x] Perform the replacement-slot booking and original-slot release atomically with optimistic-locking protection
+- [x] Return a conflict outcome when the selected replacement slot is no longer available and support refreshed availability handling
+- [x] Trigger updated email/SMS confirmation workflows containing original and new appointment times
+- [x] Preserve calendar event update semantics so regenerated iCal output updates the existing event rather than duplicating it
+- [x] Add structured logs, audit events, and OpenAPI docs for reschedule attempts, rejections, conflicts, and successful updates

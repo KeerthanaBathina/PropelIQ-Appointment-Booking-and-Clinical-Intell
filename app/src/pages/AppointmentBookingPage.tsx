@@ -1,5 +1,5 @@
 /**
- * AppointmentBookingPage — SCR-006 Appointment Booking Confirmation Flow (US_018).
+ * AppointmentBookingPage — SCR-006 Appointment Booking Confirmation Flow (US_018, US_020).
  *
  * Extends the slot-viewing page (US_017) with the full booking confirmation flow:
  *
@@ -12,11 +12,16 @@
  *   6. Hold expiry (60 s) → modal closes, Snackbar "Hold expired" toast (AC-3).
  *   7. 503 / generic error → Alert inside BookingConfirmationModal (EC-1).
  *
+ * US_020 Waitlist flow:
+ *   - When no slots are available: "Join Waitlist" CTA in TimeSlotGrid empty state (AC-1).
+ *   - ?claim=TOKEN in URL: validates claim token, pre-selects slot, opens confirm modal
+ *     with 1-minute countdown (AC-3); shows within-24h notice when applicable (EC-2).
+ *
  * Responsive: 2-col layout on md+, single-col on xs/sm (matches wireframe breakpoint).
  */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link as RouterLink } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Link as RouterLink, useSearchParams } from 'react-router-dom';
 import Alert from '@mui/material/Alert';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -41,12 +46,18 @@ import {
 } from '@/hooks/useAppointmentSlots';
 import { useBookAppointment, type BookingConflictDetail } from '@/hooks/useBookAppointment';
 import { useSlotHold } from '@/hooks/useSlotHold';
+import { useJoinWaitlist, type WaitlistRequest } from '@/hooks/useJoinWaitlist';
+import { useWaitlistOfferClaim } from '@/hooks/useWaitlistOfferClaim';
 import BookingConfirmationModal from '@/components/appointments/BookingConfirmationModal';
 import BookingSuccessView from '@/components/appointments/BookingSuccessView';
+import JoinWaitlistDialog from '@/components/appointments/JoinWaitlistDialog';
 import ProviderFilter from '@/components/appointments/ProviderFilter';
 import SlotCalendar from '@/components/appointments/SlotCalendar';
 import SlotConflictModal from '@/components/appointments/SlotConflictModal';
 import TimeSlotGrid from '@/components/appointments/TimeSlotGrid';
+import WaitlistConfirmationNotice, {
+  type WaitlistCriteria,
+} from '@/components/appointments/WaitlistConfirmationNotice';
 import { ApiError } from '@/lib/apiClient';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -65,6 +76,13 @@ function maxDateStr(): string {
   const d = new Date();
   d.setDate(d.getDate() + MAX_BOOKING_DAYS);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
+/** Seconds remaining on a hold that was acquired at the given UTC ISO timestamp. */
+function computeClaimSecondsRemaining(holdAcquiredAt: string): number {
+  const HOLD_DURATION_SECONDS = 60;
+  const elapsed = Math.floor((Date.now() - new Date(holdAcquiredAt).getTime()) / 1000);
+  return Math.max(0, HOLD_DURATION_SECONDS - elapsed);
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -86,9 +104,31 @@ export default function AppointmentBookingPage() {
   const [conflictAlternatives, setConflictAlternatives] = useState<AppointmentSlot[]>([]);
   const [holdExpiredToast, setHoldExpiredToast] = useState(false);
 
+  // ─── US_020: Waitlist state ───────────────────────────────────────────────
+  const [waitlistDialogOpen, setWaitlistDialogOpen] = useState(false);
+  const [waitlistConfirmed, setWaitlistConfirmed] = useState(false);
+  const [waitlistCriteria, setWaitlistCriteria] = useState<WaitlistCriteria | null>(null);
+  /** True when the current booking originates from a waitlist claim link (AC-3). */
+  const [isWaitlistOffer, setIsWaitlistOffer] = useState(false);
+  /** True when the waitlist offer slot is within 24 hours of now (EC-2). */
+  const [offerWithin24Hours, setOfferWithin24Hours] = useState(false);
+  /** Countdown seconds for claim-based holds (backend already holds the slot). */
+  const [claimSecondsRemaining, setClaimSecondsRemaining] = useState(0);
+  const claimCountdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   // ─── Hooks ────────────────────────────────────────────────────────────────
+  const [searchParams] = useSearchParams();
+  const claimToken = searchParams.get('claim');
+
   const slotHold = useSlotHold();
   const bookMutation = useBookAppointment();
+  const joinWaitlistMutation = useJoinWaitlist();
+  const {
+    data: claimOffer,
+    isLoading: isClaimLoading,
+    isError: isClaimError,
+    error: claimError,
+  } = useWaitlistOfferClaim(claimToken);
 
   // ─── Data fetch ───────────────────────────────────────────────────────────
   const { data, isLoading, isError, error } = useAppointmentSlots({
@@ -123,6 +163,57 @@ export default function AppointmentBookingPage() {
     }
   }, [slotHold.holdStatus, slotHold.clearExpiredNotification]);
 
+  // ─── US_020 AC-3: Claim offer reaction ────────────────────────────────────
+  // When a valid claim offer loads, pre-select the slot and open the confirm modal.
+  // The backend already holds the slot; start a local countdown from holdAcquiredAt.
+  useEffect(() => {
+    if (!claimOffer) return;
+
+    const { slot, isWithin24Hours, holdAcquiredAt } = claimOffer;
+
+    setSelectedDate(slot.date);
+    setSelectedProvider(slot.providerId);
+    setSelectedSlotId(slot.slotId);
+    setIsWaitlistOffer(true);
+    setOfferWithin24Hours(isWithin24Hours);
+    setBookingStep('confirming');
+
+    // Start local countdown from remaining seconds on the backend-held slot
+    const initialSeconds = computeClaimSecondsRemaining(holdAcquiredAt);
+    setClaimSecondsRemaining(initialSeconds);
+
+    if (claimCountdownRef.current !== null) {
+      clearInterval(claimCountdownRef.current);
+    }
+    claimCountdownRef.current = setInterval(() => {
+      setClaimSecondsRemaining((prev) => {
+        const next = prev - 1;
+        if (next <= 0) {
+          if (claimCountdownRef.current !== null) {
+            clearInterval(claimCountdownRef.current);
+            claimCountdownRef.current = null;
+          }
+          // Offer expired — close modal, show toast
+          setBookingStep('idle');
+          setSelectedSlotId(null);
+          setIsWaitlistOffer(false);
+          setHoldExpiredToast(true);
+          return 0;
+        }
+        return next;
+      });
+    }, 1000);
+  }, [claimOffer]);
+
+  // Cleanup claim countdown on unmount
+  useEffect(() => {
+    return () => {
+      if (claimCountdownRef.current !== null) {
+        clearInterval(claimCountdownRef.current);
+      }
+    };
+  }, []);
+
   // ─── Handlers ─────────────────────────────────────────────────────────────
 
   const handleDateSelect = useCallback((date: string) => {
@@ -149,6 +240,48 @@ export default function AppointmentBookingPage() {
   const handleVisitTypeChange = useCallback((e: SelectChangeEvent<string>) => {
     setSelectedVisitType(e.target.value);
   }, []);
+
+  // ─── US_020 AC-1: Waitlist handlers ──────────────────────────────────────
+
+  const handleJoinWaitlist = useCallback(() => {
+    setWaitlistDialogOpen(true);
+    joinWaitlistMutation.reset();
+  }, [joinWaitlistMutation]);
+
+  const handleWaitlistDialogClose = useCallback(() => {
+    if (joinWaitlistMutation.isLoading) return;
+    setWaitlistDialogOpen(false);
+    joinWaitlistMutation.reset();
+  }, [joinWaitlistMutation]);
+
+  const handleWaitlistSubmit = useCallback(() => {
+    if (!selectedDate) return;
+
+    const request: WaitlistRequest = {
+      preferredDate: selectedDate,
+      preferredTimeStart: '08:00',
+      preferredTimeEnd: '17:00',
+      preferredProviderId: selectedProvider || null,
+      preferredProviderName:
+        data?.providers.find((p) => p.providerId === selectedProvider)?.providerName ?? null,
+      appointmentType: selectedVisitType,
+    };
+
+    joinWaitlistMutation.mutate(request, {
+      onSuccess: (registration) => {
+        setWaitlistDialogOpen(false);
+        setWaitlistConfirmed(true);
+        setWaitlistCriteria({
+          preferredDate: registration.preferredDate,
+          preferredTimeStart: registration.preferredTimeStart,
+          preferredTimeEnd: registration.preferredTimeEnd,
+          providerName: registration.preferredProviderName,
+          visitType: registration.appointmentType,
+        });
+        joinWaitlistMutation.reset();
+      },
+    });
+  }, [selectedDate, selectedProvider, selectedVisitType, data?.providers, joinWaitlistMutation]);
 
   // UXR-503: slot selection triggers optimistic hold + visual "Reserved" badge
   const handleSlotSelect = useCallback(
@@ -180,8 +313,18 @@ export default function AppointmentBookingPage() {
     setBookingStep('idle');
     void slotHold.releaseHold();
     setSelectedSlotId(null);
+    // US_020: reset waitlist offer context on modal close
+    if (isWaitlistOffer) {
+      setIsWaitlistOffer(false);
+      setOfferWithin24Hours(false);
+      if (claimCountdownRef.current !== null) {
+        clearInterval(claimCountdownRef.current);
+        claimCountdownRef.current = null;
+      }
+      setClaimSecondsRemaining(0);
+    }
     bookMutation.reset();
-  }, [bookMutation, slotHold]);
+  }, [bookMutation, slotHold, isWaitlistOffer]);
 
   const handleBookingConfirm = useCallback(() => {
     if (!selectedSlotId) return;
@@ -280,6 +423,28 @@ export default function AppointmentBookingPage() {
           </Alert>
         )}
 
+        {/* US_020 AC-3: claim token error banner */}
+        {isClaimError && claimError && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {claimError.message}
+          </Alert>
+        )}
+
+        {/* US_020 AC-3: loading indicator while claim is being validated */}
+        {isClaimLoading && (
+          <Alert severity="info" sx={{ mb: 3 }}>
+            Loading your waitlist offer…
+          </Alert>
+        )}
+
+        {/* US_020 AC-1: confirmation notice after successful waitlist registration (EC-1) */}
+        {waitlistConfirmed && waitlistCriteria && (
+          <WaitlistConfirmationNotice
+            criteria={waitlistCriteria}
+            onDismiss={() => setWaitlistConfirmed(false)}
+          />
+        )}
+
         {bookingStep === 'success' && bookMutation.data ? (
           // ── Success view replaces the booking form (AC-4) ─────────────────
           <BookingSuccessView {...bookMutation.data} />
@@ -345,6 +510,7 @@ export default function AppointmentBookingPage() {
                     heldSlotId={slotHold.heldSlotId}
                     onSlotSelect={handleSlotSelect}
                     onTryDifferentDate={handleTryDifferentDate}
+                    onJoinWaitlist={selectedDate ? handleJoinWaitlist : undefined}
                     loading={isLoading}
                     selectedDate={selectedDate}
                   />
@@ -383,11 +549,13 @@ export default function AppointmentBookingPage() {
         open={bookingStep === 'confirming'}
         slot={selectedSlot}
         visitType={selectedVisitType}
-        secondsRemaining={slotHold.secondsRemaining}
+        secondsRemaining={isWaitlistOffer ? claimSecondsRemaining : slotHold.secondsRemaining}
         onConfirm={handleBookingConfirm}
         onCancel={handleModalClose}
         isLoading={bookMutation.isLoading}
         bookingError={bookingErrorMessage}
+        isWaitlistOffer={isWaitlistOffer}
+        offerWithin24Hours={offerWithin24Hours}
       />
 
       {/* ── Slot Conflict Modal (UXR-602) ──────────────────────────────────── */}
@@ -414,6 +582,21 @@ export default function AppointmentBookingPage() {
           Hold expired — slot released. Please select another time.
         </Alert>
       </Snackbar>
-    </Box>
+      {/* ── US_020 AC-1: Join Waitlist Dialog ───────────────────────── */}
+      <JoinWaitlistDialog
+        open={waitlistDialogOpen}
+        onClose={handleWaitlistDialogClose}
+        onConfirm={handleWaitlistSubmit}
+        isLoading={joinWaitlistMutation.isLoading}
+        errorKind={joinWaitlistMutation.error?.kind ?? null}
+        errorMessage={joinWaitlistMutation.error?.message ?? null}
+        preferredDate={selectedDate ?? ''}
+        preferredTimeStart="08:00"
+        preferredTimeEnd="17:00"
+        visitType={selectedVisitType}
+        providerName={
+          data?.providers.find((p) => p.providerId === selectedProvider)?.providerName ?? null
+        }
+      />    </Box>
   );
 }

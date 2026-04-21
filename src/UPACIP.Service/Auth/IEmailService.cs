@@ -38,4 +38,43 @@ public interface IEmailService
         string toName,
         string resetLink,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a waitlist offer notification email containing the claim link (US_020 AC-2).
+    /// The link includes a short-lived token; clicking it acquires a 60-second slot hold.
+    /// </summary>
+    /// <param name="toEmail">Recipient email address.</param>
+    /// <param name="toName">Recipient display name.</param>
+    /// <param name="claimLink">Full booking claim URL (e.g. /book?claim=TOKEN).</param>
+    /// <param name="appointmentDetails">Human-readable summary: date, time, provider.</param>
+    /// <param name="isWithin24Hours">True when the slot is within 24 h — extra urgency copy is added.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task SendWaitlistOfferEmailAsync(
+        string toEmail,
+        string toName,
+        string claimLink,
+        string appointmentDetails,
+        bool isWithin24Hours,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Notifies the patient that their appointment was automatically moved to a preferred slot (US_021 AC-2).
+    /// </summary>
+    Task SendSwapCompletedEmailAsync(
+        string toEmail,
+        string toName,
+        string oldAppointmentTime,
+        string newAppointmentTime,
+        string providerName,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sends a manual-confirmation offer for a preferred slot opening within 24 hours (US_021 AC-5).
+    /// </summary>
+    Task SendManualSwapConfirmationEmailAsync(
+        string toEmail,
+        string toName,
+        string preferredSlotTime,
+        string providerName,
+        CancellationToken cancellationToken = default);
 }

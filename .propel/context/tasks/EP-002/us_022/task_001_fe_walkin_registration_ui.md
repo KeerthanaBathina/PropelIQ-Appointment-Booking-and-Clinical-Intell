@@ -154,12 +154,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Add the Walk-in Registration modal trigger to SCR-010 and keep the workflow on the staff dashboard
-- [ ] Implement patient search by name, DOB, or phone with selectable results and minimal inline new-patient fallback
-- [ ] Show same-day slots only, and display the exact "No same-day slots available" message with next available date/time when empty
-- [ ] Capture urgent priority and supervisor-escalation guidance when same-day capacity is exhausted or urgency is flagged
-- [ ] Submit walk-in booking requests and refresh queue-facing staff dashboard data after success
-- [ ] Surface staff-only restriction and other recoverable API errors with clear messaging
-- [ ] Validate keyboard navigation, modal focus management, loading states, and responsive staff-dashboard behavior
+- [x] Add the Walk-in Registration modal trigger to SCR-010 and keep the workflow on the staff dashboard
+- [x] Implement patient search by name, DOB, or phone with selectable results and minimal inline new-patient fallback
+- [x] Show same-day slots only, and display the exact "No same-day slots available" message with next available date/time when empty
+- [x] Capture urgent priority and supervisor-escalation guidance when same-day capacity is exhausted or urgency is flagged
+- [x] Submit walk-in booking requests and refresh queue-facing staff dashboard data after success
+- [x] Surface staff-only restriction and other recoverable API errors with clear messaging
+- [x] Validate keyboard navigation, modal focus management, loading states, and responsive staff-dashboard behavior
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

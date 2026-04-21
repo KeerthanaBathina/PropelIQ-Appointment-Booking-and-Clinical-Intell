@@ -29,4 +29,28 @@ public enum AuditAction
     MfaVerified,
     /// <summary>An admin reset MFA for another user (US_016 edge case).</summary>
     AdminMfaReset,
+    /// <summary>Patient cancelled a scheduled appointment (US_019 AC-4, NFR-012).</summary>
+    AppointmentCancelled,
+    /// <summary>Patient registered on the waitlist for a fully-booked slot (US_020 AC-1).</summary>
+    WaitlistRegistered,
+    /// <summary>Waitlist offer notification dispatched to patient (US_020 AC-2).</summary>
+    WaitlistOfferDispatched,
+    /// <summary>Patient redeemed a waitlist claim link and acquired a 1-minute slot hold (US_020 AC-3).</summary>
+    WaitlistClaimed,
+    /// <summary>Patient explicitly removed themselves from the waitlist (US_020 EC-1).</summary>
+    WaitlistRemoved,
+    /// <summary>Appointment was automatically swapped to a preferred slot (US_021 AC-1).</summary>
+    AppointmentAutoSwapped,
+    /// <summary>Auto-swap skipped — account has auto-swap disabled by staff (US_021 AC-3).</summary>
+    AutoSwapSkipped,
+    /// <summary>Manual-confirmation offer sent for a preferred slot inside the 24-hour window (US_021 AC-5).</summary>
+    ManualSwapOfferSent,
+    /// <summary>Staff created a walk-in appointment with is_walk_in = true and inserted a queue entry (US_022 AC-3).</summary>
+    WalkInBooked,
+    /// <summary>Patient-role caller attempted a staff-only walk-in endpoint and was blocked (US_022 EC-1).</summary>
+    WalkInUnauthorized,
+    /// <summary>Urgent walk-in with no same-day capacity — supervisor escalation path surfaced (US_022 EC-2).</summary>
+    WalkInUrgentEscalation,
+    /// <summary>Patient rescheduled an existing appointment to a new slot (US_023 AC-1, AC-4).</summary>
+    AppointmentRescheduled,
 }

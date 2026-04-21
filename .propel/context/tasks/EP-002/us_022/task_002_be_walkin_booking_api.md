@@ -153,11 +153,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add staff-authorized APIs for patient lookup, same-day slot lookup, and walk-in booking
-- [ ] Search existing patient records by name, DOB, or phone and return selectable summaries for staff
-- [ ] Support minimal new-patient creation inside the walk-in booking flow when no existing match is chosen
-- [ ] Return same-day slot options only, plus next available date/time when same-day capacity is empty
-- [ ] Create walk-in appointments with `is_walk_in = true` and add patients to the arrival queue automatically
-- [ ] Support urgent-priority queue insertion or an escalation result when urgent walk-ins cannot fit existing same-day capacity
-- [ ] Reject patient-role access with the exact required staff-only message and log unauthorized attempts appropriately
-- [ ] Add structured logging, audit events, and OpenAPI docs for search, booking, queue insertion, and escalation outcomes
+- [x] Add staff-authorized APIs for patient lookup, same-day slot lookup, and walk-in booking
+- [x] Search existing patient records by name, DOB, or phone and return selectable summaries for staff
+- [x] Support minimal new-patient creation inside the walk-in booking flow when no existing match is chosen
+- [x] Return same-day slot options only, plus next available date/time when same-day capacity is empty
+- [x] Create walk-in appointments with `is_walk_in = true` and add patients to the arrival queue automatically
+- [x] Support urgent-priority queue insertion or an escalation result when urgent walk-ins cannot fit existing same-day capacity
+- [x] Reject patient-role access with the exact required staff-only message and log unauthorized attempts appropriately
+- [x] Add structured logging, audit events, and OpenAPI docs for search, booking, queue insertion, and escalation outcomes

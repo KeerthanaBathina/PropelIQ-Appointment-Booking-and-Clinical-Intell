@@ -155,12 +155,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Implement `useAppointmentHistory` with newest-first default sort, page-size 10, and persistent sort state across page navigation
-- [ ] Build the history table with date, time, provider, type, and status columns plus a sortable date header
-- [ ] Render scheduled, completed, cancelled, and no-show badges using the design-system status colors and muted cancelled-row styling
-- [ ] Add loading, empty, and error states that match SCR-007 and include the required "No appointments found. Book your first appointment!" recovery path
-- [ ] Add Previous and Next pagination controls and keep the active page and sort order accessible to keyboard and screen-reader users
-- [ ] Refresh history data after booking, cancellation, or rescheduling changes so status tracking remains current across patient flows
-- [ ] Validate breadcrumb layout, responsive table behavior, and status badge contrast at 375px, 768px, and 1440px
+- [x] Implement `useAppointmentHistory` with newest-first default sort, page-size 10, and persistent sort state across page navigation
+- [x] Build the history table with date, time, provider, type, and status columns plus a sortable date header
+- [x] Render scheduled, completed, cancelled, and no-show badges using the design-system status colors and muted cancelled-row styling
+- [x] Add loading, empty, and error states that match SCR-007 and include the required "No appointments found. Book your first appointment!" recovery path
+- [x] Add Previous and Next pagination controls and keep the active page and sort order accessible to keyboard and screen-reader users
+- [x] Refresh history data after booking, cancellation, or rescheduling changes so status tracking remains current across patient flows
+- [x] Validate breadcrumb layout, responsive table behavior, and status badge contrast at 375px, 768px, and 1440px
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

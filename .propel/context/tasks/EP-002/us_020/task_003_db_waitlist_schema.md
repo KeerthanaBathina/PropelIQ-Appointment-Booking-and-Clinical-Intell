@@ -125,9 +125,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add `WaitlistEntry` entity fields for patient criteria, lifecycle state, and notification timestamps
-- [ ] Configure lifecycle statuses so active entries persist until explicitly removed, even if unrelated appointments are cancelled
-- [ ] Create EF Core migration for the waitlist table with foreign keys and UTC timestamp columns
-- [ ] Add indexes for active-entry matching by date, provider, appointment type, and notification timing
-- [ ] Prevent duplicate active waitlist registrations for the same patient and criteria while preserving history
-- [ ] Extend notification log typing to distinguish waitlist-offer deliveries for audit and retention
+- [x] Add `WaitlistEntry` entity fields for patient criteria, lifecycle state, and notification timestamps
+- [x] Configure lifecycle statuses so active entries persist until explicitly removed, even if unrelated appointments are cancelled
+- [x] Create EF Core migration for the waitlist table with foreign keys and UTC timestamp columns
+- [x] Add indexes for active-entry matching by date, provider, appointment type, and notification timing
+- [x] Prevent duplicate active waitlist registrations for the same patient and criteria while preserving history
+- [x] Extend notification log typing to distinguish waitlist-offer deliveries for audit and retention

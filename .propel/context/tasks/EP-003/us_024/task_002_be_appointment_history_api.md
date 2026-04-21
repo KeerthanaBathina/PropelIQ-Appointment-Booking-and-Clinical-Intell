@@ -156,10 +156,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add query and response DTOs for patient history rows and pagination metadata with a fixed page size of 10
-- [ ] Implement patient-scoped history retrieval with newest-first default order and ascending or descending date sort support
-- [ ] Return scheduled, completed, cancelled, and no-show appointments without filtering cancelled history records out of the response
-- [ ] Add an authenticated GET endpoint that derives patient identity from JWT claims and returns empty-state payloads as 200 responses
-- [ ] Validate page bounds and return consistent total-count and total-page metadata for large histories
-- [ ] Optimize the query path with lightweight EF Core projection and patient-safe caching or equivalent reuse where appropriate
-- [ ] Add structured logs and OpenAPI documentation for history retrieval, invalid query parameters, and authorization failures
+- [x] Add query and response DTOs for patient history rows and pagination metadata with a fixed page size of 10
+- [x] Implement patient-scoped history retrieval with newest-first default order and ascending or descending date sort support
+- [x] Return scheduled, completed, cancelled, and no-show appointments without filtering cancelled history records out of the response
+- [x] Add an authenticated GET endpoint that derives patient identity from JWT claims and returns empty-state payloads as 200 responses
+- [x] Validate page bounds and return consistent total-count and total-page metadata for large histories
+- [x] Optimize the query path with lightweight EF Core projection and patient-safe caching or equivalent reuse where appropriate
+- [x] Add structured logs and OpenAPI documentation for history retrieval, invalid query parameters, and authorization failures

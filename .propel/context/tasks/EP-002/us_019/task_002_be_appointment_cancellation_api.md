@@ -147,10 +147,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create cancellation DTOs that return normalized success, policy-blocked, and already-cancelled outcomes with patient-visible message text
-- [ ] Implement `AppointmentCancellationService` to enforce patient ownership, scheduled-only cancellation, and UTC-based 24-hour cutoff validation
-- [ ] Add authenticated cancellation endpoint on `AppointmentBookingController` and return the exact required policy-blocked and already-cancelled messages
-- [ ] Persist appointment status changes to `cancelled` with concurrency-safe update behavior and UTC timestamps
-- [ ] Invalidate released-slot cache entries immediately so slot availability queries show the cancelled slot again within 1 minute
-- [ ] Record immutable audit logs with user attribution, appointment identifier, action type, and UTC timestamp for every successful cancellation
-- [ ] Add structured logging and OpenAPI metadata for the cancellation flow without exposing sensitive data in logs
+- [x] Create cancellation DTOs that return normalized success, policy-blocked, and already-cancelled outcomes with patient-visible message text
+- [x] Implement `AppointmentCancellationService` to enforce patient ownership, scheduled-only cancellation, and UTC-based 24-hour cutoff validation
+- [x] Add authenticated cancellation endpoint on `AppointmentBookingController` and return the exact required policy-blocked and already-cancelled messages
+- [x] Persist appointment status changes to `cancelled` with concurrency-safe update behavior and UTC timestamps
+- [x] Invalidate released-slot cache entries immediately so slot availability queries show the cancelled slot again within 1 minute
+- [x] Record immutable audit logs with user attribution, appointment identifier, action type, and UTC timestamp for every successful cancellation
+- [x] Add structured logging and OpenAPI metadata for the cancellation flow without exposing sensitive data in logs

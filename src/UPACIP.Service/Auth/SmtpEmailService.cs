@@ -213,6 +213,189 @@ public sealed class SmtpEmailService : IEmailService
 
     private static string BuildResetTextBody(string name, string link) =>
         $"Hi {name},\n\nReset your UPACIP password by visiting:\n{link}\n\nThis link expires in 1 hour.\n\nIf you did not request this, ignore this email.";
+
+    /// <inheritdoc/>
+    public async Task SendWaitlistOfferEmailAsync(
+        string toEmail,
+        string toName,
+        string claimLink,
+        string appointmentDetails,
+        bool isWithin24Hours,
+        CancellationToken cancellationToken = default)
+    {
+        var message = BuildWaitlistOfferMessage(toEmail, toName, claimLink, appointmentDetails, isWithin24Hours);
+
+        await _resiliencePolicy.ExecuteAsync(async () =>
+        {
+            using var client = new SmtpClient();
+            var socketOptions = _settings.Port == 465
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls;
+
+            await client.ConnectAsync(_settings.Host, _settings.Port, socketOptions, cancellationToken);
+            await client.AuthenticateAsync(_settings.Username, _settings.Password, cancellationToken);
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(quit: true, cancellationToken);
+        });
+
+        _logger.LogInformation("Waitlist offer email dispatched to {Email}.", toEmail);
+    }
+
+    private MimeMessage BuildWaitlistOfferMessage(
+        string toEmail,
+        string toName,
+        string claimLink,
+        string appointmentDetails,
+        bool isWithin24Hours)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromAddress));
+        message.To.Add(new MailboxAddress(toName, toEmail));
+        message.Subject = isWithin24Hours
+            ? "UPACIP: Waitlist slot available — act within 1 minute (within 24 h)"
+            : "UPACIP: A slot on your waitlist is now available";
+
+        var urgencyNote = isWithin24Hours
+            ? "<p style=\"color:#D32F2F;font-weight:bold\">⚠ This appointment is within 24 hours — please confirm promptly.</p>"
+            : string.Empty;
+
+        var htmlBody = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+            <body style="font-family:Arial,sans-serif;background:#F5F5F5;padding:24px">
+              <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:8px;padding:32px;box-shadow:0 1px 4px rgba(0,0,0,.1)">
+                <h1 style="color:#1976D2;font-size:1.5rem;margin-bottom:4px">UPACIP</h1>
+                <h2 style="font-weight:400;font-size:1.25rem">Your waitlist slot is available!</h2>
+                <p>Hi {System.Net.WebUtility.HtmlEncode(toName)},</p>
+                <p>A slot matching your waitlist criteria is now available:</p>
+                <p style="background:#F5F5F5;padding:12px;border-radius:4px"><strong>{System.Net.WebUtility.HtmlEncode(appointmentDetails)}</strong></p>
+                {urgencyNote}
+                <p>Click the button below within <strong>1 minute</strong> to hold and confirm your booking.</p>
+                <p style="text-align:center;margin:32px 0">
+                  <a href="{claimLink}" style="background:#1976D2;color:#fff;padding:12px 24px;border-radius:4px;text-decoration:none;font-weight:bold">
+                    Book Now
+                  </a>
+                </p>
+                <p style="font-size:.875rem;color:#757575">
+                  The slot hold expires after 1 minute. If you do not book in time, the slot may be claimed by another patient.
+                </p>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var textBody = $"Hi {toName},\n\nA slot matching your waitlist is available: {appointmentDetails}\n\nBook now (hold valid for 1 minute): {claimLink}\n\n"
+            + (isWithin24Hours ? "NOTE: This appointment is within 24 hours.\n\n" : string.Empty)
+            + "If you do not want this slot, simply ignore this email.";
+
+        var bodyBuilder = new BodyBuilder { HtmlBody = htmlBody, TextBody = textBody };
+        message.Body = bodyBuilder.ToMessageBody();
+        return message;
+    }
+
+    // ── Swap-completed notification (US_021 AC-2) ─────────────────────────
+
+    /// <inheritdoc/>
+    public async Task SendSwapCompletedEmailAsync(
+        string toEmail,
+        string toName,
+        string oldAppointmentTime,
+        string newAppointmentTime,
+        string providerName,
+        CancellationToken cancellationToken = default)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromAddress));
+        message.To.Add(new MailboxAddress(toName, toEmail));
+        message.Subject = "UPACIP: Your appointment has been moved to your preferred slot";
+
+        var htmlBody = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family:Arial,sans-serif;background:#F5F5F5;padding:24px">
+              <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:8px;padding:32px">
+                <h1 style="color:#1976D2">UPACIP</h1>
+                <p>Hi {System.Net.WebUtility.HtmlEncode(toName)},</p>
+                <p>Great news! Your appointment has been automatically moved to your preferred slot.</p>
+                <p><strong>Previous appointment:</strong> {System.Net.WebUtility.HtmlEncode(oldAppointmentTime)}</p>
+                <p><strong>New appointment:</strong> {System.Net.WebUtility.HtmlEncode(newAppointmentTime)} with {System.Net.WebUtility.HtmlEncode(providerName)}</p>
+                <p>You do not need to take any action. Your booking reference remains unchanged.</p>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var textBody = $"Hi {toName},\n\nYour appointment has been moved to your preferred slot.\n\nPrevious: {oldAppointmentTime}\nNew: {newAppointmentTime} with {providerName}\n\nNo action is needed.";
+
+        message.Body = new BodyBuilder { HtmlBody = htmlBody, TextBody = textBody }.ToMessageBody();
+
+        await _resiliencePolicy.ExecuteAsync(async () =>
+        {
+            using var client = new SmtpClient();
+            var socketOptions = _settings.Port == 465
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls;
+            await client.ConnectAsync(_settings.Host, _settings.Port, socketOptions, cancellationToken);
+            await client.AuthenticateAsync(_settings.Username, _settings.Password, cancellationToken);
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(quit: true, cancellationToken);
+        });
+
+        _logger.LogInformation("Swap-completed email dispatched to {Email}.", toEmail);
+    }
+
+    // ── Manual swap confirmation offer (US_021 AC-5) ──────────────────────
+
+    /// <inheritdoc/>
+    public async Task SendManualSwapConfirmationEmailAsync(
+        string toEmail,
+        string toName,
+        string preferredSlotTime,
+        string providerName,
+        CancellationToken cancellationToken = default)
+    {
+        var message = new MimeMessage();
+        message.From.Add(new MailboxAddress(_settings.FromName, _settings.FromAddress));
+        message.To.Add(new MailboxAddress(toName, toEmail));
+        message.Subject = "UPACIP: A preferred slot is available — your confirmation is needed";
+
+        var htmlBody = $"""
+            <!DOCTYPE html>
+            <html lang="en">
+            <head><meta charset="UTF-8"></head>
+            <body style="font-family:Arial,sans-serif;background:#F5F5F5;padding:24px">
+              <div style="max-width:520px;margin:0 auto;background:#fff;border-radius:8px;padding:32px">
+                <h1 style="color:#1976D2">UPACIP</h1>
+                <p>Hi {System.Net.WebUtility.HtmlEncode(toName)},</p>
+                <p style="color:#D32F2F;font-weight:bold">⚠ A preferred slot is available within 24 hours and requires your manual confirmation.</p>
+                <p><strong>Available slot:</strong> {System.Net.WebUtility.HtmlEncode(preferredSlotTime)} with {System.Net.WebUtility.HtmlEncode(providerName)}</p>
+                <p>Because this slot is less than 24 hours away, we did not automatically move your appointment.
+                   Please log in to confirm the change if you wish to take this slot.</p>
+              </div>
+            </body>
+            </html>
+            """;
+
+        var textBody = $"Hi {toName},\n\nA preferred slot is available within 24 hours: {preferredSlotTime} with {providerName}.\n\nPlease log in to confirm the change. Your appointment has NOT been automatically moved.";
+
+        message.Body = new BodyBuilder { HtmlBody = htmlBody, TextBody = textBody }.ToMessageBody();
+
+        await _resiliencePolicy.ExecuteAsync(async () =>
+        {
+            using var client = new SmtpClient();
+            var socketOptions = _settings.Port == 465
+                ? SecureSocketOptions.SslOnConnect
+                : SecureSocketOptions.StartTls;
+            await client.ConnectAsync(_settings.Host, _settings.Port, socketOptions, cancellationToken);
+            await client.AuthenticateAsync(_settings.Username, _settings.Password, cancellationToken);
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(quit: true, cancellationToken);
+        });
+
+        _logger.LogInformation("Manual-swap-confirmation email dispatched to {Email}.", toEmail);
+    }
 }
 
 /// <summary>Configuration record for SMTP transport settings.</summary>

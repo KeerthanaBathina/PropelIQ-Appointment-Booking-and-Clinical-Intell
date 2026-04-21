@@ -156,12 +156,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Add a patient-visible reschedule action for eligible scheduled appointments and block ineligible walk-in appointments from that flow
-- [ ] Implement a reschedule entry dialog that keeps the original appointment context visible while moving into slot selection
-- [ ] Reuse the existing booking slot-selection UI in reschedule mode and preserve provider/date filters for replacement-slot choice
-- [ ] Submit atomic reschedule requests and display the exact 24-hour rejection message when blocked
-- [ ] Show both original and new appointment times in the success state and refresh dashboard details after completion
-- [ ] Surface slot-conflict errors with refreshed replacement options when the selected new slot is no longer available
-- [ ] Validate keyboard navigation, focus management, responsive layout, and accessible status messaging for all reschedule states
+- [x] Add a patient-visible reschedule action for eligible scheduled appointments and block ineligible walk-in appointments from that flow
+- [x] Implement a reschedule entry dialog that keeps the original appointment context visible while moving into slot selection
+- [x] Reuse the existing booking slot-selection UI in reschedule mode and preserve provider/date filters for replacement-slot choice
+- [x] Submit atomic reschedule requests and display the exact 24-hour rejection message when blocked
+- [x] Show both original and new appointment times in the success state and refresh dashboard details after completion
+- [x] Surface slot-conflict errors with refreshed replacement options when the selected new slot is no longer available
+- [x] Validate keyboard navigation, focus management, responsive layout, and accessible status messaging for all reschedule states
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
