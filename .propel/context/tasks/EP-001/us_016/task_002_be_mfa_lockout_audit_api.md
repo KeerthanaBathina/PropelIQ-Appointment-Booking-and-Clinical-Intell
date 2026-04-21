@@ -179,11 +179,11 @@ Server/                       # Backend ASP.NET Core Web API
 
 ## Implementation Checklist
 
-- [ ] Extend ApplicationUser with MFA fields (TotpSecretEncrypted, MfaRecoveryCodes, MfaEnabled) and lockout/login fields (FailedLoginAttempts, AccountLockedUntil, LastLoginAt, LastLoginIp)
-- [ ] Create AuditLog entity with insert-only EF Core configuration and indexes on UserId + Timestamp
-- [ ] Implement MfaService with AES-256 encrypted TOTP secret storage, code verification (±1 step), and bcrypt-hashed backup codes
-- [ ] Implement AccountLockoutService with Redis atomic counter, 5-attempt threshold, 30-minute lock, and auto-unlock on expiry
-- [ ] Implement AuditLogService with insert-only logging, IP/UserAgent extraction, and Serilog correlation
-- [ ] Refactor login endpoint into lockout-check → credential-validation → MFA-check → JWT-issue pipeline
-- [ ] Add MFA endpoints: verify (login), setup, verify-setup, disable, and admin reset with appropriate authorization policies
-- [ ] Register all services in DI and add rate limiting on MFA verify endpoint
+- [X] Extend ApplicationUser with MFA fields (TotpSecretEncrypted, MfaRecoveryCodes, MfaEnabled) and lockout/login fields (FailedLoginAttempts, AccountLockedUntil, LastLoginAt, LastLoginIp)
+- [X] Create AuditLog entity with insert-only EF Core configuration and indexes on UserId + Timestamp
+- [X] Implement MfaService with AES-256 encrypted TOTP secret storage, code verification (±1 step), and bcrypt-hashed backup codes
+- [X] Implement AccountLockoutService with Redis atomic counter, 5-attempt threshold, 30-minute lock, and auto-unlock on expiry
+- [X] Implement AuditLogService with insert-only logging, IP/UserAgent extraction, and Serilog correlation
+- [X] Refactor login endpoint into lockout-check → credential-validation → MFA-check → JWT-issue pipeline
+- [X] Add MFA endpoints: verify (login), setup, verify-setup, disable, and admin reset with appropriate authorization policies
+- [X] Register all services in DI and add rate limiting on MFA verify endpoint

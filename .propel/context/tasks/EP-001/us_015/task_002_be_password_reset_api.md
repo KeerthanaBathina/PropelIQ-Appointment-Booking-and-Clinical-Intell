@@ -198,11 +198,11 @@ Server/                                # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Create `ForgotPasswordRequest` and `ResetPasswordRequest` DTOs with DataAnnotation validation
-- [ ] Implement `IPasswordResetService` and `PasswordResetService` (request reset, validate token, reset password, invalidate prior tokens)
-- [ ] Implement anti-enumeration: return identical 200 responses for registered and non-registered emails
-- [ ] Implement post-reset session cleanup: invalidate Redis sessions, blacklist JWTs, update SecurityStamp
-- [ ] Send reset email via `IEmailService` (reuse from US_012) with Polly retry for SMTP failures
-- [ ] Create `PasswordResetController` with POST endpoints: /forgot-password, /reset-password
-- [ ] Configure rate limiting for forgot-password endpoint (max 5 per 15 min per IP)
-- [ ] Add audit logging for all password reset events: request, success, failure, session cleanup (FR-006)
+- [X] Create `ForgotPasswordRequest` and `ResetPasswordRequest` DTOs with DataAnnotation validation
+- [X] Implement `IPasswordResetService` and `PasswordResetService` (request reset, validate token, reset password, invalidate prior tokens)
+- [X] Implement anti-enumeration: return identical 200 responses for registered and non-registered emails
+- [X] Implement post-reset session cleanup: invalidate Redis sessions, blacklist JWTs, update SecurityStamp
+- [X] Send reset email via `IEmailService` (reuse from US_012) with Polly retry for SMTP failures
+- [X] Create `PasswordResetController` with POST endpoints: /forgot-password, /reset-password
+- [X] Configure rate limiting for forgot-password endpoint (max 5 per 15 min per IP)
+- [X] Add audit logging for all password reset events: request, success, failure, session cleanup (FR-006)

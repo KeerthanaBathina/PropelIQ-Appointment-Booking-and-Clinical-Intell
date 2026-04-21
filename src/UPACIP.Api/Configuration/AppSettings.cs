@@ -29,6 +29,12 @@ public sealed class AppSettings
     public JwtSettingsSection JwtSettings { get; init; } = new();
 
     // -------------------------------------------------------------------------
+    // MFA (encryption key must be supplied via user secrets)
+    // -------------------------------------------------------------------------
+
+    public MfaSettingsSection MfaSettings { get; init; } = new();
+
+    // -------------------------------------------------------------------------
     // Nested section POCOs
     // -------------------------------------------------------------------------
 
@@ -55,5 +61,14 @@ public sealed class AppSettings
 
         [Range(1, 30, ErrorMessage = "JwtSettings:RefreshTokenExpiryDays must be between 1 and 30.")]
         public int RefreshTokenExpiryDays { get; init; } = 7;
+    }
+
+    public sealed class MfaSettingsSection
+    {
+        /// <summary>
+        /// AES-256 encryption key material for TOTP secrets. Must be set via user secrets.
+        /// <c>dotnet user-secrets set "Mfa:TotpEncryptionKey" "&lt;32+ char random value&gt;"</c>
+        /// </summary>
+        public string TotpEncryptionKey { get; init; } = string.Empty;
     }
 }

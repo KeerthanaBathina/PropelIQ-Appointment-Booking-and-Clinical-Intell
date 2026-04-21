@@ -22,6 +22,19 @@ public sealed class Appointment : BaseEntity
     /// <summary>True when the patient arrived without a prior booking.</summary>
     public bool IsWalkIn { get; set; }
 
+    // -------------------------------------------------------------------------
+    // Provider / type fields (US_017)
+    // -------------------------------------------------------------------------
+
+    /// <summary>Identifier of the provider assigned to this appointment. Null for walk-ins or legacy records.</summary>
+    public Guid? ProviderId { get; set; }
+
+    /// <summary>Full display name of the assigned provider (max 100). Denormalised for fast display.</summary>
+    public string? ProviderName { get; set; }
+
+    /// <summary>Category of the appointment (e.g. "General Checkup", "Follow-up"). Max 50 chars.</summary>
+    public string? AppointmentType { get; set; }
+
     /// <summary>
     /// Patient-stated scheduling preferences serialized as JSONB.
     /// Null when the patient accepted the first available slot.

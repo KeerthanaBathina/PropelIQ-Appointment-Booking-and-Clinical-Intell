@@ -179,9 +179,9 @@ Server/                                # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Define Redis key structure documentation: `session:{userId}` hash and `blacklist:{jti}` string with TTLs
-- [ ] Create `UserSession` entity with Id, UserId, SessionId, LoginAt, LogoutAt, ExpirationReason, IpAddress, UserAgent
-- [ ] Create `ExpirationReason` enum (ExplicitLogout, InactivityTimeout, ConcurrentSessionReplacement, AdminForceLogout)
-- [ ] Configure Fluent API: indexes on UserId/SessionId/LoginAt, FK with RESTRICT delete
-- [ ] Generate and verify EF Core migration with `dotnet ef migrations add AddUserSessionsTable`
+- [X] Define Redis key structure documentation: `session:{userId}` hash and `blacklist:{jti}` string with TTLs
+- [X] Create `UserSession` entity with Id, UserId, SessionId, LoginAt, LogoutAt, ExpirationReason, IpAddress, UserAgent
+- [X] Create `ExpirationReason` enum (ExplicitLogout, InactivityTimeout, ConcurrentSessionReplacement, AdminForceLogout)
+- [X] Configure Fluent API: indexes on UserId/SessionId/LoginAt, FK with RESTRICT delete
+- [X] Generate and verify EF Core migration with `dotnet ef migrations add AddUserSessionsTable`
 - [ ] Test migration apply and rollback on clean database

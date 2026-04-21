@@ -188,10 +188,10 @@ app/                          # Frontend React application
 
 ## Implementation Checklist
 
-- [ ] Build `ForgotPasswordPage` with email input, states (Default/Validation/Loading/Success/Error), anti-enumeration message
-- [ ] Build `ResetPasswordPage` with new-password form, confirm field, token validation, expired/invalid/success states
-- [ ] Create `resetPasswordSchema` with password complexity rules and confirm-password match (reuse shared validation)
-- [ ] Create React Query hooks (`useForgotPassword`, `useResetPassword`) handling 200/400/410/422/429/5xx responses
-- [ ] Add `/forgot-password` and `/reset-password` routes; wire navigation from login and between views
+- [X] Build `ForgotPasswordPage` with email input, states (Default/Validation/Loading/Success/Error), anti-enumeration message
+- [X] Build `ResetPasswordPage` with new-password form, confirm field, token validation, expired/invalid/success states
+- [X] Create `resetPasswordSchema` with password complexity rules and confirm-password match (reuse shared validation)
+- [X] Create React Query hooks (`useForgotPassword`, `useResetPassword`) handling 200/400/410/422/429/5xx responses
+- [X] Add `/forgot-password` and `/reset-password` routes; wire navigation from login and between views
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

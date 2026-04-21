@@ -181,11 +181,11 @@ Server/                                # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Configure ASP.NET Core Identity roles and verify RoleManager resolves Patient, Staff, Admin
-- [ ] Modify `JwtTokenService` to embed `ClaimTypes.Role` in JWT; re-query role on token refresh
-- [ ] Create named authorization policies (PatientOnly, StaffOnly, AdminOnly, StaffOrAdmin, AnyAuthenticated) in Program.cs
-- [ ] Implement `ForbiddenResponseHandler` returning structured 403 JSON with audit logging
-- [ ] Implement `UnauthorizedResponseHandler` returning structured 401 JSON with audit logging
-- [ ] Apply `[Authorize(Policy = "...")]` attributes to all controller endpoints per role mapping
-- [ ] Verify JWT signature validation rejects tampered tokens with 401
-- [ ] Add Serilog structured audit logging for all authorization decisions (NFR-012, NFR-035)
+- [x] Configure ASP.NET Core Identity roles and verify RoleManager resolves Patient, Staff, Admin
+- [x] Modify `JwtTokenService` to embed `ClaimTypes.Role` in JWT; re-query role on token refresh
+- [x] Create named authorization policies (PatientOnly, StaffOnly, AdminOnly, StaffOrAdmin, AnyAuthenticated) in Program.cs
+- [x] Implement `ForbiddenResponseHandler` returning structured 403 JSON with audit logging
+- [x] Implement `UnauthorizedResponseHandler` returning structured 401 JSON with audit logging
+- [x] Apply `[Authorize(Policy = "...")]` attributes to all controller endpoints per role mapping
+- [x] Verify JWT signature validation rejects tampered tokens with 401
+- [x] Add Serilog structured audit logging for all authorization decisions (NFR-012, NFR-035)

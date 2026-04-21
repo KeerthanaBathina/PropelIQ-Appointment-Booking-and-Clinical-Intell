@@ -83,16 +83,19 @@ Add database indexes, provider availability seed data, and query optimizations t
 ## Current Project State
 
 ```
-[Placeholder - to be updated based on dependent task completion]
-Server/
-  Data/
-    AppDbContext.cs (modify - add DbSet and index config)
-  Models/
+src/
+  UPACIP.DataAccess/
     Entities/
-      Appointment.cs (exists from US_008)
-      (new entity file to be created here)
-  Migrations/
-    (new migration files to be created here)
+      ProviderAvailabilityTemplate.cs        ✅ Created
+    Configurations/
+      AppointmentConfiguration.cs            ✅ Updated — 2 composite indexes added
+      ProviderAvailabilityTemplateConfiguration.cs  ✅ Created (check constraints, unique index, seed data)
+    ApplicationDbContext.cs                  ✅ Updated — ProviderAvailabilityTemplates DbSet added
+    Migrations/
+      20260420151244_AddProviderAvailabilityTemplateAndSlotIndexes.cs  ✅ Created
+  UPACIP.Service/
+    Appointments/
+      AppointmentSlotService.cs              ✅ Updated — now queries ProviderAvailabilityTemplate
 ```
 
 ## Expected Changes
@@ -122,8 +125,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add composite index on Appointment table `(appointment_time, status)` and `(appointment_time, status, provider_id)` via EF Core OnModelCreating configuration
-- [ ] Create `ProviderAvailabilityTemplate` entity with ProviderId, DayOfWeek, StartTime, EndTime, SlotDurationMinutes (default 30), AppointmentType, IsActive fields
-- [ ] Create EF Core migration for `ProviderAvailabilityTemplate` table with unique constraint `(ProviderId, DayOfWeek, StartTime)`, FK to User, and check constraints
-- [ ] Add seed data for sample provider availability schedules (minimum 2 providers with Mon-Fri coverage) to support development and testing
-- [ ] Validate query execution plan confirms index scan usage for date range + status + provider slot filtering queries (document EXPLAIN ANALYZE output)
+- [x] Add composite index `ix_appointments_appointment_time_status` on `(AppointmentTime, Status)` via `AppointmentConfiguration` (optimises date-range + status filter queries)
+- [x] Add composite index `ix_appointments_appointment_time_status_provider_id` on `(AppointmentTime, Status, ProviderId)` via `AppointmentConfiguration` (optimises provider-scoped date-range queries, AC-1)
+- [x] Create `ProviderAvailabilityTemplate` entity with `ProviderId` (FK → asp_net_users), `ProviderName`, `DayOfWeek`, `StartTime`, `EndTime`, `SlotDurationMinutes` (default 30), `AppointmentType`, `IsActive`
+- [x] Create `ProviderAvailabilityTemplateConfiguration` with check constraints (`slot_duration_minutes > 0`, `end_time > start_time`), unique constraint `(ProviderId, DayOfWeek, StartTime)`, FK ON DELETE CASCADE, two query indexes
+- [x] Add seed data: Dr. Emily Chen (Mon–Fri 08:00–17:00 General Checkup), Dr. Michael Park (Mon–Fri 09:00–16:00 Consultation), Dr. Lisa Wang (Mon/Wed/Fri 10:00–15:00 Follow-up) — 13 total rows, stable GUIDs
+- [x] Register `ProviderAvailabilityTemplates` DbSet in `ApplicationDbContext`
+- [x] Update `AppointmentSlotService` to source providers + schedules from `provider_availability_templates` (replacing hardcoded working hours)
+- [x] Generate migration `20260420151244_AddProviderAvailabilityTemplateAndSlotIndexes`
+- [x] `dotnet build UPACIP.sln` → `Build succeeded. 0 Warning(s) 0 Error(s)`
+- [ ] Validate query execution plan confirms index scan usage (requires live PostgreSQL — to be validated during integration testing)

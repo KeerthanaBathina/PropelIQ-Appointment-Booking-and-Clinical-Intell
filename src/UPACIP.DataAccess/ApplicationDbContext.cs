@@ -33,6 +33,21 @@ public sealed class ApplicationDbContext
     public DbSet<QueueEntry>       QueueEntries      => Set<QueueEntry>();
     public DbSet<NotificationLog>  NotificationLogs  => Set<NotificationLog>();
 
+    /// <summary>Email verification tokens for the patient registration flow (US_012).</summary>
+    public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
+
+    /// <summary>Session audit history for HIPAA compliance (7-year retention, DR-016). US_014.</summary>
+    public DbSet<UserSession> UserSessions => Set<UserSession>();
+
+    /// <summary>Password reset tokens for the password-reset flow (US_015, FR-005).</summary>
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+
+    /// <summary>
+    /// Provider weekly availability templates used to generate bookable time slots (US_017).
+    /// Seed data provides 3 sample providers with Mon–Fri schedules.
+    /// </summary>
+    public DbSet<ProviderAvailabilityTemplate> ProviderAvailabilityTemplates => Set<ProviderAvailabilityTemplate>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

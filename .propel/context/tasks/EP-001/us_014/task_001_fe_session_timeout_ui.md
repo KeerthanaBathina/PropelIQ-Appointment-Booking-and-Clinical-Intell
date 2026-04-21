@@ -187,12 +187,12 @@ app/                          # Frontend React application
 
 ## Implementation Checklist
 
-- [ ] Create `useSessionTimeout` hook with activity event listeners, throttled callbacks, and 30s interval check
-- [ ] Create `SessionTimeoutModal` with MUI Dialog, live countdown, "Extend Session" and "Logout Now" buttons
-- [ ] Create `SessionTimeoutProvider` context wrapping authenticated routes
-- [ ] Implement session extend flow calling `POST /api/auth/extend-session` with timer reset
-- [ ] Implement session invalidation flow: clear tokens, clear state, redirect to `/login?expired=true`
-- [ ] Integrate API interceptor to reset timer on 2xx and trigger invalidation on 401
-- [ ] Modify login page to display session expiry warning alert from query parameter
+- [x] Create `useSessionTimeout` hook with activity event listeners, throttled callbacks, and 30s interval check
+- [x] Create `SessionTimeoutModal` with MUI Dialog, live countdown, "Extend Session" and "Logout Now" buttons
+- [x] Create `SessionTimeoutProvider` context wrapping authenticated routes
+- [x] Implement session extend flow calling `POST /api/auth/extend-session` with timer reset
+- [x] Implement session invalidation flow: clear tokens, clear state, redirect to `/login?expired=true`
+- [x] Integrate API interceptor to reset timer on 2xx and trigger invalidation on 401
+- [x] Modify login page to display session expiry warning alert from query parameter
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

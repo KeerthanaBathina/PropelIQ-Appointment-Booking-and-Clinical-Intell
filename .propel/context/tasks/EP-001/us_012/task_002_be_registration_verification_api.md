@@ -208,11 +208,11 @@ Server/                               # Backend .NET 8 solution
 
 ## Implementation Checklist
 
-- [ ] Create `RegistrationRequest` DTO with DataAnnotation validation (required fields, email format, password complexity)
-- [ ] Implement `PasswordComplexityValidator` as custom `IPasswordValidator<ApplicationUser>` (8+ chars, 1 upper, 1 number, 1 special)
-- [ ] Implement `IRegistrationService` and `RegistrationService` (register, verify, resend, check-email)
-- [ ] Implement `IEmailService` and `SmtpEmailService` with Polly retry/circuit breaker for SMTP
-- [ ] Create `AuthController` with POST endpoints: /register, /verify-email, /resend-verification, /check-email
-- [ ] Configure rate limiting for resend endpoint (max 3 per 5 min per email) and check-email (anti-enumeration)
-- [ ] Register all services in Program.cs (DI container, Identity password validator, rate limiting policies)
-- [ ] Add audit logging for all registration and verification events (NFR-012)
+- [x] Create `RegistrationRequest` DTO with DataAnnotation validation (required fields, email format, password complexity)
+- [x] Implement `PasswordComplexityValidator` as custom `IPasswordValidator<ApplicationUser>` (8+ chars, 1 upper, 1 number, 1 special)
+- [x] Implement `IRegistrationService` and `RegistrationService` (register, verify, resend, check-email)
+- [x] Implement `IEmailService` and `SmtpEmailService` with Polly retry/circuit breaker for SMTP
+- [x] Create `AuthController` with POST endpoints: /register, /verify-email, /resend-verification, /check-email
+- [x] Configure rate limiting for resend endpoint (max 3 per 5 min per email) and check-email (anti-enumeration)
+- [x] Register all services in Program.cs (DI container, Identity password validator, rate limiting policies)
+- [x] Add audit logging for all registration and verification events (NFR-012)
