@@ -143,11 +143,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Build a shared no-show risk badge that renders numeric score, color band, and estimated state consistently
-- [ ] Show the risk score on SCR-010 daily schedule rows without breaking existing staff dashboard layout
-- [ ] Show the risk score on SCR-011 queue rows so staff can identify high-risk appointments during queue management
-- [ ] Reuse one shared score-to-style mapping across all staff appointment list surfaces
-- [ ] Distinguish estimated scores and capped high-risk scores accessibly for staff outreach decisions
-- [ ] Validate contrast, responsive table behavior, and screen-reader labels for all score states
+- [x] Build a shared no-show risk badge that renders numeric score, color band, and estimated state consistently
+- [x] Show the risk score on SCR-010 daily schedule rows without breaking existing staff dashboard layout
+- [x] Show the risk score on SCR-011 queue rows so staff can identify high-risk appointments during queue management
+- [x] Reuse one shared score-to-style mapping across all staff appointment list surfaces
+- [x] Distinguish estimated scores and capped high-risk scores accessibly for staff outreach decisions
+- [x] Validate contrast, responsive table behavior, and screen-reader labels for all score states
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

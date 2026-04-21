@@ -137,10 +137,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Return the current manual intake draft with mandatory, optional, and AI-prefilled field metadata
-- [ ] Persist autosave updates into the shared `IntakeData` record without creating duplicate drafts
-- [ ] Validate required fields on submit and return field-specific errors that the UI can render inline
-- [ ] Mark intake as completed on first successful submit and support controlled post-submit patient edits per FR-031
-- [ ] Preserve explicit manual edits over earlier AI-carried values when both are present
-- [ ] Make final submission retry-safe and resistant to duplicate completion on browser back or network replay
-- [ ] Trigger staff-review notifications and structured logs when manual intake is completed or materially updated
+- [x] Return the current manual intake draft with mandatory, optional, and AI-prefilled field metadata
+- [x] Persist autosave updates into the shared `IntakeData` record without creating duplicate drafts
+- [x] Validate required fields on submit and return field-specific errors that the UI can render inline
+- [x] Mark intake as completed on first successful submit and support controlled post-submit patient edits per FR-031
+- [x] Preserve explicit manual edits over earlier AI-carried values when both are present
+- [x] Make final submission retry-safe and resistant to duplicate completion on browser back or network replay
+- [x] Trigger staff-review notifications and structured logs when manual intake is completed or materially updated

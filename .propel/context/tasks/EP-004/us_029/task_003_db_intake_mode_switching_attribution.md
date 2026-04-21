@@ -120,9 +120,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Persist per-field source attribution for values collected by AI and manual intake modes
-- [ ] Store conflict notes when a newer value replaces an earlier answer from a different mode
-- [ ] Record mode-switch history without creating duplicate intake rows
-- [ ] Keep the attribution model backward-compatible for existing intake records
-- [ ] Support efficient retrieval of merged values plus provenance during resume and submit flows
-- [ ] Add a migration that safely introduces the new metadata to the shared intake record
+- [x] Persist per-field source attribution for values collected by AI and manual intake modes
+- [x] Store conflict notes when a newer value replaces an earlier answer from a different mode
+- [x] Record mode-switch history without creating duplicate intake rows
+- [x] Keep the attribution model backward-compatible for existing intake records
+- [x] Support efficient retrieval of merged values plus provenance during resume and submit flows
+- [x] Add a migration that safely introduces the new metadata to the shared intake record

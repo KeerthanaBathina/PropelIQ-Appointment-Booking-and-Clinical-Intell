@@ -4,6 +4,7 @@
  * Patient-facing dashboard showing upcoming appointments with:
  *   - Cancel action for eligible scheduled appointments (AC-1, US_019)
  *   - Reschedule action for eligible scheduled non-walk-in appointments (US_023)
+ *   - Add to Calendar action for scheduled appointments to download .ics file (US_025, FR-025)
  *   - CancelAppointmentDialog for destructive-action confirmation (UXR-102)
  *   - RescheduleAppointmentDialog for multi-step slot swap (US_023, AC-1 through AC-3)
  *   - Immediate status refresh after cancellation / reschedule (React Query invalidation)
@@ -52,6 +53,13 @@ export default function PatientDashboard() {
   const [rescheduleAppointment, setRescheduleAppointment] =
     useState<PatientAppointment | null>(null);
   const [rescheduleSuccessToast, setRescheduleSuccessToast] = useState(false);
+
+  // ─── Calendar download handler (US_025) ──────────────────────────────────
+  // No-op: AppointmentCalendarAction manages its own download state internally.
+  // Passing this callback to AppointmentCard enables the Add to Calendar affordance.
+  const handleAddToCalendar = useCallback((_appointment: PatientAppointment) => {
+    // Intentionally empty — AppointmentCalendarAction handles the download lifecycle.
+  }, []);
 
   // ─── Hooks ────────────────────────────────────────────────────────────────
   const { data: appointments, isLoading, isError } = usePatientAppointments();
@@ -162,6 +170,15 @@ export default function PatientDashboard() {
           >
             View History
           </Button>
+          {/* SCR-008: AI-Assisted Intake launch action (US_027, FL-004) */}
+          <Button
+            variant="outlined"
+            component={RouterLink}
+            to="/patient/intake/ai"
+            aria-label="Complete AI-assisted health intake"
+          >
+            Complete Intake
+          </Button>
         </Box>
 
         {/* Upcoming Appointments panel */}
@@ -228,6 +245,7 @@ export default function PatientDashboard() {
                 appointment={appt}
                 onCancel={handleCancelClick}
                 onReschedule={handleRescheduleClick}
+                onAddToCalendar={handleAddToCalendar}
               />
             ))}
         </Paper>

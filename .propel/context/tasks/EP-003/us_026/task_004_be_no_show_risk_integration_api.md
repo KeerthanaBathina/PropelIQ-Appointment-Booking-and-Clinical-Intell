@@ -146,10 +146,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add orchestration that invokes no-show risk scoring and persists the latest metadata on appointments
-- [ ] Refresh risk metadata during appointment creation and other staff-facing refresh points without blocking core workflows on scoring failure
-- [ ] Expose score, band, estimated-state, and outreach-needed metadata through staff schedule and queue APIs
-- [ ] Feed persisted risk scores into preferred-slot swap ranking so lower-risk patients are prioritized deterministically
-- [ ] Surface a deterministic outreach indicator for highest-risk appointments without embedding notification delivery into this task
-- [ ] Keep staff-facing list queries efficient and protected by staff-only authorization
-- [ ] Add structured logs and API documentation for score refreshes, fallback paths, and staff list retrieval
+- [x] Add orchestration that invokes no-show risk scoring and persists the latest metadata on appointments
+- [x] Refresh risk metadata during appointment creation and other staff-facing refresh points without blocking core workflows on scoring failure
+- [x] Expose score, band, estimated-state, and outreach-needed metadata through staff schedule and queue APIs
+- [x] Feed persisted risk scores into preferred-slot swap ranking so lower-risk patients are prioritized deterministically
+- [x] Surface a deterministic outreach indicator for highest-risk appointments without embedding notification delivery into this task
+- [x] Keep staff-facing list queries efficient and protected by staff-only authorization
+- [x] Add structured logs and API documentation for score refreshes, fallback paths, and staff list retrieval

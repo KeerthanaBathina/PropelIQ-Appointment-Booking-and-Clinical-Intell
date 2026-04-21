@@ -43,6 +43,7 @@ public sealed class AppointmentBookingController : ControllerBase
     private readonly IAppointmentCancellationService     _cancellationService;
     private readonly IAppointmentReschedulingService     _reschedulingService;
     private readonly IAppointmentHistoryService          _historyService;
+    private readonly IAppointmentCalendarService         _calendarService;
     private readonly ILogger<AppointmentBookingController> _logger;
 
     public AppointmentBookingController(
@@ -51,6 +52,7 @@ public sealed class AppointmentBookingController : ControllerBase
         IAppointmentCancellationService         cancellationService,
         IAppointmentReschedulingService         reschedulingService,
         IAppointmentHistoryService              historyService,
+        IAppointmentCalendarService             calendarService,
         ILogger<AppointmentBookingController>   logger)
     {
         _bookingService      = bookingService;
@@ -58,6 +60,7 @@ public sealed class AppointmentBookingController : ControllerBase
         _cancellationService = cancellationService;
         _reschedulingService = reschedulingService;
         _historyService      = historyService;
+        _calendarService     = calendarService;
         _logger              = logger;
     }
 
@@ -218,6 +221,11 @@ public sealed class AppointmentBookingController : ControllerBase
                     result.ErrorMessage!)),
 
             BookingResultStatus.PatientNotFound =>
+                UnprocessableEntity(BuildError(
+                    StatusCodes.Status422UnprocessableEntity,
+                    result.ErrorMessage!)),
+
+            BookingResultStatus.GuardianConsentRequired =>
                 UnprocessableEntity(BuildError(
                     StatusCodes.Status422UnprocessableEntity,
                     result.ErrorMessage!)),
@@ -483,6 +491,72 @@ public sealed class AppointmentBookingController : ControllerBase
 
             _ => StatusCode(StatusCodes.Status500InternalServerError),
         };
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /api/appointments/{appointmentId}/calendar — download .ics (US_025)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns a standards-compliant iCalendar (.ics) file for the specified confirmed
+    /// appointment so the patient can import it into Google Calendar or Outlook (US_025,
+    /// FR-025, TR-026).
+    /// </summary>
+    /// <remarks>
+    /// **Ownership (OWASP A01):** Patient identity is resolved from the JWT email claim.
+    ///   Appointments not owned by the requesting patient return 404 — not 403 — to avoid
+    ///   leaking the existence of other patients' data.
+    ///
+    /// **Stable UID (AC-3):** The iCal event UID is derived from the appointment UUID so
+    ///   that downloading after a reschedule updates — rather than duplicates — the existing
+    ///   calendar entry in the patient's calendar client.
+    ///
+    /// **Timezone (AC-2, EC-2):** The VTIMEZONE component uses the clinic's configured IANA
+    ///   timezone ID.  DTSTART and DTEND carry the TZID parameter.  DTSTAMP is in UTC.
+    ///
+    /// **Interoperability (EC-1):** The response is a standards-compliant RFC 5545 file.
+    ///   No vendor-specific extensions or ITIP methods are required to import it.
+    ///
+    /// **Not Found (404):** Returned when the appointment does not exist, does not belong
+    ///   to the authenticated patient, or is not in Scheduled status.
+    /// </remarks>
+    /// <param name="appointmentId">UUID of the confirmed appointment to export.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>200 OK with a <c>text/calendar</c> file download, or 404 Not Found.</returns>
+    [HttpGet("{appointmentId:guid}/calendar")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> DownloadCalendar(
+        [FromRoute] Guid  appointmentId,
+        CancellationToken cancellationToken)
+    {
+        var userEmail = GetUserEmail();
+        if (userEmail is null)
+        {
+            _logger.LogWarning("DownloadCalendar: no email claim in JWT.");
+            return Unauthorized();
+        }
+
+        _logger.LogInformation(
+            "Calendar download requested: appointmentId={AppointmentId}.",
+            appointmentId);
+
+        var result = await _calendarService.GetCalendarFileAsync(
+            appointmentId, userEmail, cancellationToken);
+
+        if (result is null)
+        {
+            return NotFound(BuildError(
+                StatusCodes.Status404NotFound,
+                "Appointment not found or is not eligible for calendar export."));
+        }
+
+        _logger.LogInformation(
+            "Calendar download served: appointmentId={AppointmentId}, file={FileName}.",
+            appointmentId, result.FileName);
+
+        return File(result.FileBytes, result.ContentType, result.FileName);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

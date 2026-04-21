@@ -87,5 +87,40 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
             .WithOne(n => n.Appointment)
             .HasForeignKey(n => n.AppointmentId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        // ── No-show risk metadata columns (US_026, AIR-006, FR-014) ──────────
+        // All nullable: existing appointments have no score until their first scoring run.
+
+        // Score is constrained to [0, 100] via a DB CHECK constraint (EC-2, DR guardrails).
+        // The CHECK is added in the migration rather than here to avoid changing the ToTable()
+        // call while keeping the constraint visible in the migration diff history.
+        builder.Property(a => a.NoShowRiskScore)
+            .HasColumnType("integer")
+            .IsRequired(false);
+
+        // Band stored as string for human-readable DB values (same pattern as Status column).
+        builder.Property(a => a.NoShowRiskBand)
+            .HasConversion<string>()
+            .HasMaxLength(10)
+            .IsRequired(false);
+
+        builder.Property(a => a.IsRiskEstimated)
+            .HasColumnType("boolean")
+            .IsRequired(false);
+
+        builder.Property(a => a.RequiresOutreach)
+            .HasColumnType("boolean")
+            .IsRequired(false);
+
+        builder.Property(a => a.RiskCalculatedAtUtc)
+            .HasColumnType("timestamp with time zone")
+            .IsRequired(false);
+
+        // Composite index: supports staff schedule and queue queries sorted by risk
+        //   WHERE status = 'Scheduled' ORDER BY no_show_risk_score DESC
+        // Leading column is no_show_risk_score so the planner can use index-only scan
+        // for the highest-risk filter (requires_outreach = true) on that same column.
+        builder.HasIndex(a => new { a.NoShowRiskScore, a.Status })
+            .HasDatabaseName("ix_appointments_no_show_risk_score_status");
     }
 }

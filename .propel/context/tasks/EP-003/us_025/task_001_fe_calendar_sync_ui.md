@@ -149,11 +149,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Add a reusable calendar download hook that requests the `.ics` payload for a selected appointment and triggers browser save behavior
-- [ ] Build an accessible Add to Calendar action with loading, disabled, and retry-safe error states
-- [ ] Place the action on eligible confirmed patient dashboard appointment cards without breaking existing cancel or reschedule controls
-- [ ] Preserve patient-local appointment details in the UI so manual entry remains possible if calendar import is unsupported
-- [ ] Reuse the same appointment identity after reschedule so repeated downloads map to the same calendar event update path
+- [X] Add a reusable calendar download hook that requests the `.ics` payload for a selected appointment and triggers browser save behavior
+- [X] Build an accessible Add to Calendar action with loading, disabled, and retry-safe error states
+- [X] Place the action on eligible confirmed patient dashboard appointment cards without breaking existing cancel or reschedule controls
+- [X] Preserve patient-local appointment details in the UI so manual entry remains possible if calendar import is unsupported
+- [X] Reuse the same appointment identity after reschedule so repeated downloads map to the same calendar event update path
 - [ ] Validate focus states, responsive layout, and error feedback for the download interaction across required breakpoints
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

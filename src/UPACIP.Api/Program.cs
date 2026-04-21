@@ -33,6 +33,8 @@ using UPACIP.DataAccess.Seeding;
 using UPACIP.Service.Validation;
 using UPACIP.Service.VectorSearch;
 using UPACIP.Service.Appointments;
+using UPACIP.Service.AI.NoShowRisk;
+using UPACIP.Service.AI.ConversationalIntake;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -412,6 +414,73 @@ builder.Services.AddScoped<IAppointmentReschedulingService, AppointmentReschedul
 
 // Patient appointment history (US_024) — paginated history with sort and all-status visibility.
 builder.Services.AddScoped<IAppointmentHistoryService, AppointmentHistoryService>();
+
+// Clinic settings singleton — name, IANA timezone ID, and iCal domain used by the calendar export.
+// Registered before AppointmentCalendarService so DI resolves ClinicSettings as a constructor argument.
+var clinicSettings = builder.Configuration.GetSection("ClinicSettings").Get<ClinicSettings>() ?? new ClinicSettings();
+builder.Services.AddSingleton(clinicSettings);
+
+// Appointment calendar export service — generates RFC 5545 .ics files for confirmed appointments (US_025, FR-025, TR-026).
+builder.Services.AddScoped<IAppointmentCalendarService, AppointmentCalendarService>();
+
+// No-show risk scoring engine — in-process classification model with rule-based fallback
+// and Polly circuit breaker (AIR-006, AIR-O04, FR-014, US_026).
+// FeatureExtractor and FallbackPolicy are registered as scoped so they share the DbContext scope.
+// ScoringService is scoped; the Polly circuit breaker is stored as an instance field on the service
+// so breaker state is scoped to the DI container lifetime (per-request isolation).
+builder.Services.AddScoped<NoShowRiskFeatureExtractor>();
+builder.Services.AddScoped<NoShowRiskFallbackPolicy>();
+builder.Services.AddScoped<INoShowRiskScoringService, NoShowRiskScoringService>();
+
+// No-show risk orchestrator — coordinates score calculation, persistence, and downstream
+// integration for booking workflows, staff schedule, and arrival queue (US_026, AC-1, EC-1).
+builder.Services.AddScoped<NoShowRiskOrchestrator>();
+
+// ── AI Conversational Intake services (AIR-001, FR-026, US_027) ───────────────────────────
+// AiGatewaySettings bound from configuration; never logged.
+builder.Services.Configure<AiGatewaySettings>(
+    builder.Configuration.GetSection(AiGatewaySettings.SectionName));
+
+// Named HttpClient for OpenAI — base address + auth header preset; timeout from config.
+var aiSettings = builder.Configuration.GetSection(AiGatewaySettings.SectionName).Get<AiGatewaySettings>() ?? new AiGatewaySettings();
+builder.Services.AddHttpClient("openai", client =>
+{
+    client.BaseAddress = new Uri(aiSettings.OpenAiBaseUrl);
+    client.DefaultRequestHeaders.Authorization =
+        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", aiSettings.OpenAiApiKey);
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(aiSettings.TimeoutSeconds > 0 ? aiSettings.TimeoutSeconds : 10);
+});
+
+// Named HttpClient for Anthropic Claude (fallback provider).
+builder.Services.AddHttpClient("anthropic", client =>
+{
+    client.BaseAddress = new Uri(aiSettings.AnthropicBaseUrl);
+    client.DefaultRequestHeaders.Add("x-api-key", aiSettings.AnthropicApiKey);
+    client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
+    client.DefaultRequestHeaders.Add("Accept", "application/json");
+    client.Timeout = TimeSpan.FromSeconds(aiSettings.TimeoutSeconds > 0 ? aiSettings.TimeoutSeconds : 10);
+});
+
+// Intake service components — scoped so they share the per-request DI scope.
+builder.Services.AddScoped<IntakeRagRetriever>();
+builder.Services.AddScoped<IntakeFieldExtractionValidator>();
+builder.Services.AddScoped<IntakePromptBuilder>();
+builder.Services.AddScoped<IConversationalIntakeService, ConversationalIntakeService>();
+
+// AI intake session service — scoped per-request; coordinates session lifecycle,
+// Redis-backed state persistence, and IntakeData completion (US_027, AC-1–AC-5).
+builder.Services.AddScoped<IAIIntakeSessionService, AIIntakeSessionService>();
+
+// Manual intake form service — draft load, autosave, submit, and idempotent completion (US_028, FR-027–FR-031).
+builder.Services.AddScoped<IManualIntakeService, ManualIntakeService>();
+
+// Intake mode-switch orchestration — bidirectional AI ↔ manual merge with conflict detection (US_029, FR-028).
+builder.Services.AddScoped<IIntakeModeSwitchService, IntakeModeSwitchService>();
+
+// Intake autosave — 30-second boundary heartbeat and EC-1 idempotency for both AI and manual surfaces (US_030, FR-035).
+builder.Services.AddScoped<IIntakeAutosaveService, IntakeAutosaveService>();
+builder.Services.AddScoped<IInsurancePrecheckService, InsurancePrecheckService>();
 
 // ASP.NET Core built-in rate limiting (Microsoft.AspNetCore.RateLimiting — included in .NET 7+).
 // Policy "check-email-limit": 30 req/min per IP — anti-enumeration guard (OWASP A07).

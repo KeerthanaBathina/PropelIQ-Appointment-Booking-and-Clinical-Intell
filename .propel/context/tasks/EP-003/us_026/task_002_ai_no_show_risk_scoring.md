@@ -146,13 +146,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define the feature set and output contract for no-show risk scoring from appointment history and appointment characteristics
-- [ ] Implement the scoring service to return a normalized 0-100 score and stable risk band
-- [ ] Add deterministic fallback rules for patients with fewer than three historical appointments and mark those results as estimated
-- [ ] Cap extreme scores at 100 and surface a high-risk outreach flag for manual follow-up workflows
-- [ ] Return a score result that downstream slot-swap prioritization can consume deterministically
-- [ ] Add validation, safe-degradation, and logging guardrails so scoring failures do not block booking or queue workflows
-- [ ] Verify AIR-006 output quality and fallback behavior with representative high-risk, low-risk, and insufficient-history cases
+- [x] Define the feature set and output contract for no-show risk scoring from appointment history and appointment characteristics
+- [x] Implement the scoring service to return a normalized 0-100 score and stable risk band
+- [x] Add deterministic fallback rules for patients with fewer than three historical appointments and mark those results as estimated
+- [x] Cap extreme scores at 100 and surface a high-risk outreach flag for manual follow-up workflows
+- [x] Return a score result that downstream slot-swap prioritization can consume deterministically
+- [x] Add validation, safe-degradation, and logging guardrails so scoring failures do not block booking or queue workflows
+- [x] Verify AIR-006 output quality and fallback behavior with representative high-risk, low-risk, and insufficient-history cases
 - **[AI Tasks - MANDATORY]** Reference the scoring configuration artifact from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational)

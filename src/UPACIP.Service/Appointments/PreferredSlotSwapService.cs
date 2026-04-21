@@ -88,6 +88,7 @@ public sealed class PreferredSlotSwapService : IPreferredSlotSwapService
                 a.Patient.DeletedAt       == null                        &&
                 (a.QueueEntry == null || a.QueueEntry.Status == QueueStatus.Waiting || a.QueueEntry.Status == QueueStatus.Completed))
             .OrderBy(a => a.CreatedAt)   // AC-4: longest wait = earliest creation
+            .ThenBy(a => a.NoShowRiskScore ?? 0)  // AC-4: lower risk preferred when wait times equal (US_026)
             .ToListAsync(cancellationToken);
 
         if (candidates.Count == 0)

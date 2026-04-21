@@ -64,4 +64,42 @@ public sealed class Appointment : BaseEntity
     public QueueEntry? QueueEntry { get; set; }
 
     public ICollection<NotificationLog> Notifications { get; set; } = [];
+
+    // -------------------------------------------------------------------------
+    // No-show risk metadata (US_026, AIR-006, FR-014)
+    // Persisted after each risk calculation so staff views and slot-swap
+    // prioritization never require a real-time re-score on every list render.
+    // All fields are nullable: existing appointments have no score until their
+    // first recalculation and the migration rolls them forward safely.
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Persisted no-show risk score in range [0, 100] (enforced by DB CHECK constraint).
+    /// Null until the scoring engine has evaluated this appointment for the first time.
+    /// </summary>
+    public int? NoShowRiskScore { get; set; }
+
+    /// <summary>
+    /// Discrete risk band derived from <see cref="NoShowRiskScore"/> (Low / Medium / High).
+    /// Stored as VARCHAR so DB values are human-readable without a lookup table.
+    /// Null while <see cref="NoShowRiskScore"/> is null.
+    /// </summary>
+    public NoShowRiskBand? NoShowRiskBand { get; set; }
+
+    /// <summary>
+    /// True when the score was produced by rule-based fallback (insufficient history,
+    /// fewer than 3 prior appointments — AC-3).  UI displays an "Est." label.
+    /// Null while no score has been calculated.
+    /// </summary>
+    public bool? IsRiskEstimated { get; set; }
+
+    /// <summary>
+    /// True when the risk score meets or exceeds the high-risk outreach threshold (EC-2).
+    /// Staff workflows use this flag to initiate proactive outreach before the appointment.
+    /// Null while no score has been calculated.
+    /// </summary>
+    public bool? RequiresOutreach { get; set; }
+
+    /// <summary>UTC timestamp of the last risk score calculation. Used for cache staleness checks.</summary>
+    public DateTime? RiskCalculatedAtUtc { get; set; }
 }

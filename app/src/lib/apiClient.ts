@@ -137,3 +137,20 @@ export async function apiGet<T>(path: string): Promise<T> {
 
   return null as T;
 }
+
+export async function apiGetBlob(path: string): Promise<Blob> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'GET',
+    headers: buildHeaders(),
+  });
+
+  if (!response.ok) {
+    handleAuthError(response.status);
+    const text = await response.text().catch(() => response.statusText);
+    throw new ApiError(response.status, text || `Request failed with status ${response.status}`);
+  }
+
+  notifyActivity();
+
+  return response.blob();
+}

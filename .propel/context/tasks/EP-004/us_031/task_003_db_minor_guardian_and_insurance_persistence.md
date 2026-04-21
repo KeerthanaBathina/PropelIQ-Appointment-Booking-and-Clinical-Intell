@@ -124,9 +124,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Persist guardian consent details needed to verify minor booking eligibility
-- [ ] Store insurance validation outcome, review reason, and staff-follow-up requirement on intake records
-- [ ] Create and seed dummy insurance validation records for deterministic pre-checks
-- [ ] Distinguish skipped insurance collection from failed validation in persisted status data
-- [ ] Support efficient lookup of intake records that require staff review
-- [ ] Add a migration that introduces the new schema without breaking existing intake rows
+- [x] Persist guardian consent details needed to verify minor booking eligibility
+- [x] Store insurance validation outcome, review reason, and staff-follow-up requirement on intake records
+- [x] Create and seed dummy insurance validation records for deterministic pre-checks
+- [x] Distinguish skipped insurance collection from failed validation in persisted status data
+- [x] Support efficient lookup of intake records that require staff review
+- [x] Add a migration that introduces the new schema without breaking existing intake rows

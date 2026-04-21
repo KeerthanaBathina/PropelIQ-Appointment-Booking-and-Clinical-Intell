@@ -144,11 +144,11 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Build SCR-008 with greeting, transcript, progress bar, autosave status, and input composer states
-- [ ] Render AI clarification prompts and patient responses clearly in the conversation log
-- [ ] Keep the required-field progress indicator accurate as the conversation advances
-- [ ] Support summary review and correction before final submission
-- [ ] Preserve data when switching from AI intake to manual intake
-- [ ] Validate timeout recovery, focus management, responsive layout, and accessible live updates
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Build SCR-008 with greeting, transcript, progress bar, autosave status, and input composer states
+- [x] Render AI clarification prompts and patient responses clearly in the conversation log
+- [x] Keep the required-field progress indicator accurate as the conversation advances
+- [x] Support summary review and correction before final submission
+- [x] Preserve data when switching from AI intake to manual intake
+- [x] Validate timeout recovery, focus management, responsive layout, and accessible live updates
+- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation ✅
+- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete ✅

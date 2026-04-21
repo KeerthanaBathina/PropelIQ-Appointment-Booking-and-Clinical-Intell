@@ -147,13 +147,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Build prompt templates for greeting, intake questioning, clarification, summary, and resume flows
-- [ ] Retrieve grounded medical terminology and intake-flow context before ambiguous follow-up generation
-- [ ] Extract and validate mandatory intake fields before advancing the conversation state
-- [ ] Enforce token and guardrail limits for each exchange and sanitize prompt-injection attempts
-- [ ] Support low-confidence and provider-failure fallback behavior without losing collected intake data
-- [ ] Reconstruct the next conversational step from saved session state after resume
-- [ ] Verify AIR-001 behavior with representative mandatory-field, optional-field, ambiguous-term, and resume scenarios
-- **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
-- **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
-- **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational)
+- [x] Build prompt templates for greeting, intake questioning, clarification, summary, and resume flows
+- [x] Retrieve grounded medical terminology and intake-flow context before ambiguous follow-up generation
+- [x] Extract and validate mandatory intake fields before advancing the conversation state
+- [x] Enforce token and guardrail limits for each exchange and sanitize prompt-injection attempts
+- [x] Support low-confidence and provider-failure fallback behavior without losing collected intake data
+- [x] Reconstruct the next conversational step from saved session state after resume
+- [x] Verify AIR-001 behavior with representative mandatory-field, optional-field, ambiguous-term, and resume scenarios
+- **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation ✅
+- **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete ✅
+- **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational) ✅

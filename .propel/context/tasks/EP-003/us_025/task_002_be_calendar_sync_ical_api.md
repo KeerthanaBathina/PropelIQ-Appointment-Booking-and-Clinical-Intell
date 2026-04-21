@@ -147,10 +147,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add a calendar export service that loads patient-owned appointment data and produces a downloadable `.ics` payload
-- [ ] Emit `VCALENDAR`, `VEVENT`, and `VTIMEZONE` components with appointment date, time, provider, and location fields
-- [ ] Keep the event UID stable across reschedules by deriving it from the persistent appointment identity rather than the appointment time
-- [ ] Add an authenticated download endpoint returning `text/calendar` content with a deterministic filename
-- [ ] Enforce patient ownership and reject inaccessible appointments without leaking cross-patient data
-- [ ] Preserve Google Calendar and Outlook interoperability through standards-compliant formatting and escaped field values
-- [ ] Add structured logs and OpenAPI docs for download attempts, failures, and ownership rejections
+- [x] Add a calendar export service that loads patient-owned appointment data and produces a downloadable `.ics` payload
+- [x] Emit `VCALENDAR`, `VEVENT`, and `VTIMEZONE` components with appointment date, time, provider, and location fields
+- [x] Keep the event UID stable across reschedules by deriving it from the persistent appointment identity rather than the appointment time
+- [x] Add an authenticated download endpoint returning `text/calendar` content with a deterministic filename
+- [x] Enforce patient ownership and reject inaccessible appointments without leaking cross-patient data
+- [x] Preserve Google Calendar and Outlook interoperability through standards-compliant formatting and escaped field values
+- [x] Add structured logs and OpenAPI docs for download attempts, failures, and ownership rejections

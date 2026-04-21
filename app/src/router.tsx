@@ -19,6 +19,11 @@ const StaffDashboard = lazy(() => import('@/pages/StaffDashboard'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AppointmentBookingPage = lazy(() => import('@/pages/AppointmentBookingPage'));
 const AppointmentHistoryPage = lazy(() => import('@/pages/AppointmentHistoryPage'));
+const ArrivalQueuePage = lazy(() => import('@/pages/ArrivalQueuePage'));
+// SCR-008 — AI Conversational Intake (US_027)
+const AIIntakePage = lazy(() => import('@/pages/AIIntakePage'));
+// SCR-009 — Manual Intake Form (US_028)
+const ManualIntakePage = lazy(() => import('@/pages/ManualIntakePage'));
 
 function RouteLoadingFallback() {
   return (
@@ -78,6 +83,24 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
+        {/* SCR-008 — AI Conversational Intake (US_027) */}
+        <Route
+          path="/patient/intake/ai"
+          element={
+            <ProtectedRoute allowedRoles={['Patient']}>
+              <AIIntakePage />
+            </ProtectedRoute>
+          }
+        />
+        {/* SCR-009 — Manual Intake Form (US_028) */}
+        <Route
+          path="/patient/intake/manual"
+          element={
+            <ProtectedRoute allowedRoles={['Patient']}>
+              <ManualIntakePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/patient/*"
@@ -94,6 +117,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['Staff']}>
               <StaffDashboard />
+            </ProtectedRoute>
+          }
+        />
+        {/* SCR-011 — Arrival Queue (US_026) */}
+        <Route
+          path="/staff/queue"
+          element={
+            <ProtectedRoute allowedRoles={['Staff']}>
+              <ArrivalQueuePage />
             </ProtectedRoute>
           }
         />

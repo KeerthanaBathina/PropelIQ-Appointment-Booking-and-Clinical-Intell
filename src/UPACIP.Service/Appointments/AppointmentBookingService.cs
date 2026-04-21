@@ -33,6 +33,7 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
     private readonly ApplicationDbContext            _db;
     private readonly ISlotHoldService                _holdService;
     private readonly IAppointmentSlotService         _slotService;
+    private readonly NoShowRiskOrchestrator          _riskOrchestrator;
     private readonly ILogger<AppointmentBookingService> _logger;
 
     // Polly single-retry with 500 ms delay for transient Npgsql failures (EC-1, NFR-032).
@@ -43,12 +44,14 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         ApplicationDbContext               db,
         ISlotHoldService                   holdService,
         IAppointmentSlotService            slotService,
+        NoShowRiskOrchestrator             riskOrchestrator,
         ILogger<AppointmentBookingService> logger)
     {
-        _db          = db;
-        _holdService = holdService;
-        _slotService = slotService;
-        _logger      = logger;
+        _db               = db;
+        _holdService      = holdService;
+        _slotService      = slotService;
+        _riskOrchestrator = riskOrchestrator;
+        _logger           = logger;
 
         _retryPolicy = Policy
             .Handle<NpgsqlException>(ex => ex.IsTransient)
@@ -84,6 +87,34 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         }
 
         var patientId = patient.Id;
+
+        // ── 1b. Minor booking guard (US_031 AC-1, FR-032) ────────────────────
+        // If the patient is under 18, check that the most recent completed or in-progress
+        // manual intake has a valid guardian consent acknowledgment before allowing booking.
+        // This is a booking-time enforcement layer; the UI also gates the confirmation modal.
+        var today      = DateOnly.FromDateTime(DateTime.UtcNow);
+        var patientAge = today.Year - patient.DateOfBirth.Year;
+        if (today < patient.DateOfBirth.AddYears(patientAge)) patientAge--;
+
+        if (patientAge < 18)
+        {
+            var guardianConsentOk = await _db.IntakeRecords
+                .AsNoTracking()
+                .Where(i => i.PatientId == patientId)
+                .OrderByDescending(i => i.CompletedAt ?? i.LastAutoSavedAt ?? i.CreatedAt)
+                .Select(i => i.AiSessionSnapshot)
+                .FirstOrDefaultAsync(cancellationToken) is { } snapshot
+                    && snapshot.CollectedFields
+                        .Any(f => f.Key == "guardianConsentAcknowledged" && f.Value == "true");
+
+            if (!guardianConsentOk)
+            {
+                _logger.LogWarning(
+                    "Booking denied — minor patient {PatientId} missing guardian consent (US_031 AC-1).",
+                    patientId);
+                return BookingResult.GuardianConsentRequired();
+            }
+        }
 
         // ── 2. Verify the slot hold belongs to this user (AC-3) ─────────────
         var holdOwned = await _holdService.IsHeldByUserAsync(
@@ -225,6 +256,19 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
             "patient={PatientId}, provider={ProviderId}, time={AppointmentTime}.",
             bookingReference, appointment.Id, patientId,
             request.ProviderId, appointmentTime.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+
+        // ── 12. Trigger no-show risk scoring (fire-and-forget, AC-1, EC-1) ───
+        // Uses a new scope-independent call; the orchestrator catches all failures
+        // so scoring errors never block the booking confirmation response (AC-4).
+        // Intentionally not awaited inline — we capture the Task to prevent unobserved
+        // exceptions from surfacing via TaskScheduler.UnobservedTaskException.
+        var scoringTask = _riskOrchestrator.ScoreAndPersistAsync(
+            appointment.Id, patientId, appointmentTime, cancellationToken);
+        _ = scoringTask.ContinueWith(
+            t => _logger.LogWarning(
+                "NoShowRisk fire-and-forget: unhandled exception for appointmentId={AppointmentId}. {Error}",
+                appointment.Id, t.Exception?.Message),
+            TaskContinuationOptions.OnlyOnFaulted);
 
         return BookingResult.Succeeded(new BookingResponse(
             AppointmentId:   appointment.Id,

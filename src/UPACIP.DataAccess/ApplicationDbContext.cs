@@ -51,6 +51,13 @@ public sealed class ApplicationDbContext
     /// <summary>Patient waitlist registrations for fully-booked slots (US_020).</summary>
     public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
 
+    /// <summary>
+    /// Dummy insurance validation reference records used by the soft pre-check
+    /// during manual intake (US_031, AC-2, FR-033).
+    /// Seeded by the AddMinorGuardianAndInsuranceValidation migration.
+    /// </summary>
+    public DbSet<InsuranceValidationRecord> InsuranceValidationRecords => Set<InsuranceValidationRecord>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to
