@@ -148,9 +148,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define response DTOs (PatientProfile360Dto, ProfileDataPointDto, SourceCitationDto, VersionHistoryDto) with proper JSON serialization attributes
-- [ ] Implement PatientProfileController with 5 endpoints (profile, versions, version detail, citation, consolidation trigger)
-- [ ] Implement PatientProfileService with EF Core queries aggregating ExtractedData grouped by data_type with source document joins
-- [ ] Add Redis distributed caching on GET profile endpoint with 5-minute TTL and cache invalidation on consolidation
-- [ ] Add role-based authorization (Staff, Admin) to all endpoints
-- [ ] Add Swagger XML documentation comments on all controller actions and DTO properties
+- [x] Define response DTOs (PatientProfile360Dto, ProfileDataPointDto, SourceCitationDto, VersionHistoryDto) with proper JSON serialization attributes
+- [x] Implement PatientProfileController with 5 endpoints (profile, versions, version detail, citation, consolidation trigger)
+- [x] Implement PatientProfileService with EF Core queries aggregating ExtractedData grouped by data_type with source document joins
+- [x] Add Redis distributed caching on GET profile endpoint with 5-minute TTL and cache invalidation on consolidation
+- [x] Add role-based authorization (Staff, Admin) to all endpoints
+- [x] Add Swagger XML documentation comments on all controller actions and DTO properties

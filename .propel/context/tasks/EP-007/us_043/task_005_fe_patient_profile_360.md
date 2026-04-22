@@ -155,13 +155,13 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `PatientProfile360Page` with route setup, breadcrumb navigation (UXR-003), and state management orchestration
-- [ ] Implement `ProfileHeader` with patient avatar (primary-100 bg), name, DOB, document count, version number display
-- [ ] Implement `ClinicalDataTabs` with 4 MUI Tabs (Medications, Diagnoses, Procedures, Allergies) using distinct category icons and colors (UXR-404)
-- [ ] Implement `DataPointTable` with MUI DataGrid columns, click handler for source citation, and review status chips
-- [ ] Implement `ConfidenceBadge` with color thresholds (>=80% green, 60-79% amber, <60% red) per UXR-105
-- [ ] Implement `SourceCitationPanel` as MUI Drawer with document name, category, upload date, extraction section (AC-3)
-- [ ] Implement `ConflictAlertBanner` (warning-surface bg) and `VersionHistoryPanel` (collapsible sidebar with version list)
-- [ ] Implement all 5 screen states (Default, Loading skeleton, Empty with upload prompt, Error with retry, Validation) and toast notifications (UXR-505)
+- [x] Create `PatientProfile360Page` with route setup, breadcrumb navigation (UXR-003), and state management orchestration
+- [x] Implement `ProfileHeader` with patient avatar (primary-100 bg), name, DOB, document count, version number display
+- [x] Implement `ClinicalDataTabs` with 4 MUI Tabs (Medications, Diagnoses, Procedures, Allergies) using distinct category icons and colors (UXR-404)
+- [x] Implement `DataPointTable` with MUI DataGrid columns, click handler for source citation, and review status chips
+- [x] Implement `ConfidenceBadge` with color thresholds (>=80% green, 60-79% amber, <60% red) per UXR-105
+- [x] Implement `SourceCitationPanel` as MUI Drawer with document name, category, upload date, extraction section (AC-3)
+- [x] Implement `ConflictAlertBanner` (warning-surface bg) and `VersionHistoryPanel` (collapsible sidebar with version list)
+- [x] Implement all 5 screen states (Default, Loading skeleton, Empty with upload prompt, Error with retry, Validation) and toast notifications (UXR-505)
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

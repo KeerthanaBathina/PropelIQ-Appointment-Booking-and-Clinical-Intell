@@ -138,6 +138,29 @@ export async function apiGet<T>(path: string): Promise<T> {
   return null as T;
 }
 
+export async function apiPut<T>(path: string, body: unknown): Promise<T> {
+  const response = await fetch(`${BASE_URL}${path}`, {
+    method: 'PUT',
+    headers: buildHeaders(),
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    handleAuthError(response.status);
+    const text = await response.text().catch(() => response.statusText);
+    throw new ApiError(response.status, text || `Request failed with status ${response.status}`);
+  }
+
+  notifyActivity();
+
+  const contentType = response.headers.get('content-type');
+  if (contentType?.includes('application/json')) {
+    return response.json() as Promise<T>;
+  }
+
+  return null as T;
+}
+
 export async function apiGetBlob(path: string): Promise<Blob> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'GET',

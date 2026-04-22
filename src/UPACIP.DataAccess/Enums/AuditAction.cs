@@ -59,4 +59,13 @@ public enum AuditAction
     ExtractedDataVerified,
     /// <summary>Staff bulk-verified multiple extracted data rows in one operation (US_041 EC-2).</summary>
     ExtractedDataBulkVerified,
+    /// <summary>Staff selected a specific data value when resolving a clinical conflict (US_045 AC-2).</summary>
+    ConflictValueSelected,
+    /// <summary>Staff marked both conflicting values as valid with different date attribution (US_045 EC-2).</summary>
+    ConflictBothValid,
+    /// <summary>Patient profile version transitioned to Verified — all conflicts resolved (US_045 AC-4).</summary>
+    ProfileVerified,
+
+    /// <summary>Staff manually verified or corrected an extracted data entry during AI-unavailable fallback or low-confidence review (US_046 AC-3, FR-093).</summary>
+    ManualDataVerified,
 }

@@ -88,6 +88,18 @@ public sealed class ExtractedDataConfiguration : IEntityTypeConfiguration<Extrac
             .IsRequired(false)
             .OnDelete(DeleteBehavior.SetNull);
 
+        // Manual fallback / date-validation columns (US_046 task_002 AC-2, AC-3, edge case).
+        builder.Property(e => e.IsIncompleteDate)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(e => e.DateConflictExplanation)
+            .IsRequired(false)
+            .HasMaxLength(1000);
+
+        builder.HasIndex(e => e.IsIncompleteDate)
+            .HasDatabaseName("ix_extracted_data_is_incomplete_date");
+
         // Archival support (US_042 task_004 AC-3, EC-1).
         builder.Property(e => e.IsArchived)
             .IsRequired()

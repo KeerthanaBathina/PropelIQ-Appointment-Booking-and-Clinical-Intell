@@ -133,9 +133,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define `ClinicalConflict` entity class with all columns, FK navigation properties, and JSONB-typed properties
-- [ ] Create `ConflictType`, `ConflictSeverity`, and `ConflictStatus` enums
-- [ ] Register entity in `PatientDbContext.OnModelCreating` with FK constraints, composite indexes, and JSONB column configuration
-- [ ] Configure enum-to-string value conversions for readable database storage
-- [ ] Generate and verify EF Core migration script with up/down methods
+- [X] Define `ClinicalConflict` entity class with all columns, FK navigation properties, and JSONB-typed properties
+- [X] Create `ConflictType`, `ConflictSeverity`, and `ConflictStatus` enums
+- [X] Register entity in `PatientDbContext.OnModelCreating` with FK constraints, composite indexes, and JSONB column configuration
+- [X] Configure enum-to-string value conversions for readable database storage
+- [X] Generate and verify EF Core migration script with up/down methods
 - [ ] Apply migration to development database and validate schema

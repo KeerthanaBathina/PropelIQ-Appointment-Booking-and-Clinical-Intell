@@ -124,9 +124,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define `PatientProfileVersion` entity class with all columns, FK navigation properties, and JSONB-typed properties
-- [ ] Create `ConsolidationType` enum (Initial, Incremental)
-- [ ] Register entity in `PatientDbContext.OnModelCreating` with FK constraints, indexes, and JSONB column configuration
-- [ ] Generate and verify EF Core migration script with up/down methods
+- [x] Define `PatientProfileVersion` entity class with all columns, FK navigation properties, and JSONB-typed properties
+- [x] Create `ConsolidationType` enum (Initial, Incremental)
+- [x] Register entity in `PatientDbContext.OnModelCreating` with FK constraints, indexes, and JSONB column configuration
+- [x] Generate and verify EF Core migration script with up/down methods
 - [ ] Apply migration to development database and validate schema
 - [ ] Create seed data with sample version entries spanning multiple patients

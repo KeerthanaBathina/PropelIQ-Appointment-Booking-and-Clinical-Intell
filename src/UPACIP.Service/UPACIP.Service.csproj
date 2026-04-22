@@ -63,6 +63,13 @@
     <Content Include="AI\ClinicalExtraction\Prompts\clinical-extraction-schema.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- AI conflict detection guardrails and prompt templates (US_043 task_004, AIR-005, AIR-S09, AIR-S10). -->
+    <Content Include="AI\ConflictDetection\conflict-detection.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="AI\ConflictDetection\Prompts\conflict-detection.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

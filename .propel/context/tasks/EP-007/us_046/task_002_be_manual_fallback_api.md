@@ -150,11 +150,11 @@ Implement the backend API layer for manual fallback workflow and clinical event 
 
 ## Implementation Checklist
 
-- [ ] Create ConsolidationConfidenceService with aggregate confidence evaluation and per-entry threshold flagging
-- [ ] Implement DateValidationService with chronological plausibility rules and human-readable violation explanations
-- [ ] Create ManualFallbackController with GET manual-review and POST manual-verify endpoints (RBAC: Staff role)
-- [ ] Implement AiHealthCheckService with Redis-cached health status and circuit breaker integration
-- [ ] Add partial date detection, "incomplete-date" flagging, and timezone normalization to clinic local time
-- [ ] Implement manual-verified save with staff attribution and immutable audit logging in a DB transaction
-- [ ] Add idempotent endpoint design with Idempotency-Key header and input validation/sanitization
-- [ ] Register services in DI container and wire into consolidation pipeline (US_043 integration)
+- [X] Create ConsolidationConfidenceService with aggregate confidence evaluation and per-entry threshold flagging
+- [X] Implement DateValidationService with chronological plausibility rules and human-readable violation explanations
+- [X] Create ManualFallbackController with GET manual-review and POST manual-verify endpoints (RBAC: Staff role)
+- [X] Implement AiHealthCheckService with Redis-cached health status and circuit breaker integration
+- [X] Add partial date detection, "incomplete-date" flagging, and timezone normalization to clinic local time
+- [X] Implement manual-verified save with staff attribution and immutable audit logging in a DB transaction
+- [X] Add idempotent endpoint design with Idempotency-Key header and input validation/sanitization
+- [X] Register services in DI container and wire into consolidation pipeline (US_043 integration)

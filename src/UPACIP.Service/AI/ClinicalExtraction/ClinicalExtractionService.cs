@@ -33,6 +33,14 @@ public sealed class ClinicalExtractionService
 
     private const int MaxOutputTokens = ClinicalExtractionPromptBuilder.MaxOutputTokens;
 
+    // Circuit-breaker settings (AIR-O04, consolidation-guardrails.json)
+    private const int FailuresBeforeOpen   = 5;   // upgraded from 3 (AIR-O04)
+    private const int BreakDurationSeconds = 30;
+
+    // Exponential backoff delays: 1s, 2s, 4s (AIR-O08)
+    private static readonly TimeSpan[] BackoffDelays =
+        [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4)];
+
     // ── PII + injection sanitisation (AIR-S01, AIR-S06) ──────────────────────────
 
     private static readonly Regex SsnPattern = new(
@@ -58,6 +66,8 @@ public sealed class ClinicalExtractionService
     private readonly ClinicalExtractionLanguageGate         _languageGate;
     private readonly IHttpClientFactory                     _httpClientFactory;
     private readonly AiGatewaySettings                      _aiSettings;
+    private readonly IConfidenceThresholdGate               _confidenceGate;
+    private readonly IAiHealthCheckService                  _aiHealth;
     private readonly ILogger<ClinicalExtractionService>     _logger;
 
     // Per-instance circuit breaker for OpenAI (scoped — per-job isolation).
@@ -69,6 +79,8 @@ public sealed class ClinicalExtractionService
         ClinicalExtractionLanguageGate         languageGate,
         IHttpClientFactory                     httpClientFactory,
         IOptions<AiGatewaySettings>            aiSettings,
+        IConfidenceThresholdGate               confidenceGate,
+        IAiHealthCheckService                  aiHealth,
         ILogger<ClinicalExtractionService>     logger)
     {
         _promptBuilder     = promptBuilder;
@@ -76,15 +88,26 @@ public sealed class ClinicalExtractionService
         _languageGate      = languageGate;
         _httpClientFactory = httpClientFactory;
         _aiSettings        = aiSettings.Value;
+        _confidenceGate    = confidenceGate;
+        _aiHealth          = aiHealth;
         _logger            = logger;
 
         _openAiCircuitBreaker = Policy
             .Handle<Exception>(ex => ex is not OperationCanceledException)
             .CircuitBreakerAsync(
-                exceptionsAllowedBeforeBreaking: 3,
-                durationOfBreak: TimeSpan.FromSeconds(30),
-                onBreak:    (ex, d)  => _logger.LogError(ex, "ClinicalExtractionService: OpenAI circuit OPEN for {DurationSeconds}s.", (int)d.TotalSeconds),
-                onReset:    ()       => _logger.LogInformation("ClinicalExtractionService: OpenAI circuit CLOSED."),
+                exceptionsAllowedBeforeBreaking: FailuresBeforeOpen,
+                durationOfBreak: TimeSpan.FromSeconds(BreakDurationSeconds),
+                onBreak:    (ex, d)  =>
+                {
+                    _logger.LogError(ex, "ClinicalExtractionService: OpenAI circuit OPEN for {DurationSeconds}s.", (int)d.TotalSeconds);
+                    // Propagate to AiHealthCheckService so the frontend banner can activate (US_046 AC-4).
+                    _ = _aiHealth.SetUnavailableAsync("ClinicalExtraction circuit breaker opened.");
+                },
+                onReset:    ()       =>
+                {
+                    _logger.LogInformation("ClinicalExtractionService: OpenAI circuit CLOSED.");
+                    _ = _aiHealth.SetAvailableAsync();
+                },
                 onHalfOpen: ()       => _logger.LogInformation("ClinicalExtractionService: OpenAI circuit HALF-OPEN."));
     }
 
@@ -122,13 +145,24 @@ public sealed class ClinicalExtractionService
         // ── Step 3: Build prompts ─────────────────────────────────────────────────
         var messages = _promptBuilder.BuildMessages(documentId, category, sanitised);
 
-        // ── Step 4: Invoke primary model (OpenAI) ────────────────────────────────
+        // ── Step 4: Invoke primary model (OpenAI) with retry + circuit breaker ──────
+        // Exponential backoff: 1s, 2s, 4s (AIR-O08, consolidation-guardrails.json § RetryPolicy)
         string? rawArguments = null;
         var     provider     = string.Empty;
 
+        var retryPolicy = Policy
+            .Handle<Exception>(ex => ex is not OperationCanceledException)
+            .WaitAndRetryAsync(
+                BackoffDelays,
+                (ex, delay, attempt, _) => _logger.LogWarning(
+                    "ClinicalExtractionService: OpenAI retry {Attempt} in {Delay}ms. DocumentId={DocumentId}",
+                    attempt, (int)delay.TotalMilliseconds, documentId));
+
+        var resilientPolicy = retryPolicy.WrapAsync(_openAiCircuitBreaker);
+
         try
         {
-            rawArguments = await _openAiCircuitBreaker.ExecuteAsync(
+            rawArguments = await resilientPolicy.ExecuteAsync(
                 () => CallOpenAiAsync(messages, documentId, ct));
             if (rawArguments is not null) provider = "openai";
         }
@@ -141,7 +175,7 @@ public sealed class ClinicalExtractionService
         catch (Exception ex)
         {
             _logger.LogError(ex,
-                "ClinicalExtractionService: OpenAI call failed; falling back to Anthropic. DocumentId={DocumentId}",
+                "ClinicalExtractionService: OpenAI call failed after retries; falling back to Anthropic. DocumentId={DocumentId}",
                 documentId);
         }
 
@@ -179,10 +213,32 @@ public sealed class ClinicalExtractionService
         // ── Step 6: Validate + normalise ─────────────────────────────────────────
         var result = _validator.Validate(rawArguments, documentId);
 
+        // ── Step 7: Confidence threshold gate (US_046 AC-1, AIR-010, AIR-Q07, AIR-Q08) ─
+        // Build gate inputs from validated items; evaluate against the 0.80 threshold.
+        var gateInputs = result.Items.Select((item, idx) => new ConfidenceEntryInput
+        {
+            CorrelationId   = Guid.NewGuid(), // temporary — replaced by DB PK after persistence
+            DataType        = item.DataType,
+            NormalizedValue = item.Content.NormalizedValue,
+            ConfidenceScore = (float?)item.Confidence,
+        }).ToList();
+
+        var gateResult = _confidenceGate.Evaluate(documentId, gateInputs);
+
+        if (gateResult.RequiresBatchManualReview)
+        {
+            _logger.LogWarning(
+                "ClinicalExtractionService: batch below confidence threshold. " +
+                "DocumentId={DocumentId}, MeanConfidence={Mean:F2}, FlaggedCount={Flagged}/{Total}",
+                documentId, gateResult.MeanConfidence, gateResult.FlaggedCount, gateResult.TotalCount);
+        }
+
         _logger.LogInformation(
             "ClinicalExtractionService: extraction complete. " +
-            "DocumentId={DocumentId} Provider={Provider} Outcome={Outcome} Items={Count}",
-            documentId, provider, result.Outcome, result.Items.Count);
+            "DocumentId={DocumentId} Provider={Provider} Outcome={Outcome} Items={Count} " +
+            "MeanConfidence={Mean:F2} BatchReview={Batch}",
+            documentId, provider, result.Outcome, result.Items.Count,
+            gateResult.MeanConfidence, gateResult.RequiresBatchManualReview);
 
         return result;
     }

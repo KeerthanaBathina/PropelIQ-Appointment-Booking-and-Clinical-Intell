@@ -435,21 +435,142 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalConflict", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<float>("AiConfidenceScore")
+                        .HasColumnType("real")
+                        .HasColumnName("ai_confidence_score");
+
+                    b.Property<string>("AiExplanation")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("ai_explanation");
+
+                    b.Property<string>("BothValidExplanation")
+                        .HasColumnType("text")
+                        .HasColumnName("both_valid_explanation");
+
+                    b.Property<string>("ConflictDescription")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("conflict_description");
+
+                    b.Property<string>("ConflictType")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("character varying(40)")
+                        .HasColumnName("conflict_type");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at");
+
+                    b.Property<bool>("IsUrgent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false)
+                        .HasColumnName("is_urgent");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<Guid?>("ProfileVersionId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("profile_version_id");
+
+                    b.Property<string>("ResolutionNotes")
+                        .HasColumnType("text")
+                        .HasColumnName("resolution_notes");
+
+                    b.Property<string>("ResolutionType")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("resolution_type");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("resolved_at");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("resolved_by_user_id");
+
+                    b.Property<Guid?>("SelectedExtractedDataId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("selected_extracted_data_id");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasColumnName("severity");
+
+                    b.Property<string>("SourceDocumentIds")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("source_document_ids");
+
+                    b.Property<string>("SourceExtractedDataIds")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("source_extracted_data_ids");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Detected")
+                        .HasColumnName("status");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProfileVersionId");
+
+                    b.HasIndex("ResolvedByUserId");
+
+                    b.HasIndex("SelectedExtractedDataId");
+
+                    b.HasIndex("IsUrgent", "CreatedAt")
+                        .HasDatabaseName("ix_clinical_conflicts_is_urgent_created_at");
+
+                    b.HasIndex("PatientId", "ConflictType")
+                        .HasDatabaseName("ix_clinical_conflicts_patient_id_conflict_type");
+
+                    b.HasIndex("PatientId", "Status")
+                        .HasDatabaseName("ix_clinical_conflicts_patient_id_status");
+
+                    b.ToTable("clinical_conflicts", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalDocument", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("ContentType")
                         .HasMaxLength(127)
                         .HasColumnType("character varying(127)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("DocumentCategory")
                         .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("ExtractionOutcome")
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
@@ -460,6 +581,11 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.Property<long?>("FileSizeBytes")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("IsSuperseded")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("ManualReviewReason")
                         .HasMaxLength(500)
@@ -485,40 +611,26 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("PreviousVersionId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("ProcessingStatus")
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("ReconsolidationNeeded")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("RequiresManualReview")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(false);
 
-                    b.Property<string>("ExtractionOutcome")
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
-
-                    b.Property<int>("VersionNumber")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
-
-                    b.Property<Guid?>("PreviousVersionId")
-                        .HasColumnType("uuid");
-
-                    b.Property<bool>("IsSuperseded")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<DateTime?>("SupersededAtUtc")
                         .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("ReconsolidationNeeded")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
 
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -529,36 +641,43 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<Guid>("UploaderUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<int>("VersionNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
                     b.HasKey("Id");
+
+                    b.HasIndex("ExtractionOutcome")
+                        .HasDatabaseName("ix_clinical_documents_extraction_outcome");
+
+                    b.HasIndex("ParseNextAttemptAt")
+                        .HasDatabaseName("ix_clinical_documents_parse_next_attempt_at");
 
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_clinical_documents_patient_id");
 
-                    b.HasIndex(new[] { "PatientId", "ProcessingStatus" })
-                        .HasDatabaseName("ix_clinical_documents_patient_id_status");
+                    b.HasIndex("PreviousVersionId");
 
                     b.HasIndex("ProcessingStatus")
                         .HasDatabaseName("ix_clinical_documents_processing_status");
+
+                    b.HasIndex("ReconsolidationNeeded")
+                        .HasDatabaseName("ix_clinical_documents_reconsolidation_needed");
 
                     b.HasIndex("UploadDate")
                         .HasDatabaseName("ix_clinical_documents_upload_date");
 
                     b.HasIndex("UploaderUserId");
 
-                    b.HasIndex("ParseNextAttemptAt")
-                        .HasDatabaseName("ix_clinical_documents_parse_next_attempt_at");
-
-                    b.HasIndex(new[] { "RequiresManualReview", "PatientId" })
-                        .HasDatabaseName("ix_clinical_documents_requires_manual_review_patient_id");
-
-                    b.HasIndex("ExtractionOutcome")
-                        .HasDatabaseName("ix_clinical_documents_extraction_outcome");
-
-                    b.HasIndex(new[] { "PatientId", "IsSuperseded" })
+                    b.HasIndex("PatientId", "IsSuperseded")
                         .HasDatabaseName("ix_clinical_documents_patient_id_is_superseded");
 
-                    b.HasIndex("ReconsolidationNeeded")
-                        .HasDatabaseName("ix_clinical_documents_reconsolidation_needed");
+                    b.HasIndex("PatientId", "ProcessingStatus")
+                        .HasDatabaseName("ix_clinical_documents_patient_id_status");
+
+                    b.HasIndex("RequiresManualReview", "PatientId")
+                        .HasDatabaseName("ix_clinical_documents_requires_manual_review_patient_id");
 
                     b.ToTable("clinical_documents", (string)null);
                 });
@@ -603,15 +722,15 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.HasKey("AttemptId");
 
-                    b.HasIndex(new[] { "DocumentId", "AttemptNumber" })
-                        .IsUnique()
-                        .HasDatabaseName("ix_document_parsing_attempts_document_id_attempt_number");
-
                     b.HasIndex("NextAttemptAt")
                         .HasDatabaseName("ix_document_parsing_attempts_next_attempt_at");
 
                     b.HasIndex("StartedAt")
                         .HasDatabaseName("ix_document_parsing_attempts_started_at");
+
+                    b.HasIndex("DocumentId", "AttemptNumber")
+                        .IsUnique()
+                        .HasDatabaseName("ix_document_parsing_attempts_document_id_attempt_number");
 
                     b.ToTable("document_parsing_attempts", (string)null);
                 });
@@ -657,18 +776,11 @@ namespace UPACIP.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<DateTime?>("ArchivedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<float>("ConfidenceScore")
                         .HasColumnType("real");
-
-                    b.Property<string>("ExtractionRegion")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("character varying(200)")
-                        .HasDefaultValue("");
-
-                    b.Property<int>("PageNumber")
-                        .HasColumnType("integer")
-                        .HasDefaultValue(1);
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
@@ -678,11 +790,44 @@ namespace UPACIP.DataAccess.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)");
 
+                    b.Property<string>("DateConflictExplanation")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<Guid>("DocumentId")
                         .HasColumnType("uuid");
 
+                    b.Property<string>("ExtractionRegion")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("");
+
                     b.Property<bool>("FlaggedForReview")
                         .HasColumnType("boolean");
+
+                    b.Property<bool>("IsArchived")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsIncompleteDate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<int>("PageNumber")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(1);
+
+                    b.Property<string>("ReviewReason")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasDefaultValue("None");
 
                     b.Property<string>("SourceAttribution")
                         .IsRequired()
@@ -692,53 +837,43 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<Guid?>("VerifiedByUserId")
-                        .HasColumnType("uuid");
-
-                    b.Property<DateTime?>("VerifiedAtUtc")
-                        .HasColumnType("timestamp with time zone");
-
                     b.Property<string>("VerificationStatus")
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("character varying(20)")
                         .HasDefaultValue("Pending");
 
-                    b.Property<string>("ReviewReason")
-                        .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)")
-                        .HasDefaultValue("None");
-
-                    b.Property<bool>("IsArchived")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
-                    b.Property<DateTime?>("ArchivedAtUtc")
+                    b.Property<DateTime?>("VerifiedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("VerifiedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
-
-                    b.HasIndex("DocumentId")
-                        .HasDatabaseName("ix_extracted_data_document_id");
-
-                    b.HasIndex(new[] { "DocumentId", "DataType" })
-                        .HasDatabaseName("ix_extracted_data_document_id_data_type");
 
                     b.HasIndex("CreatedAt")
                         .HasDatabaseName("ix_extracted_data_created_at");
 
+                    b.HasIndex("DocumentId")
+                        .HasDatabaseName("ix_extracted_data_document_id");
+
                     b.HasIndex("FlaggedForReview")
                         .HasDatabaseName("ix_extracted_data_flagged_for_review");
+
+                    b.HasIndex("IsIncompleteDate")
+                        .HasDatabaseName("ix_extracted_data_is_incomplete_date");
 
                     b.HasIndex("VerificationStatus")
                         .HasDatabaseName("ix_extracted_data_verification_status");
 
-                    b.HasIndex(new[] { "DocumentId", "IsArchived" })
-                        .HasDatabaseName("ix_extracted_data_document_id_is_archived");
-
                     b.HasIndex("VerifiedByUserId");
+
+                    b.HasIndex("DocumentId", "DataType")
+                        .HasDatabaseName("ix_extracted_data_document_id_data_type");
+
+                    b.HasIndex("DocumentId", "IsArchived")
+                        .HasDatabaseName("ix_extracted_data_document_id_is_archived");
 
                     b.ToTable("extracted_data", (string)null);
                 });
@@ -1164,6 +1299,82 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("ix_patients_email");
 
                     b.ToTable("patients", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PatientProfileVersion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ConsolidatedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("consolidated_by_user_id");
+
+                    b.Property<string>("ConsolidationType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)")
+                        .HasColumnName("consolidation_type");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DataSnapshot")
+                        .HasColumnType("jsonb")
+                        .HasColumnName("data_snapshot");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("patient_id");
+
+                    b.Property<string>("SourceDocumentIds")
+                        .IsRequired()
+                        .HasColumnType("jsonb")
+                        .HasColumnName("source_document_ids");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)")
+                        .HasDefaultValue("Unverified")
+                        .HasColumnName("verification_status");
+
+                    b.Property<DateTimeOffset?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("verified_at");
+
+                    b.Property<Guid?>("VerifiedByUserId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("verified_by_user_id");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("integer")
+                        .HasColumnName("version_number");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConsolidatedByUserId")
+                        .HasDatabaseName("ix_patient_profile_versions_consolidated_by_user_id")
+                        .HasFilter("consolidated_by_user_id IS NOT NULL");
+
+                    b.HasIndex("VerifiedByUserId");
+
+                    b.HasIndex("PatientId", "CreatedAt")
+                        .HasDatabaseName("ix_patient_profile_versions_patient_created_at");
+
+                    b.HasIndex("PatientId", "VerificationStatus")
+                        .HasDatabaseName("ix_patient_profile_versions_patient_id_verification_status");
+
+                    b.HasIndex("PatientId", "VersionNumber")
+                        .IsUnique()
+                        .HasDatabaseName("uq_patient_profile_versions_patient_version");
+
+                    b.ToTable("patient_profile_versions", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ProviderAvailabilityTemplate", b =>
@@ -1750,6 +1961,38 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalConflict", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
+                        .WithMany("ClinicalConflicts")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.PatientProfileVersion", "ProfileVersion")
+                        .WithMany()
+                        .HasForeignKey("ProfileVersionId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "ResolvedByUser")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("UPACIP.DataAccess.Entities.ExtractedData", "SelectedExtractedData")
+                        .WithMany()
+                        .HasForeignKey("SelectedExtractedDataId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("ProfileVersion");
+
+                    b.Navigation("ResolvedByUser");
+
+                    b.Navigation("SelectedExtractedData");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalDocument", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
@@ -1758,33 +2001,22 @@ namespace UPACIP.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UPACIP.DataAccess.Entities.ClinicalDocument", "PreviousVersion")
+                        .WithMany("ReplacementVersions")
+                        .HasForeignKey("PreviousVersionId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "UploaderUser")
                         .WithMany("UploadedDocuments")
                         .HasForeignKey("UploaderUserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("UPACIP.DataAccess.Entities.ClinicalDocument", "PreviousVersion")
-                        .WithMany("ReplacementVersions")
-                        .HasForeignKey("PreviousVersionId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Patient");
 
                     b.Navigation("PreviousVersion");
 
                     b.Navigation("UploaderUser");
-                });
-
-            modelBuilder.Entity("UPACIP.DataAccess.Entities.EmailVerificationToken", b =>
-                {
-                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
-                        .WithMany("EmailVerificationTokens")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.DocumentParsingAttempt", b =>
@@ -1796,6 +2028,17 @@ namespace UPACIP.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.EmailVerificationToken", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany("EmailVerificationTokens")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ExtractedData", b =>
@@ -2216,6 +2459,31 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PatientProfileVersion", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "ConsolidatedByUser")
+                        .WithMany()
+                        .HasForeignKey("ConsolidatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
+                        .WithMany("ProfileVersions")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "VerifiedByUser")
+                        .WithMany()
+                        .HasForeignKey("VerifiedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("ConsolidatedByUser");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("VerifiedByUser");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ProviderAvailabilityTemplate", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "Provider")
@@ -2283,6 +2551,8 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("ExtractedData");
 
                     b.Navigation("ParseAttempts");
+
+                    b.Navigation("ReplacementVersions");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.NotificationLog", b =>
@@ -2294,11 +2564,15 @@ namespace UPACIP.DataAccess.Migrations
                 {
                     b.Navigation("Appointments");
 
+                    b.Navigation("ClinicalConflicts");
+
                     b.Navigation("ClinicalDocuments");
 
                     b.Navigation("IntakeRecords");
 
                     b.Navigation("MedicalCodes");
+
+                    b.Navigation("ProfileVersions");
                 });
 #pragma warning restore 612, 618
         }

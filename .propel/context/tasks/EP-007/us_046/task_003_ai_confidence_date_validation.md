@@ -160,13 +160,13 @@ Implement the AI layer configuration for confidence scoring during consolidation
 
 ## Implementation Checklist
 
-- [ ] Configure consolidation confidence scoring prompt template with structured JSON output schema
-- [ ] Implement ConfidenceThresholdGate evaluating per-entry and aggregate confidence against 80% threshold
-- [ ] Configure date plausibility analysis prompt template with few-shot examples and violation detection
-- [ ] Implement circuit breaker (5 failures / 30s retry) and exponential backoff retry (3x) in AI Gateway
-- [ ] Enforce token budget (4K input / 1K output) with pre-request counting and chunking strategy
-- [ ] Implement PII redaction pipeline and audit logging for all consolidation AI interactions
-- [ ] Implement fallback model routing from GPT-4o-mini to Claude 3.5 Sonnet with performance tracking
+- [X] Configure consolidation confidence scoring prompt template with structured JSON output schema
+- [X] Implement ConfidenceThresholdGate evaluating per-entry and aggregate confidence against 80% threshold
+- [X] Configure date plausibility analysis prompt template with few-shot examples and violation detection
+- [X] Implement circuit breaker (5 failures / 30s retry) and exponential backoff retry (3x) in AI Gateway
+- [X] Enforce token budget (4K input / 1K output) with pre-request counting and chunking strategy
+- [X] Implement PII redaction pipeline and audit logging for all consolidation AI interactions
+- [X] Implement fallback model routing from GPT-4o-mini to Claude 3.5 Sonnet with performance tracking
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (AIR-010, AIR-S10, AIR-Q07, AIR-Q08, AIR-O01, AIR-O04, AIR-O08, AIR-S01, AIR-S04)

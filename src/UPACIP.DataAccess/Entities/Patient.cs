@@ -105,4 +105,8 @@ public sealed class Patient : BaseEntity
     public ICollection<ClinicalDocument> ClinicalDocuments { get; set; } = [];
 
     public ICollection<MedicalCode> MedicalCodes { get; set; } = [];
+
+    public ICollection<PatientProfileVersion> ProfileVersions { get; set; } = [];
+
+    public ICollection<ClinicalConflict> ClinicalConflicts { get; set; } = [];
 }

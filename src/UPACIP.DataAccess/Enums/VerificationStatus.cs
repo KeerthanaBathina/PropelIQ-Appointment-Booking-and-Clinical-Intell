@@ -14,4 +14,7 @@ public enum VerificationStatus
 
     /// <summary>Staff corrected the extracted value before accepting it.</summary>
     Corrected,
+
+    /// <summary>Staff manually entered and confirmed this value during AI-unavailable fallback or low-confidence review (US_046 AC-3).</summary>
+    ManualVerified,
 }

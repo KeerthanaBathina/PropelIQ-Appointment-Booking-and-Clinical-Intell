@@ -135,18 +135,18 @@ Server/
 
 - [ ] Unit tests pass
 - [ ] Integration tests pass (if applicable)
-- [ ] GET conflicts endpoint returns filtered list with correct pagination
-- [ ] GET conflict detail returns source citations from all involved documents (2+ sources)
-- [ ] PUT resolve/dismiss updates conflict status and records user attribution
-- [ ] Review queue returns urgent conflicts first, then by date descending
-- [ ] Unauthorized requests return 403 for non-Staff/Admin roles
-- [ ] Swagger UI displays all endpoints with correct schemas
+- [X] GET conflicts endpoint returns filtered list with correct pagination
+- [X] GET conflict detail returns source citations from all involved documents (2+ sources)
+- [X] PUT resolve/dismiss updates conflict status and records user attribution
+- [X] Review queue returns urgent conflicts first, then by date descending
+- [X] Unauthorized requests return 403 for non-Staff/Admin roles
+- [X] Swagger UI displays all endpoints with correct schemas
 
 ## Implementation Checklist
 
-- [ ] Define response DTOs (ConflictListDto, ConflictDetailDto, ConflictSourceCitationDto, ResolveConflictDto, ConflictSummaryDto) with JSON serialization attributes
-- [ ] Implement ConflictController with 6 endpoints (list, detail, resolve, dismiss, review-queue, summary)
-- [ ] Implement source citation resolution joining ClinicalConflict → ExtractedData → ClinicalDocument for full citation chain (AIR-007)
-- [ ] Add query string filtering (status, severity, type) with pagination support
-- [ ] Add role-based authorization (Staff, Admin) to all endpoints
-- [ ] Add Swagger XML documentation comments on all controller actions and DTO properties
+- [X] Define response DTOs (ConflictListDto, ConflictDetailDto, ConflictSourceCitationDto, ResolveConflictDto, ConflictSummaryDto) with JSON serialization attributes
+- [X] Implement ConflictController with 6 endpoints (list, detail, resolve, dismiss, review-queue, summary)
+- [X] Implement source citation resolution joining ClinicalConflict → ExtractedData → ClinicalDocument for full citation chain (AIR-007)
+- [X] Add query string filtering (status, severity, type) with pagination support
+- [X] Add role-based authorization (Staff, Admin) to all endpoints
+- [X] Add Swagger XML documentation comments on all controller actions and DTO properties
