@@ -122,8 +122,8 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Persist SMS opt-out preference independently from email notifications
-- [ ] Extend `NotificationLog` so `opted-out` is a valid SMS delivery outcome
-- [ ] Keep existing patient rows and notification history backward-compatible
-- [ ] Update EF Core mappings and constraints for the expanded status set
-- [ ] Add a migration that safely introduces SMS preference and status changes
+- [X] Persist SMS opt-out preference independently from email notifications
+- [X] Extend `NotificationLog` so `opted-out` is a valid SMS delivery outcome
+- [X] Keep existing patient rows and notification history backward-compatible
+- [X] Update EF Core mappings and constraints for the expanded status set
+- [X] Add a migration that safely introduces SMS preference and status changes

@@ -133,10 +133,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Compose appointment email content by replacing placeholders with patient and appointment values
-- [ ] Reuse the SMTP transport layer to send confirmation or reminder emails within the notification workflow
-- [ ] Persist `sent`, `failed`, and `bounced` delivery outcomes with timestamps and retry counts in `NotificationLog`
-- [ ] Record the final provider used after fallback so delivery history is auditable
-- [ ] Flag patient contact details for staff follow-up when recipient email bounces
-- [ ] Emit an admin or operational alert when SendGrid quota exhaustion forces Gmail fallback
-- [ ] Keep the email orchestration reusable for later reminder and confirmation triggers across EP-005
+- [X] Compose appointment email content by replacing placeholders with patient and appointment values
+- [X] Reuse the SMTP transport layer to send confirmation or reminder emails within the notification workflow
+- [X] Persist `sent`, `failed`, and `bounced` delivery outcomes with timestamps and retry counts in `NotificationLog`
+- [X] Record the final provider used after fallback so delivery history is auditable
+- [X] Flag patient contact details for staff follow-up when recipient email bounces
+- [X] Emit an admin or operational alert when SendGrid quota exhaustion forces Gmail fallback
+- [X] Keep the email orchestration reusable for later reminder and confirmation triggers across EP-005

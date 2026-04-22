@@ -130,9 +130,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Reuse the Twilio transport layer to send reminder and notification SMS within the notification workflow
-- [ ] Skip SMS cleanly for opted-out patients and persist `opted-out` as a delivery outcome
-- [ ] Persist `sent`, `failed`, and `opted-out` SMS outcomes with timestamps and retry counts in `NotificationLog`
-- [ ] Continue in email-only mode when the SMS gateway is disabled or credits are exhausted
-- [ ] Consult the patient SMS preference before any transport invocation
-- [ ] Keep the SMS orchestration reusable for later EP-005 triggers beyond the initial reminder flow
+- [X] Reuse the Twilio transport layer to send reminder and notification SMS within the notification workflow
+- [X] Skip SMS cleanly for opted-out patients and persist `opted-out` as a delivery outcome
+- [X] Persist `sent`, `failed`, and `opted-out` SMS outcomes with timestamps and retry counts in `NotificationLog`
+- [X] Continue in email-only mode when the SMS gateway is disabled or credits are exhausted
+- [X] Consult the patient SMS preference before any transport invocation
+- [X] Keep the SMS orchestration reusable for later EP-005 triggers beyond the initial reminder flow

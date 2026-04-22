@@ -29,4 +29,12 @@ public sealed class ClinicSettings
     /// calendar entries, so treat it as immutable once set (AC-3).
     /// </summary>
     public string Domain { get; init; } = "upacip.clinic";
+
+    /// <summary>
+    /// Base URL of the patient portal, used to construct prefilled cancellation and
+    /// appointment-management links embedded in confirmation emails (US_034 AC-3).
+    /// Example: <c>"https://portal.upacip.clinic"</c>.
+    /// Trailing slash is stripped at use sites; do not rely on its presence.
+    /// </summary>
+    public string PortalBaseUrl { get; init; } = "https://portal.upacip.clinic";
 }

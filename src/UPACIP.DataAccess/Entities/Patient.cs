@@ -59,6 +59,42 @@ public sealed class Patient : BaseEntity
     public Guid? AutoSwapDisabledByUserId { get; set; }
 
     // -------------------------------------------------------------------------
+    // Contact quality (EP-005 / EC-2)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Set to <c>true</c> by the notification service when an email sent to this
+    /// patient permanently bounces (5xx SMTP rejection), indicating the stored email
+    /// address is invalid and requires staff review.
+    /// Cleared by staff through the patient-management workflow once the address is corrected.
+    /// </summary>
+    public bool ContactUpdateRequired { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when <see cref="ContactUpdateRequired"/> was last set to <c>true</c>.
+    /// Null when no bounce has been recorded for this patient.
+    /// </summary>
+    public DateTime? ContactUpdateRequestedAt { get; set; }
+
+    // -------------------------------------------------------------------------
+    // SMS preferences (US_033 / AC-2)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// When <c>true</c>, the patient has opted out of all SMS notifications.
+    /// The notification service MUST skip SMS delivery and log <c>OptedOut</c>
+    /// instead of invoking the Twilio transport (AC-2, EC-2).
+    /// Defaults to <c>false</c> — patients are SMS-eligible unless they explicitly opt out.
+    /// </summary>
+    public bool SmsOptedOut { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when <see cref="SmsOptedOut"/> was last set to <c>true</c>.
+    /// Null when the patient has never opted out or has re-enrolled.
+    /// </summary>
+    public DateTime? SmsOptedOutAt { get; set; }
+
+    // -------------------------------------------------------------------------
     // Navigation properties
     // -------------------------------------------------------------------------
 

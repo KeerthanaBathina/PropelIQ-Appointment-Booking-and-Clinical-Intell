@@ -140,9 +140,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Trigger email and SMS confirmation delivery immediately after successful booking
-- [ ] Include a prefilled cancellation link in booking confirmation email content
-- [ ] Skip SMS for opted-out patients and persist `opted-out` without treating it as failure
-- [ ] Include a cancelled note when cancellation wins a near-simultaneous booking or confirmation race
-- [ ] Send confirmation email without PDF when attachment generation fails and queue the PDF retry path
-- [ ] Persist auditable delivery outcomes and correlation data for both channels
+- [X] Trigger email and SMS confirmation delivery immediately after successful booking
+- [X] Include a prefilled cancellation link in booking confirmation email content
+- [X] Skip SMS for opted-out patients and persist `opted-out` without treating it as failure
+- [X] Include a cancelled note when cancellation wins a near-simultaneous booking or confirmation race
+- [X] Send confirmation email without PDF when attachment generation fails and queue the PDF retry path
+- [X] Persist auditable delivery outcomes and correlation data for both channels

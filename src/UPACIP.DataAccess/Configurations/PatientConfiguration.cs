@@ -52,6 +52,14 @@ public sealed class PatientConfiguration : IEntityTypeConfiguration<Patient>
         builder.Property(p => p.AutoSwapDisabledByUserId)
             .IsRequired(false);
 
+        // SMS opt-out preference (US_033, AC-2)
+        builder.Property(p => p.SmsOptedOut)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(p => p.SmsOptedOutAt)
+            .IsRequired(false);
+
         // Soft-delete global query filter — excludes logically deleted patients from all queries
         // unless .IgnoreQueryFilters() is explicitly called (e.g. admin dashboards, audit views).
         builder.HasQueryFilter(p => p.DeletedAt == null);
