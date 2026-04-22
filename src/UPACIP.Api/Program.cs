@@ -404,13 +404,13 @@ builder.Services.AddScoped<ISmsTransport, TwilioSmsTransport>();
 // honours patient opt-out preference before invoking the Twilio transport.
 builder.Services.AddScoped<INotificationSmsService, NotificationSmsService>();
 
-// ── EP-005 booking confirmation orchestration (US_034 task_001_be_booking_confirmation_notification_orchestration) ──
-// StubPdfConfirmationService is a compile-safe stub — replaced when task_002_be_pdf_confirmation_and_qr_generation
-// delivers the real PDF/QR pipeline.  The orchestration service always sends email without PDF
-// (EC-1 path) until the real implementation is registered.
-// BookingConfirmationNotificationService is Scoped — it depends on ApplicationDbContext, email/SMS
-// services, and always uses CancellationToken.None (decoupled from the booking request lifetime).
-builder.Services.AddScoped<IPdfConfirmationService, StubPdfConfirmationService>();
+// ── EP-005 booking confirmation orchestration (US_034 task_001 + task_002) ──────────────────
+// QrCodeService is Singleton — stateless pure-C# QR renderer; no DI dependencies.
+// PdfConfirmationService is Scoped — depends on IQrCodeService and ILogger.
+// BookingConfirmationNotificationService is Scoped — depends on ApplicationDbContext,
+// email/SMS services, and IPdfConfirmationService.
+builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
+builder.Services.AddScoped<IPdfConfirmationService, PdfConfirmationService>();
 builder.Services.AddScoped<IBookingConfirmationNotificationService, BookingConfirmationNotificationService>();
 builder.Services.AddScoped<IPasswordValidator<ApplicationUser>, PasswordComplexityValidator>();
 
