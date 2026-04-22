@@ -149,9 +149,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create ConflictResolutionType enum (SelectedValue, BothValid, Dismissed) and ProfileVerificationStatus enum (Unverified, PartiallyVerified, Verified)
-- [ ] Add resolution workflow fields to ClinicalConflict entity (resolution_type, selected_extracted_data_id FK, both_valid_explanation)
-- [ ] Add verification lifecycle fields to PatientProfileVersion entity (verification_status, verified_by_user_id FK, verified_at)
-- [ ] Configure FK constraints and navigation properties for selected_extracted_data_id and verified_by_user_id in PatientDbContext
-- [ ] Add index on PatientProfileVersion(patient_id, verification_status) and configure enum-to-string value conversions
-- [ ] Generate and verify EF Core migration script with up/down methods and rollback support
+- [X] Create ConflictResolutionType enum (SelectedValue, BothValid, Dismissed) and ProfileVerificationStatus enum (Unverified, PartiallyVerified, Verified)
+- [X] Add resolution workflow fields to ClinicalConflict entity (resolution_type, selected_extracted_data_id FK, both_valid_explanation)
+- [X] Add verification lifecycle fields to PatientProfileVersion entity (verification_status, verified_by_user_id FK, verified_at)
+- [X] Configure FK constraints and navigation properties for selected_extracted_data_id and verified_by_user_id in PatientDbContext
+- [X] Add index on PatientProfileVersion(patient_id, verification_status) and configure enum-to-string value conversions
+- [X] Generate and verify EF Core migration script with up/down methods and rollback support

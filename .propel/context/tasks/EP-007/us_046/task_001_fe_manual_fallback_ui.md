@@ -160,13 +160,13 @@ Implement the frontend UI components for manual fallback workflow and date valid
 
 ## Implementation Checklist
 
-- [ ] Create ManualReviewForm component with pre-filled AI suggestions and "low-confidence" amber badges
-- [ ] Add confidence badge variants: green (>80%), amber (60-80%), red (<60%) with "Needs Review" label
-- [ ] Implement DateConflictAlert component with chronological plausibility explanation display
-- [ ] Build AiUnavailableBanner with "AI unavailable — switch to manual" text and manual entry CTA
-- [ ] Implement manual data entry form with empty fields for all clinical data categories (tabs)
-- [ ] Add IncompleteDateBadge with inline date picker for partial date completion
-- [ ] Integrate manual fallback mode into PatientProfile360 with Zustand state and React Query hooks
-- [ ] Implement form validation and all 5 screen states (Default, Loading, Empty, Error, Validation)
+- [X] Create ManualReviewForm component with pre-filled AI suggestions and "low-confidence" amber badges
+- [X] Add confidence badge variants: green (>80%), amber (60-80%), red (<60%) with "Needs Review" label
+- [X] Implement DateConflictAlert component with chronological plausibility explanation display
+- [X] Build AiUnavailableBanner with "AI unavailable — switch to manual" text and manual entry CTA
+- [X] Implement manual data entry form with empty fields for all clinical data categories (tabs)
+- [X] Add IncompleteDateBadge with inline date picker for partial date completion
+- [X] Integrate manual fallback mode into PatientProfile360 with Zustand state and React Query hooks
+- [X] Implement form validation and all 5 screen states (Default, Loading, Empty, Error, Validation)
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

@@ -180,11 +180,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define IConflictResolutionService interface with SelectConflictValueAsync, ResolveBothValidAsync, CheckAndUpdateProfileVerificationAsync, and GetResolutionProgressAsync methods
-- [ ] Implement SelectConflictValueAsync: validate conflict status, validate selectedExtractedDataId against source_extracted_data_ids, update consolidated profile, mark resolved with SelectedValue type (AC-2)
-- [ ] Implement ResolveBothValidAsync: validate non-empty explanation, preserve both values in profile with date attribution, mark resolved with BothValid type (EC-2)
-- [ ] Implement CheckAndUpdateProfileVerificationAsync: count open conflicts, transition PatientProfileVersion to Verified/PartiallyVerified, create audit log on full verification (AC-4)
-- [ ] Implement GetResolutionProgressAsync: return total/resolved/remaining counts with current verification status (EC-1)
-- [ ] Add optimistic concurrency protection (RowVersion) on ClinicalConflict to prevent duplicate resolution
-- [ ] Wrap resolve operations in database transactions for atomicity (conflict update + profile consolidation + verification check)
-- [ ] Register IConflictResolutionService as scoped service in Program.cs and invalidate Redis cache on each resolution
+- [X] Define IConflictResolutionService interface with SelectConflictValueAsync, ResolveBothValidAsync, CheckAndUpdateProfileVerificationAsync, and GetResolutionProgressAsync methods
+- [X] Implement SelectConflictValueAsync: validate conflict status, validate selectedExtractedDataId against source_extracted_data_ids, update consolidated profile, mark resolved with SelectedValue type (AC-2)
+- [X] Implement ResolveBothValidAsync: validate non-empty explanation, preserve both values in profile with date attribution, mark resolved with BothValid type (EC-2)
+- [X] Implement CheckAndUpdateProfileVerificationAsync: count open conflicts, transition PatientProfileVersion to Verified/PartiallyVerified, create audit log on full verification (AC-4)
+- [X] Implement GetResolutionProgressAsync: return total/resolved/remaining counts with current verification status (EC-1)
+- [X] Add optimistic concurrency protection (RowVersion) on ClinicalConflict to prevent duplicate resolution
+- [X] Wrap resolve operations in database transactions for atomicity (conflict update + profile consolidation + verification check)
+- [X] Register IConflictResolutionService as scoped service in Program.cs and invalidate Redis cache on each resolution

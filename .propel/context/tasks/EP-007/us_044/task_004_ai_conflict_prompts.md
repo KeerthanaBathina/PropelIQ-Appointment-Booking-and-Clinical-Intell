@@ -177,18 +177,18 @@ Server/
 - [ ] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
 - [ ] **[AI Tasks]** Token budget enforcement verified
 - [ ] **[AI Tasks]** Audit logging verified (no PII in logs)
-- [ ] Medication discrepancy prompt correctly identifies dosage differences and returns source citations
-- [ ] Date plausibility prompt flags future-dated events with clear explanation
+- [X] Medication discrepancy prompt correctly identifies dosage differences and returns source citations
+- [X] Date plausibility prompt flags future-dated events with clear explanation
 
 ## Implementation Checklist
 
-- [ ] Create `medication-discrepancy.liquid` prompt template with drug comparison instructions, contraindication detection, and source citation extraction (AC-1, AIR-S09, AIR-007)
-- [ ] Create `duplicate-diagnosis.liquid` prompt template with ICD-10 code matching, date comparison, and dual/multi-source citation output (AC-2, AIR-007)
-- [ ] Create `date-plausibility.liquid` prompt template with chronological validation rules, implausible sequence detection, and human-readable explanations (AC-5, AIR-S10)
-- [ ] Create `multi-source-conflict.liquid` prompt template for N-document conflict analysis grouping conflicts across all sources (Edge Case)
-- [ ] Implement conflict-type routing in ConflictDetectionService selecting the appropriate prompt template based on data_type
-- [ ] Implement confidence score calibration normalizing LLM output to 0-1 range with <0.80 flagging for manual verification (AC-4, AIR-010, AIR-Q07)
-- [ ] Update guardrails config with per-type output schema validation rules and required source citation format
+- [X] Create `medication-discrepancy.liquid` prompt template with drug comparison instructions, contraindication detection, and source citation extraction (AC-1, AIR-S09, AIR-007)
+- [X] Create `duplicate-diagnosis.liquid` prompt template with ICD-10 code matching, date comparison, and dual/multi-source citation output (AC-2, AIR-007)
+- [X] Create `date-plausibility.liquid` prompt template with chronological validation rules, implausible sequence detection, and human-readable explanations (AC-5, AIR-S10)
+- [X] Create `multi-source-conflict.liquid` prompt template for N-document conflict analysis grouping conflicts across all sources (Edge Case)
+- [X] Implement conflict-type routing in ConflictDetectionService selecting the appropriate prompt template based on data_type
+- [X] Implement confidence score calibration normalizing LLM output to 0-1 range with <0.80 flagging for manual verification (AC-4, AIR-010, AIR-Q07)
+- [X] Update guardrails config with per-type output schema validation rules and required source citation format
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (AIR-007, AIR-009, AIR-010, AIR-S09, AIR-S10)

@@ -39,6 +39,13 @@ using UPACIP.Service.Notifications;
 using UPACIP.Service.Documents;
 using UPACIP.Service.AI.DocumentParsing;
 using UPACIP.Service.AI.ClinicalExtraction;
+using UPACIP.Service.AI.ConflictDetection;
+using UPACIP.Service.Consolidation;
+using UPACIP.Service.Conflict;
+using UPACIP.Service.Profile;
+using UPACIP.Service.AI;
+using UPACIP.Service.AI.ClinicalExtraction;
+using UPACIP.Service.Validation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -74,7 +81,8 @@ builder.Services.AddEndpointsApiExplorer();
 // replaced by our ErrorResponse model so all 400 responses share a consistent shape.
 builder.Services
     .AddFluentValidationAutoValidation()
-    .AddValidatorsFromAssemblyContaining<AppointmentDateValidator>();
+    .AddValidatorsFromAssemblyContaining<AppointmentDateValidator>()  // UPACIP.Service validators
+    .AddValidatorsFromAssemblyContaining<UPACIP.Api.Validation.SelectValueRequestDtoValidator>(); // UPACIP.Api validators
 
 // Override the default 400 response factory so FluentValidation errors use ErrorResponse
 // (same shape as constraint/exception errors) instead of ValidationProblemDetails.
@@ -619,6 +627,40 @@ builder.Services.AddScoped<IIntakeModeSwitchService, IntakeModeSwitchService>();
 // Intake autosave — 30-second boundary heartbeat and EC-1 idempotency for both AI and manual surfaces (US_030, FR-035).
 builder.Services.AddScoped<IIntakeAutosaveService, IntakeAutosaveService>();
 builder.Services.AddScoped<IInsurancePrecheckService, InsurancePrecheckService>();
+
+// Patient profile consolidation — merges extracted clinical data into versioned unified profiles (US_043, FR-052, FR-056).
+builder.Services.AddScoped<IConsolidationService, ConsolidationService>();
+builder.Services.AddHostedService<ConsolidationWorker>();
+
+// AI conflict detection — GPT-4o-mini/Claude fallback LLM analysis of medication contraindications and
+// conflicting diagnoses after each consolidation run (US_043 task_004, AIR-005, AIR-S09, AIR-S10, AIR-Q07).
+builder.Services.AddScoped<IConflictDetectionService, ConflictDetectionService>();
+
+// Clinical conflict management — persists, escalates, resolves, and queues AI-detected conflicts
+// (US_044, AC-1, AC-3, AC-4, FR-053).
+builder.Services.AddScoped<IConflictManagementService, ConflictManagementService>();
+
+// Staff conflict resolution workflow — value selection, both-valid preservation, profile
+// verification lifecycle, and resolution progress tracking (US_045, AC-2, AC-4, EC-1, EC-2, FR-054).
+builder.Services.AddScoped<IConflictResolutionService, ConflictResolutionService>();
+
+// Patient profile aggregation — 360° profile retrieval, version history, source citations, and manual consolidation trigger (US_043, AC-1, AC-2, AC-3, FR-052, FR-056).
+builder.Services.AddScoped<IPatientProfileService, PatientProfileService>();
+
+// ── Manual fallback workflow (US_046, AC-1, AC-2, AC-3, AC-4) ───────────────────────────────
+// ConsolidationConfidenceService: evaluates AI confidence thresholds, returns low-confidence
+// items, and persists manual verification batches with audit logging (AC-1, AC-3, FR-093).
+// DateValidationService: chronological plausibility validator that annotates ExtractedData
+// rows with date violations and incomplete-date flags (AC-2, edge case).
+// AiHealthCheckService: Redis-cached AI gateway availability (AC-4, NFR-030). Singleton so
+// the 5-minute TTL window is shared across all requests; depends only on ICacheService (singleton).
+// ConfidenceThresholdGate: pure-computation confidence evaluator; Singleton (stateless).
+// AiAuditLogger: structured Serilog audit logging for all AI interactions (AIR-S04). Singleton.
+builder.Services.AddScoped<IConsolidationConfidenceService, ConsolidationConfidenceService>();
+builder.Services.AddScoped<IDateValidationService, DateValidationService>();
+builder.Services.AddSingleton<IAiHealthCheckService, AiHealthCheckService>();
+builder.Services.AddSingleton<IConfidenceThresholdGate, ConfidenceThresholdGate>();
+builder.Services.AddSingleton<AiAuditLogger>();
 
 // ASP.NET Core built-in rate limiting (Microsoft.AspNetCore.RateLimiting — included in .NET 7+).
 // Policy "check-email-limit": 30 req/min per IP — anti-enumeration guard (OWASP A07).

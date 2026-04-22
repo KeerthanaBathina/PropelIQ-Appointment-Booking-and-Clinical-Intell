@@ -1,0 +1,113 @@
+{
+  "version": "2.0",
+  "description": "AI guardrails for clinical conflict detection (US_043, US_044, AIR-005, AIR-007, AIR-009, AIR-010, AIR-S09, AIR-S10, AIR-O01, AIR-O04, AIR-O08, AIR-Q07).",
+  "TokenBudget": {
+    "MaxInputTokens": 4000,
+    "MaxOutputTokens": 1000,
+    "MaxDataPointChars": 10000,
+    "MaxRagContextChars": 1500
+  },
+  "PromptTemplates": {
+    "Default": "conflict-detection",
+    "MedicationRouting": "medication-discrepancy",
+    "DiagnosisRouting": "duplicate-diagnosis",
+    "DateRouting": "date-plausibility",
+    "MultiSourceRouting": "multi-source-conflict",
+    "MultiSourceDocumentThreshold": 3
+  },
+  "ConflictTypes": [
+    "MedicationContraindication",
+    "MedicationDiscrepancy",
+    "ConflictingDiagnosis",
+    "DuplicateDiagnosis",
+    "DateInconsistency",
+    "Duplicate"
+  ],
+  "SeverityLevels": [
+    "Critical",
+    "High",
+    "Medium",
+    "Low"
+  ],
+  "MinReportableConfidence": 0.50,
+  "ManualVerificationThreshold": 0.80,
+  "UrgentReviewThreshold": "Critical",
+  "PerTypeValidationRules": {
+    "MedicationContraindication": {
+      "RequiredOutputFields": ["conflict_type", "severity", "data_point_a_id", "data_point_b_id", "reasoning", "requires_urgent_review", "confidence"],
+      "ForcedSeverity": "Critical",
+      "ForcedUrgentReview": true,
+      "ReasoningMustContain": ["drug", "interaction"],
+      "ReasoningMustNotContainPii": true
+    },
+    "MedicationDiscrepancy": {
+      "RequiredOutputFields": ["conflict_type", "severity", "data_point_a_id", "data_point_b_id", "reasoning", "confidence"],
+      "AllowedSeverities": ["Critical", "High"],
+      "ReasoningMustContainDosage": true,
+      "ReasoningMustNotContainPii": true
+    },
+    "DuplicateDiagnosis": {
+      "RequiredOutputFields": ["conflict_type", "severity", "data_point_a_id", "data_point_b_id", "reasoning", "confidence"],
+      "AllowedSeverities": ["High", "Medium"],
+      "BothCitationsRequired": true,
+      "ReasoningMustNotContainPii": true
+    },
+    "ConflictingDiagnosis": {
+      "RequiredOutputFields": ["conflict_type", "severity", "data_point_a_id", "data_point_b_id", "reasoning", "confidence"],
+      "AllowedSeverities": ["High"],
+      "BothCitationsRequired": true,
+      "ReasoningMustNotContainPii": true
+    },
+    "DateInconsistency": {
+      "RequiredOutputFields": ["conflict_type", "severity", "data_point_a_id", "reasoning", "confidence"],
+      "AllowedSeverities": ["Critical", "High", "Medium", "Low"],
+      "ReasoningMustContainDate": true,
+      "ReasoningMinLength": 50,
+      "ReasoningMustNotContainPii": true
+    },
+    "Duplicate": {
+      "RequiredOutputFields": ["conflict_type", "severity", "data_point_a_id", "data_point_b_id", "reasoning", "confidence"],
+      "AllowedSeverities": ["Low"],
+      "ReasoningMustNotContainPii": true
+    }
+  },
+  "SourceCitationFormat": {
+    "RequiredFields": ["data_point_a_id"],
+    "UuidValidation": true,
+    "AdditionalSourceIdsSupported": true,
+    "AdditionalSourceIdsTriggeredAtDocCount": 3
+  },
+  "CircuitBreaker": {
+    "FailuresBeforeOpen": 5,
+    "BreakDurationSeconds": 30
+  },
+  "MaxRetryAttempts": 3,
+  "RagRetrieval": {
+    "TopK": 5,
+    "SimilarityThreshold": 0.75,
+    "EmbeddingCategory": "MedicalTerminology",
+    "EmbeddingModel": "text-embedding-3-small",
+    "EmbeddingDimensions": 384
+  },
+  "PiiRedaction": {
+    "Patterns": [
+      "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "\\b\\d{9}\\b"
+    ],
+    "RedactionToken": "[REDACTED]"
+  },
+  "InjectionKeywords": [
+    "ignore previous instructions",
+    "disregard above",
+    "system prompt",
+    "jailbreak",
+    "act as",
+    "you are now",
+    "</system>",
+    "<|im_end|>",
+    "DAN mode",
+    "developer mode",
+    "bypass guardrails",
+    "override safety"
+  ]
+}

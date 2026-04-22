@@ -170,13 +170,13 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Implement `ConflictResolutionModal` as MUI Dialog with conflict list, type/severity filtering, and detail view navigation
-- [ ] Implement `ConflictComparisonView` with side-by-side layout for 2 sources and horizontal scroll for 3+ sources (UXR-104, Edge Case)
-- [ ] Implement `ConflictSourceCard` displaying source document data, confidence badge, and attribution text
-- [ ] Implement `UrgentBadge` with MUI Chip error styling and URGENT label for medication contraindications (AC-3)
-- [ ] Implement `ConflictResolutionForm` with resolution notes field and resolve/dismiss action buttons
-- [ ] Create React Query hooks (useConflicts, useConflictDetail, useResolveConflict) with cache invalidation on mutations
-- [ ] Modify `ConflictAlertBanner` to open modal on click and update conflict count from summary endpoint
-- [ ] Implement loading, empty, and error states for conflict modal with toast notifications on resolution
+- [X] Implement `ConflictResolutionModal` as MUI Dialog with conflict list, type/severity filtering, and detail view navigation
+- [X] Implement `ConflictComparisonView` with side-by-side layout for 2 sources and horizontal scroll for 3+ sources (UXR-104, Edge Case)
+- [X] Implement `ConflictSourceCard` displaying source document data, confidence badge, and attribution text
+- [X] Implement `UrgentBadge` with MUI Chip error styling and URGENT label for medication contraindications (AC-3)
+- [X] Implement `ConflictResolutionForm` with resolution notes field and resolve/dismiss action buttons
+- [X] Create React Query hooks (useConflicts, useConflictDetail, useResolveConflict) with cache invalidation on mutations
+- [X] Modify `ConflictAlertBanner` to open modal on click and update conflict count from summary endpoint
+- [X] Implement loading, empty, and error states for conflict modal with toast notifications on resolution
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

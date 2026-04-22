@@ -152,11 +152,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define `IConflictManagementService` interface with persist, escalate, resolve, dismiss, re-evaluate, and queue retrieval methods
-- [ ] Implement urgent escalation: auto-set is_urgent=true for MedicationContraindication conflicts and create staff notification (AC-3)
-- [ ] Implement low-confidence fallback: flag entire batch for manual review when any conflict confidence < 0.80 (AC-4, AIR-010)
-- [ ] Implement resolved conflict preservation: re-evaluate only new data against existing resolved conflicts, reopen only on direct contradiction (Edge Case)
-- [ ] Implement multi-document conflict aggregation: merge conflicts spanning 3+ documents into single record with all source references (Edge Case)
-- [ ] Modify ConsolidationService to call PersistDetectedConflictsAsync after AI conflict detection
-- [ ] Add structured audit logging for all conflict state transitions with correlation IDs (NFR-035)
-- [ ] Invalidate Redis-cached patient profile on conflict status changes
+- [X] Define `IConflictManagementService` interface with persist, escalate, resolve, dismiss, re-evaluate, and queue retrieval methods
+- [X] Implement urgent escalation: auto-set is_urgent=true for MedicationContraindication conflicts and create staff notification (AC-3)
+- [X] Implement low-confidence fallback: flag entire batch for manual review when any conflict confidence < 0.80 (AC-4, AIR-010)
+- [X] Implement resolved conflict preservation: re-evaluate only new data against existing resolved conflicts, reopen only on direct contradiction (Edge Case)
+- [X] Implement multi-document conflict aggregation: merge conflicts spanning 3+ documents into single record with all source references (Edge Case)
+- [X] Modify ConsolidationService to call PersistDetectedConflictsAsync after AI conflict detection
+- [X] Add structured audit logging for all conflict state transitions with correlation IDs (NFR-035)
+- [X] Invalidate Redis-cached patient profile on conflict status changes

@@ -203,11 +203,11 @@ client/
 
 ## Implementation Checklist
 
-- [ ] Create ConflictValueSelector component with MUI RadioGroup, one radio per source value plus "Both Valid — Different Dates" option, ARIA radiogroup role, primary.500 checked styling (AC-2, EC-2)
-- [ ] Create BothValidDialog with MUI Dialog, explanation TextField (min 10 chars), confirm/cancel actions calling useBothValid mutation (EC-2)
-- [ ] Modify ConflictComparisonView to integrate ConflictValueSelector within the side-by-side layout, maintaining UXR-104 comparison flow (AC-1, AC-2)
-- [ ] Modify ConflictSourceCard to display document name, upload date, and ConfidenceBadge with ARIA labels for each source (AC-3)
-- [ ] Modify ConflictResolutionForm to replace resolve/dismiss with "Save Selected Value" primary button calling useSelectValue mutation, plus "Both Valid" trigger and dismiss option (AC-2, EC-2)
-- [ ] Create ResolutionProgressIndicator with MUI LinearProgress and "X of Y conflicts resolved" text, refresh on resolution via React Query invalidation (EC-1, AC-4)
-- [ ] Create VerificationStatusBanner with MUI Alert severity="success" showing verified-by name and timestamp, conditionally rendered on PatientProfile360Page (AC-4)
-- [ ] Create React Query hooks (useSelectValue, useBothValid, useResolutionProgress, useVerificationStatus) with proper query key invalidation on mutations
+- [X] Create ConflictValueSelector component with MUI RadioGroup, one radio per source value plus "Both Valid — Different Dates" option, ARIA radiogroup role, primary.500 checked styling (AC-2, EC-2)
+- [X] Create BothValidDialog with MUI Dialog, explanation TextField (min 10 chars), confirm/cancel actions calling useBothValid mutation (EC-2)
+- [X] Modify ConflictComparisonView to integrate ConflictValueSelector within the side-by-side layout, maintaining UXR-104 comparison flow (AC-1, AC-2)
+- [X] Modify ConflictSourceCard to display document name, upload date, and ConfidenceBadge with ARIA labels for each source (AC-3)
+- [X] Modify ConflictResolutionForm to replace resolve/dismiss with "Save Selected Value" primary button calling useSelectValue mutation, plus "Both Valid" trigger and dismiss option (AC-2, EC-2)
+- [X] Create ResolutionProgressIndicator with MUI LinearProgress and "X of Y conflicts resolved" text, refresh on resolution via React Query invalidation (EC-1, AC-4)
+- [X] Create VerificationStatusBanner with MUI Alert severity="success" showing verified-by name and timestamp, conditionally rendered on PatientProfile360Page (AC-4)
+- [X] Create React Query hooks (useSelectValue, useBothValid, useResolutionProgress, useVerificationStatus) with proper query key invalidation on mutations

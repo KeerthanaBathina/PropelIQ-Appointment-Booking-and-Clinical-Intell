@@ -74,6 +74,19 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<InsuranceValidationRecord> InsuranceValidationRecords => Set<InsuranceValidationRecord>();
 
+    /// <summary>
+    /// Patient profile consolidation version history (US_043, AC-2, FR-056).
+    /// Each row records a consolidation event with timestamp, user attribution,
+    /// source document list, and the data delta snapshot.
+    /// </summary>
+    public DbSet<PatientProfileVersion> PatientProfileVersions => Set<PatientProfileVersion>();
+
+    /// <summary>
+    /// Clinical data conflicts detected by the AI conflict detection service (US_044, AC-2, AC-3, AC-5, FR-053).
+    /// Each row records a conflict lifecycle from initial detection through staff review to resolution or dismissal.
+    /// </summary>
+    public DbSet<ClinicalConflict> ClinicalConflicts => Set<ClinicalConflict>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

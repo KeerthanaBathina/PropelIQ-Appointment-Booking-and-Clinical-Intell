@@ -163,9 +163,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create SelectValueRequestDto and BothValidRequestDto with FluentValidation validators enforcing required fields and max lengths
-- [ ] Add PUT /api/patients/{patientId}/conflicts/{conflictId}/select-value endpoint calling IConflictResolutionService.SelectConflictValueAsync with 200/404/409/422 response handling (AC-2)
-- [ ] Add PUT /api/patients/{patientId}/conflicts/{conflictId}/both-valid endpoint calling IConflictResolutionService.ResolveBothValidAsync with 200/404/409 response handling (EC-2)
-- [ ] Add GET /api/patients/{patientId}/conflicts/resolution-progress endpoint returning total/resolved/remaining counts (EC-1, AC-4)
-- [ ] Add GET /api/patients/{patientId}/profile/verification-status endpoint returning current verification state with staff attribution (AC-4)
-- [ ] Add Swagger/OpenAPI annotations with ProducesResponseType, SwaggerOperation, and ConflictResolution tag grouping
+- [X] Create SelectValueRequestDto and BothValidRequestDto with FluentValidation validators enforcing required fields and max lengths
+- [X] Add PUT /api/patients/{patientId}/conflicts/{conflictId}/select-value endpoint calling IConflictResolutionService.SelectConflictValueAsync with 200/404/409/422 response handling (AC-2)
+- [X] Add PUT /api/patients/{patientId}/conflicts/{conflictId}/both-valid endpoint calling IConflictResolutionService.ResolveBothValidAsync with 200/404/409 response handling (EC-2)
+- [X] Add GET /api/patients/{patientId}/conflicts/resolution-progress endpoint returning total/resolved/remaining counts (EC-1, AC-4)
+- [X] Add GET /api/patients/{patientId}/profile/verification-status endpoint returning current verification state with staff attribution (AC-4)
+- [X] Add Swagger/OpenAPI annotations with ProducesResponseType, SwaggerOperation, and ConflictResolution tag grouping

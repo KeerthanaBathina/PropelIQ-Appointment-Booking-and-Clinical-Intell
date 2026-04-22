@@ -140,11 +140,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define `IConsolidationService` with full and incremental consolidation methods
-- [ ] Implement data-type-specific deduplication (medications by drug+dosage, diagnoses by code+date, procedures by code+date, allergies by allergen name)
-- [ ] Implement batch document processing in groups of 10, sorted chronologically, using async enumeration
-- [ ] Implement incremental update logic preserving verified entries and appending new unverified data
-- [ ] Create `PatientProfileVersion` record with auto-incremented version number, user attribution, source document IDs, and data delta snapshot
-- [ ] Implement `ConsolidationWorker` as BackgroundService consuming Redis Queue jobs
+- [x] Define `IConsolidationService` with full and incremental consolidation methods
+- [x] Implement data-type-specific deduplication (medications by drug+dosage, diagnoses by code+date, procedures by code+date, allergies by allergen name)
+- [x] Implement batch document processing in groups of 10, sorted chronologically, using async enumeration
+- [x] Implement incremental update logic preserving verified entries and appending new unverified data
+- [x] Create `PatientProfileVersion` record with auto-incremented version number, user attribution, source document IDs, and data delta snapshot
+- [x] Implement `ConsolidationWorker` as BackgroundService consuming Redis Queue jobs
 - [ ] Integrate with AI conflict detection service interface (IConflictDetectionService from task_004)
-- [ ] Add structured audit logging with correlation IDs for all consolidation operations
+- [x] Add structured audit logging with correlation IDs for all consolidation operations

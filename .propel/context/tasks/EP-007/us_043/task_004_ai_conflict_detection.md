@@ -155,11 +155,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define `IConflictDetectionService` interface with `DetectConflictsAsync` method accepting existing and new data points
-- [ ] Create `conflict-detection.liquid` prompt template with structured JSON output schema, medical conflict instructions, and chronological validation rules
-- [ ] Implement RAG context retrieval querying pgvector for top-5 medical terminology chunks with cosine similarity >= 0.75
-- [ ] Enforce token budget (4000 input / 1000 output) with pre-request token counting and truncation logic
-- [ ] Implement AI Gateway call with Polly circuit breaker (5 failures → open, 30s retry) and exponential backoff (3 retries)
-- [ ] Implement output schema validation parsing LLM JSON response into `ConflictAnalysisResult` with fallback for malformed responses
-- [ ] Classify conflicts by severity (Critical/High/Medium/Low) and flag Critical conflicts for urgent staff notification (AIR-S09)
-- [ ] Implement PII redaction on prompt inputs (AIR-S01) and structured audit logging of all AI requests/responses (AIR-S04)
+- [x] Define `IConflictDetectionService` interface with `DetectConflictsAsync` method accepting existing and new data points
+- [x] Create `conflict-detection.liquid` prompt template with structured JSON output schema, medical conflict instructions, and chronological validation rules
+- [x] Implement RAG context retrieval querying pgvector for top-5 medical terminology chunks with cosine similarity >= 0.75
+- [x] Enforce token budget (4000 input / 1000 output) with pre-request token counting and truncation logic
+- [x] Implement AI Gateway call with Polly circuit breaker (5 failures → open, 30s retry) and exponential backoff (3 retries)
+- [x] Implement output schema validation parsing LLM JSON response into `ConflictAnalysisResult` with fallback for malformed responses
+- [x] Classify conflicts by severity (Critical/High/Medium/Low) and flag Critical conflicts for urgent staff notification (AIR-S09)
+- [x] Implement PII redaction on prompt inputs (AIR-S01) and structured audit logging of all AI requests/responses (AIR-S04)

@@ -66,6 +66,27 @@ public sealed class ExtractedData : BaseEntity
     // Archive support (US_042 task_004 AC-3, EC-1)
     // -------------------------------------------------------------------------
 
+    // -------------------------------------------------------------------------
+    // Manual fallback / date-validation fields (US_046 task_002 AC-2, AC-3, edge case)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// True when the extracted date value is partial (month/year-only or year-only).
+    /// The row is still saved and included in the low-confidence review list for staff completion.
+    /// </summary>
+    public bool IsIncompleteDate { get; set; } = false;
+
+    /// <summary>
+    /// Human-readable explanation when this entry's date violates chronological plausibility
+    /// (e.g. procedure before diagnosis, discharge before admission). Null when no violation
+    /// is detected. Populated by <c>DateValidationService</c> after consolidation (US_046 AC-2).
+    /// </summary>
+    public string? DateConflictExplanation { get; set; }
+
+    // -------------------------------------------------------------------------
+    // Archive support (US_042 task_004 AC-3, EC-1)
+    // -------------------------------------------------------------------------
+
     /// <summary>
     /// True when this row has been superseded by a replacement document's extraction.
     /// Archived rows are retained for audit and rollback but excluded from active review

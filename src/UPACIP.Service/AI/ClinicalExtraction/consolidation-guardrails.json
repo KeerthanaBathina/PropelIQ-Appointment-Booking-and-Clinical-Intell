@@ -1,0 +1,84 @@
+{
+  "version": "1.0",
+  "description": "AI guardrails for consolidation confidence scoring and date plausibility validation (US_046, AIR-010, AIR-Q07, AIR-Q08, AIR-S10, AIR-O01, AIR-O04, AIR-O08, AIR-S01, AIR-S04).",
+  "TokenBudget": {
+    "MaxInputTokens": 4000,
+    "MaxOutputTokens": 1000,
+    "MaxDocumentContentChars": 12000,
+    "MaxSystemPromptChars": 3000,
+    "MaxDataPointChars": 10000,
+    "MaxRagContextChars": 1500
+  },
+  "ConfidenceThreshold": {
+    "AutoApproveAbove": 0.80,
+    "ManualReviewBelow": 0.80,
+    "NullScoreIsZero": true,
+    "AggregateStrategy": "mean",
+    "MinItemsForAggregate": 1,
+    "FlagBatchWhenMeanBelow": 0.80
+  },
+  "CircuitBreaker": {
+    "FailuresBeforeOpen": 5,
+    "BreakDurationSeconds": 30,
+    "ScopePerInstance": true
+  },
+  "RetryPolicy": {
+    "MaxAttempts": 3,
+    "DelaySeconds": [1, 2, 4],
+    "Strategy": "ExponentialBackoff"
+  },
+  "FallbackRouting": {
+    "PrimaryProvider": "openai",
+    "PrimaryModel": "gpt-4o-mini",
+    "FallbackProvider": "anthropic",
+    "FallbackModel": "claude-3-5-sonnet-20241022",
+    "FallbackOnCircuitOpen": true,
+    "FallbackOnLowRollingMeanConfidence": true,
+    "RollingWindowSize": 5,
+    "LowRollingMeanThreshold": 0.80
+  },
+  "PiiRedaction": {
+    "StripPatterns": [
+      "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "\\b\\d{9}\\b"
+    ],
+    "RedactionToken": "[REDACTED]",
+    "StripPatientName": true,
+    "StripEmailAddresses": true
+  },
+  "InjectionGuardrails": {
+    "Keywords": [
+      "ignore previous instructions",
+      "disregard above",
+      "system prompt",
+      "jailbreak",
+      "act as",
+      "you are now",
+      "</system>",
+      "<|im_end|>",
+      "DAN mode",
+      "developer mode",
+      "bypass guardrails",
+      "override safety"
+    ],
+    "ActionOnDetection": "sanitize"
+  },
+  "AuditLogging": {
+    "LogAllRequests": true,
+    "LogAllResponses": true,
+    "IncludeCorrelationId": true,
+    "RedactPiiBeforeLogging": true,
+    "SensitiveFields": ["patient_name", "dob", "ssn", "phone", "email", "address"]
+  },
+  "DatePlausibility": {
+    "PromptTemplate": "date-plausibility-check",
+    "EnableAiAssistedValidation": true,
+    "FallbackToRulesOnAiFailure": true,
+    "MaxPartialDateAgeYears": 130
+  },
+  "PromptTemplates": {
+    "ExtractionWithConfidence": "extract-with-confidence-system",
+    "ExtractionSchema": "extract-with-confidence-schema",
+    "DatePlausibility": "date-plausibility-check"
+  }
+}
