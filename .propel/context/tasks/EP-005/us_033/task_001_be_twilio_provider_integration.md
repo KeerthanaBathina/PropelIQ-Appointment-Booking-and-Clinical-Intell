@@ -128,9 +128,9 @@ appsettings.json
 
 ## Implementation Checklist
 
-- [ ] Add a Twilio transport abstraction for SMS delivery
-- [ ] Load Twilio configuration from centralized appsettings with environment overrides
-- [ ] Accept only US `+1` numbers in Phase 1 and reject international numbers deterministically
-- [ ] Retry transient SMS failures with exponential backoff and log each attempt
-- [ ] Disable SMS and surface gateway-disabled outcomes when Twilio trial credits are exhausted
-- [ ] Register transport services and structured diagnostics without exposing secrets
+- [X] Add a Twilio transport abstraction for SMS delivery
+- [X] Load Twilio configuration from centralized appsettings with environment overrides
+- [X] Accept only US `+1` numbers in Phase 1 and reject international numbers deterministically
+- [X] Retry transient SMS failures with exponential backoff and log each attempt
+- [X] Disable SMS and surface gateway-disabled outcomes when Twilio trial credits are exhausted
+- [X] Register transport services and structured diagnostics without exposing secrets

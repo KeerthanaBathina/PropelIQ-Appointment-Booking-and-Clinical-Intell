@@ -130,9 +130,9 @@ appsettings.json
 
 ## Implementation Checklist
 
-- [ ] Add a unified SMTP transport abstraction for SendGrid and Gmail
-- [ ] Load SMTP provider configuration from centralized appsettings with environment overrides
-- [ ] Retry transient failures with 1s, 2s, and 4s backoff and log each attempt
-- [ ] Fail over from SendGrid to Gmail when provider quota or availability limits are hit
-- [ ] Distinguish bounced invalid-recipient outcomes from retryable transport failures
-- [ ] Register transport services and structured diagnostics without exposing secrets
+- [X] Add a unified SMTP transport abstraction for SendGrid and Gmail
+- [X] Load SMTP provider configuration from centralized appsettings with environment overrides
+- [X] Retry transient failures with 1s, 2s, and 4s backoff and log each attempt
+- [X] Fail over from SendGrid to Gmail when provider quota or availability limits are hit
+- [X] Distinguish bounced invalid-recipient outcomes from retryable transport failures
+- [X] Register transport services and structured diagnostics without exposing secrets

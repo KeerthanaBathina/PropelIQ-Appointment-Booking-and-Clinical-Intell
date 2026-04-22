@@ -35,6 +35,7 @@ using UPACIP.Service.VectorSearch;
 using UPACIP.Service.Appointments;
 using UPACIP.Service.AI.NoShowRisk;
 using UPACIP.Service.AI.ConversationalIntake;
+using UPACIP.Service.Notifications;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -367,7 +368,50 @@ builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 // Email service — scoped; MailKit SmtpClient is instantiated per-send, so scoped is correct.
 builder.Services.AddScoped<IEmailService, SmtpEmailService>();
 
-// Custom password complexity validator (NFR-013 / AC-5).
+// ── EP-005 SMTP transport layer (task_001_be_smtp_provider_integration) ─────────────────
+// Binds the EmailProvider configuration section (primary = SendGrid, fallback = Gmail).
+// ValidateDataAnnotations ensures required fields are present at startup (fail-fast).
+// IEmailTransport is registered as Scoped — MailKit SmtpClient is instantiated per-send;
+// scoped lifetime is correct and consistent with the existing IEmailService registration.
+builder.Services
+    .AddOptions<EmailProviderOptions>()
+    .Bind(builder.Configuration.GetSection(EmailProviderOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddScoped<IEmailTransport, SmtpEmailTransport>();
+
+// ── EP-005 notification email orchestration (task_002_be_notification_email_composition_and_logging)
+// EmailTemplateRenderer is stateless — singleton avoids allocation on every request.
+// NotificationEmailService is scoped because it depends on the scoped ApplicationDbContext.
+builder.Services.AddSingleton<EmailTemplateRenderer>();
+builder.Services.AddScoped<INotificationEmailService, NotificationEmailService>();
+
+// ── EP-005 SMS transport layer (US_033 task_001_be_twilio_provider_integration) ────────────────
+// Binds the SmsProvider configuration section (Twilio credentials, US-number scope, gateway toggle).
+// ValidateDataAnnotations ensures required fields are present at startup (fail-fast).
+// TwilioSmsTransport is registered as Scoped — consistent with the email transport lifetime.
+builder.Services
+    .AddOptions<SmsProviderOptions>()
+    .Bind(builder.Configuration.GetSection(SmsProviderOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+
+builder.Services.AddScoped<ISmsTransport, TwilioSmsTransport>();
+
+// ── EP-005 SMS orchestration layer (US_033 task_002_be_notification_sms_orchestration_and_logging) ──
+// NotificationSmsService is Scoped — it depends on the scoped ApplicationDbContext and
+// honours patient opt-out preference before invoking the Twilio transport.
+builder.Services.AddScoped<INotificationSmsService, NotificationSmsService>();
+
+// ── EP-005 booking confirmation orchestration (US_034 task_001_be_booking_confirmation_notification_orchestration) ──
+// StubPdfConfirmationService is a compile-safe stub — replaced when task_002_be_pdf_confirmation_and_qr_generation
+// delivers the real PDF/QR pipeline.  The orchestration service always sends email without PDF
+// (EC-1 path) until the real implementation is registered.
+// BookingConfirmationNotificationService is Scoped — it depends on ApplicationDbContext, email/SMS
+// services, and always uses CancellationToken.None (decoupled from the booking request lifetime).
+builder.Services.AddScoped<IPdfConfirmationService, StubPdfConfirmationService>();
+builder.Services.AddScoped<IBookingConfirmationNotificationService, BookingConfirmationNotificationService>();
 builder.Services.AddScoped<IPasswordValidator<ApplicationUser>, PasswordComplexityValidator>();
 
 // Password reset service — token generation, validation, post-reset session cleanup (US_015).

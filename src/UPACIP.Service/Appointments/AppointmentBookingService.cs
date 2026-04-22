@@ -6,6 +6,7 @@ using Polly;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
+using UPACIP.Service.Notifications;
 
 namespace UPACIP.Service.Appointments;
 
@@ -34,6 +35,8 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
     private readonly ISlotHoldService                _holdService;
     private readonly IAppointmentSlotService         _slotService;
     private readonly NoShowRiskOrchestrator          _riskOrchestrator;
+    private readonly IBookingConfirmationNotificationService _confirmationService;
+    private readonly ClinicSettings                  _clinicSettings;
     private readonly ILogger<AppointmentBookingService> _logger;
 
     // Polly single-retry with 500 ms delay for transient Npgsql failures (EC-1, NFR-032).
@@ -45,13 +48,17 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         ISlotHoldService                   holdService,
         IAppointmentSlotService            slotService,
         NoShowRiskOrchestrator             riskOrchestrator,
+        IBookingConfirmationNotificationService confirmationService,
+        ClinicSettings                     clinicSettings,
         ILogger<AppointmentBookingService> logger)
     {
-        _db               = db;
-        _holdService      = holdService;
-        _slotService      = slotService;
-        _riskOrchestrator = riskOrchestrator;
-        _logger           = logger;
+        _db                   = db;
+        _holdService          = holdService;
+        _slotService          = slotService;
+        _riskOrchestrator     = riskOrchestrator;
+        _confirmationService  = confirmationService;
+        _clinicSettings       = clinicSettings;
+        _logger               = logger;
 
         _retryPolicy = Policy
             .Handle<NpgsqlException>(ex => ex.IsTransient)
@@ -129,9 +136,10 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         }
 
         // ── 3. Execute core booking logic wrapped in Polly retry (EC-1) ──────
+        BookingResult bookingResult;
         try
         {
-            return await _retryPolicy.ExecuteAsync(
+            bookingResult = await _retryPolicy.ExecuteAsync(
                 ct => PerformBookingAsync(request, patientId, userEmail, ct),
                 cancellationToken);
         }
@@ -143,6 +151,38 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
                 request.SlotId, patientId);
             return BookingResult.Unavailable("Service temporarily unavailable. Please try again.");
         }
+
+        // ── 3b. Trigger booking confirmation notifications (US_034 AC-1) ─────
+        // Fire-and-forget so notification delivery does not block the booking response.
+        // The confirmation service enforces its own 30-second delivery window internally.
+        // patient.PhoneNumber is available from the outer AsNoTracking fetch (step 1).
+        if (bookingResult.Status == BookingResultStatus.Success && bookingResult.Booking is not null)
+        {
+            var confirmationRequest = new BookingConfirmationRequest(
+                AppointmentId:       bookingResult.Booking.AppointmentId,
+                PatientId:           patientId,
+                PatientEmail:        patient.Email,
+                PatientPhoneNumber:  patient.PhoneNumber,
+                PatientName:         patient.FullName,
+                AppointmentTime:     request.AppointmentTime,
+                ProviderName:        bookingResult.Booking.ProviderName,
+                AppointmentType:     bookingResult.Booking.AppointmentType,
+                BookingReference:    bookingResult.Booking.BookingReference,
+                CancellationBaseUrl: _clinicSettings.PortalBaseUrl);
+
+            var confirmationTask = _confirmationService.SendAsync(
+                confirmationRequest,
+                CancellationToken.None);  // decouple from request cancellation
+
+            _ = confirmationTask.ContinueWith(
+                t => _logger.LogWarning(
+                    "Booking confirmation notification failed (fire-and-forget) for " +
+                    "appointmentId={AppointmentId}. {Error}",
+                    bookingResult.Booking.AppointmentId, t.Exception?.Message),
+                TaskContinuationOptions.OnlyOnFaulted);
+        }
+
+        return bookingResult;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
