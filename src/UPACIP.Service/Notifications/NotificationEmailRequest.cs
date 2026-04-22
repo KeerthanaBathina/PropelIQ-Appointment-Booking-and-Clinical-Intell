@@ -59,4 +59,5 @@ public sealed record NotificationEmailRequest(
     string? BookingReference = null,
     string? CancellationLink = null,
     bool IsAlreadyCancelled = false,
-    string? CorrelationId = null);
+    string? CorrelationId = null,
+    int OrchestrationAttemptNumber = 0);

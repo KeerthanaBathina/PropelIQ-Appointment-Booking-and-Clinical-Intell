@@ -146,12 +146,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Render green, amber, red, and `confidence-unavailable` confidence states consistently on SCR-012 and SCR-013
-- [ ] Mark all `<0.80` and unavailable items as pending mandatory review in the extraction-results UI
-- [ ] Support single-item verification and correction actions for flagged extraction rows
-- [ ] Support bulk verification with selection, confirmation, disabled, loading, and success states
-- [ ] Refresh visible verification status and counts immediately after successful actions
-- [ ] Keep confidence indicators accessible with clear labels, focus states, and keyboard operation
-- [ ] Stay aligned to the supplied wireframes without introducing later preview or conflict-review features
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Render green, amber, red, and `confidence-unavailable` confidence states consistently on SCR-012 and SCR-013
+- [x] Mark all `<0.80` and unavailable items as pending mandatory review in the extraction-results UI
+- [x] Support single-item verification and correction actions for flagged extraction rows
+- [x] Support bulk verification with selection, confirmation, disabled, loading, and success states
+- [x] Refresh visible verification status and counts immediately after successful actions
+- [x] Keep confidence indicators accessible with clear labels, focus states, and keyboard operation
+- [x] Stay aligned to the supplied wireframes without introducing later preview or conflict-review features
+- [x] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
+- [x] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

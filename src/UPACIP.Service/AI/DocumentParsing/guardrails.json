@@ -1,0 +1,34 @@
+{
+  "DocumentParsing": {
+    "TokenBudget": {
+      "MaxInputTokens": 4096,
+      "MaxOutputTokens": 1024
+    },
+    "MaxDocumentContentChars": 12000,
+    "ConfidenceThreshold": 0.70,
+    "PromptInjectionKeywords": [
+      "ignore previous instructions",
+      "disregard above",
+      "system prompt",
+      "jailbreak",
+      "act as",
+      "you are now",
+      "</system>",
+      "<|im_end|>",
+      "DAN mode",
+      "developer mode",
+      "bypass guardrails",
+      "override safety"
+    ],
+    "CircuitBreaker": {
+      "FailureThreshold": 3,
+      "BreakDurationSeconds": 30
+    },
+    "MaxRetryAttempts": 3,
+    "RetryBaseDelaySeconds": 2,
+    "PiiRedactionPatterns": [
+      "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "\\b\\d{9}\\b"
+    ]
+  }
+}

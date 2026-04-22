@@ -100,6 +100,39 @@ public sealed class PreferredSlotSwapProcessor : BackgroundService, IPreferredSl
             var swapService  = scope.ServiceProvider.GetRequiredService<IPreferredSlotSwapService>();
             var results      = await swapService.EvaluateAndSwapAsync(slot, stoppingToken);
 
+            // Log each outcome individually so stale-swap skips (EC-2 US_036) are visible
+            // in operational dashboards without needing to decode the results list.
+            foreach (var result in results)
+            {
+                if (result.Status == PreferredSlotSwapStatus.Swapped)
+                {
+                    _logger.LogInformation(
+                        "PreferredSlotSwapProcessor: slot {SlotId} auto-swapped " +
+                        "appointmentId={AppointmentId} old={Old} new={New}.",
+                        slot.SlotId, result.AppointmentId,
+                        result.OldSlotTime?.ToString("yyyy-MM-ddTHH:mm:ssZ"),
+                        result.NewSlotTime?.ToString("yyyy-MM-ddTHH:mm:ssZ"));
+                }
+                else if (result.SkipReason is not null &&
+                         result.SkipReason.Contains("cancelled", StringComparison.OrdinalIgnoreCase))
+                {
+                    // EC-2 (US_036): stale-swap skip — appointment was cancelled before swap committed.
+                    // The slot is already released back to availability by the cancellation flow.
+                    _logger.LogWarning(
+                        "PreferredSlotSwapProcessor: stale-swap skipped for slot {SlotId} " +
+                        "appointmentId={AppointmentId}. Reason: {Reason}. " +
+                        "Slot released back to availability.",
+                        slot.SlotId, result.AppointmentId, result.SkipReason);
+                }
+                else if (result.Status != PreferredSlotSwapStatus.NoCandidateFound)
+                {
+                    _logger.LogDebug(
+                        "PreferredSlotSwapProcessor: slot {SlotId} outcome={Status} " +
+                        "appointmentId={AppointmentId} reason={Reason}.",
+                        slot.SlotId, result.Status, result.AppointmentId, result.SkipReason);
+                }
+            }
+
             _logger.LogInformation(
                 "PreferredSlotSwapProcessor: slot {SlotId} produced {Count} outcome(s).",
                 slot.SlotId, results.Count);

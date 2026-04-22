@@ -125,9 +125,9 @@ src/
 
 ## Implementation Checklist
 
-- [ ] Preserve the existing `ExtractedData` confidence baseline while adding only the new US_041 verification fields
-- [ ] Add persisted verification status and UTC verification timestamp support
-- [ ] Add structured review-reason support for low-confidence and `confidence-unavailable` cases
-- [ ] Configure safe defaults for existing extracted-data rows during migration
-- [ ] Add indexes that support flagged-row retrieval and efficient bulk verification updates
-- [ ] Keep the migration compatible with prior US_040 attribution changes
+- [x] Preserve the existing `ExtractedData` confidence baseline while adding only the new US_041 verification fields
+- [x] Add persisted verification status and UTC verification timestamp support
+- [x] Add structured review-reason support for low-confidence and `confidence-unavailable` cases
+- [x] Configure safe defaults for existing extracted-data rows during migration
+- [x] Add indexes that support flagged-row retrieval and efficient bulk verification updates
+- [x] Keep the migration compatible with prior US_040 attribution changes

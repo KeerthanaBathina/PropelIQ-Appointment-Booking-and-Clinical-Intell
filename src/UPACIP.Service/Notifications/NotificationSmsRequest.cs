@@ -51,4 +51,5 @@ public sealed record NotificationSmsRequest(
     string? AppointmentType,
     NotificationType NotificationType,
     string? BookingReference = null,
-    string? CorrelationId = null);
+    string? CorrelationId = null,
+    int OrchestrationAttemptNumber = 0);

@@ -132,9 +132,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Persist medication, diagnosis, procedure, and allergy extractions as `ExtractedData` rows with correct type mapping
-- [ ] Store source document, page number, and extraction-region attribution for every extracted data point
-- [ ] Skip empty extraction-row creation for `no-data-extracted` outcomes
-- [ ] Mark unsupported-language documents without attempting normal extracted-data persistence
-- [ ] Update document outcome and extracted rows transactionally so partial extraction sets are not committed
-- [ ] Return normalized persisted-result counts and manual-review status for downstream workflows
+- [x] Persist medication, diagnosis, procedure, and allergy extractions as `ExtractedData` rows with correct type mapping
+- [x] Store source document, page number, and extraction-region attribution for every extracted data point
+- [x] Skip empty extraction-row creation for `no-data-extracted` outcomes
+- [x] Mark unsupported-language documents without attempting normal extracted-data persistence
+- [x] Update document outcome and extracted rows transactionally so partial extraction sets are not committed
+- [x] Return normalized persisted-result counts and manual-review status for downstream workflows

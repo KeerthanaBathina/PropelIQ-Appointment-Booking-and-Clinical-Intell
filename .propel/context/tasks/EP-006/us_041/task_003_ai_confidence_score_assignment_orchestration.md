@@ -154,13 +154,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Require a confidence score or explicit unavailable reason for every extracted item in the AI output contract
-- [ ] Normalize and validate all confidence values to the `0.00-1.00` range before persistence
-- [ ] Flag every item below `0.80` for mandatory review in the normalized extraction envelope
-- [ ] Default missing confidence values to `0.00` with `confidence-unavailable` review reason
-- [ ] Preserve AI fallback, token-budget, and guardrail behavior after adding confidence metadata
-- [ ] Keep prompts and logs free of unnecessary PHI exposure while still auditing scoring failures
-- [ ] Emit downstream-ready review metadata without mixing manual verification logic into the AI layer
-- **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
-- **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
-- **[AI Tasks - MANDATORY]** Verify AIR-010, AIR-Q07, AIR-Q08, and AIR-O01 requirements are met
+- [x] Require a confidence score or explicit unavailable reason for every extracted item in the AI output contract
+- [x] Normalize and validate all confidence values to the `0.00-1.00` range before persistence
+- [x] Flag every item below `0.80` for mandatory review in the normalized extraction envelope
+- [x] Default missing confidence values to `0.00` with `confidence-unavailable` review reason
+- [x] Preserve AI fallback, token-budget, and guardrail behavior after adding confidence metadata
+- [x] Keep prompts and logs free of unnecessary PHI exposure while still auditing scoring failures
+- [x] Emit downstream-ready review metadata without mixing manual verification logic into the AI layer
+- [x] **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
+- [x] **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
+- [x] **[AI Tasks - MANDATORY]** Verify AIR-010, AIR-Q07, AIR-Q08, and AIR-O01 requirements are met

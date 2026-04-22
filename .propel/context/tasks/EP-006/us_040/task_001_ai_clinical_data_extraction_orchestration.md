@@ -156,13 +156,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Extract medication fields including drug name, dosage, frequency, and prescribing physician
-- [ ] Extract diagnosis fields including associated dates and treating providers
-- [ ] Extract procedure fields including dates, descriptions, and performing physicians
-- [ ] Extract allergy fields including allergen, reaction type, and severity
-- [ ] Return page number and extraction-region attribution for every extracted data point
-- [ ] Return explicit `no-data-extracted` and `unsupported-language` outcomes when applicable
-- [ ] Enforce AI guardrails, token budget, and provider fallback without exposing PHI in logs
-- **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
-- **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
-- **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational)
+- [x] Extract medication fields including drug name, dosage, frequency, and prescribing physician
+- [x] Extract diagnosis fields including associated dates and treating providers
+- [x] Extract procedure fields including dates, descriptions, and performing physicians
+- [x] Extract allergy fields including allergen, reaction type, and severity
+- [x] Return page number and extraction-region attribution for every extracted data point
+- [x] Return explicit `no-data-extracted` and `unsupported-language` outcomes when applicable
+- [x] Enforce AI guardrails, token budget, and provider fallback without exposing PHI in logs
+- [x] **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
+- [x] **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
+- [x] **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational)

@@ -130,9 +130,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Generate a PDF confirmation attachment with appointment details and booking reference
-- [ ] Embed a scannable QR code for patient check-in in the generated PDF
-- [ ] Reflect cancelled state in the artifact when cancellation overtakes confirmation generation
-- [ ] Return retryable failure metadata so email can still be sent without the PDF
-- [ ] Queue deferred PDF generation retries after attachment failures
-- [ ] Keep artifact generation lightweight enough to support the 30-second confirmation target
+- [x] Generate a PDF confirmation attachment with appointment details and booking reference
+- [x] Embed a scannable QR code for patient check-in in the generated PDF
+- [x] Reflect cancelled state in the artifact when cancellation overtakes confirmation generation
+- [x] Return retryable failure metadata so email can still be sent without the PDF
+- [x] Queue deferred PDF generation retries after attachment failures
+- [x] Keep artifact generation lightweight enough to support the 30-second confirmation target

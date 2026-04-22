@@ -130,9 +130,9 @@ src/
 
 ## Implementation Checklist
 
-- [ ] Add page-number and extraction-region attribution support to `ExtractedData`
-- [ ] Keep medications, diagnoses, procedures, and allergies storable in JSONB-backed `DataContent`
-- [ ] Add `no-data-extracted` and `unsupported-language` support to `ClinicalDocument`
-- [ ] Add indexes supporting grouping and retrieval by document and data type
-- [ ] Keep migrations backward-compatible for existing `ExtractedData` and `ClinicalDocument` rows
-- [ ] Preserve schema compatibility with later traceability and verification workflows
+- [x] Add page-number and extraction-region attribution support to `ExtractedData`
+- [x] Keep medications, diagnoses, procedures, and allergies storable in JSONB-backed `DataContent`
+- [x] Add `no-data-extracted` and `unsupported-language` support to `ClinicalDocument`
+- [x] Add indexes supporting grouping and retrieval by document and data type
+- [x] Keep migrations backward-compatible for existing `ExtractedData` and `ClinicalDocument` rows
+- [x] Preserve schema compatibility with later traceability and verification workflows

@@ -1,0 +1,41 @@
+{
+  "name": "extract_document_data",
+  "description": "Extracts structured clinical data from the provided document content.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "extraction_possible": {
+        "type": "boolean",
+        "description": "True if the document contains readable, parseable clinical content. False if the content is unreadable, empty, or corrupt."
+      },
+      "confidence": {
+        "type": "number",
+        "description": "Confidence score 0.0–1.0 for the overall extraction quality."
+      },
+      "document_date": {
+        "type": ["string", "null"],
+        "description": "Date of the clinical event described in the document (ISO 8601 or null)."
+      },
+      "provider_name": {
+        "type": ["string", "null"],
+        "description": "Name of the physician, lab, or imaging facility that produced the document."
+      },
+      "summary": {
+        "type": ["string", "null"],
+        "description": "One-to-three sentence plain-English summary of the document content suitable for staff review. No PII beyond provider name."
+      },
+      "extracted_fields": {
+        "type": "object",
+        "description": "Category-specific key-value pairs extracted from the document (e.g. lab values, diagnoses, prescription details). Values must be strings or null.",
+        "additionalProperties": {
+          "type": ["string", "null"]
+        }
+      },
+      "manual_review_reason": {
+        "type": ["string", "null"],
+        "description": "Populated when extraction_possible is false or confidence is below threshold. Plain-English reason for manual review."
+      }
+    },
+    "required": ["extraction_possible", "confidence", "extracted_fields"]
+  }
+}

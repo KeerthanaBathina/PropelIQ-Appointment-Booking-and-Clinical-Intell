@@ -58,4 +58,15 @@ public interface IWaitlistService
         Guid              waitlistId,
         string            userEmail,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Scans all <c>Offered</c> waitlist entries whose <c>ClaimExpiresAtUtc</c> is in the
+    /// past, marks them <c>Expired</c>, and advances to the next FIFO candidate for each
+    /// affected slot (US_036 AC-4, EC-2).
+    ///
+    /// Called periodically by <see cref="WaitlistOfferProcessor"/>.
+    /// Implementations must never throw — all errors are logged internally.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task AdvanceExpiredOffersAsync(CancellationToken cancellationToken = default);
 }

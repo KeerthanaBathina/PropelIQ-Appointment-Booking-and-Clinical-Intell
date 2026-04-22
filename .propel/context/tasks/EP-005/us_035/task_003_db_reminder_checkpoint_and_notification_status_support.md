@@ -122,9 +122,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Persist separate checkpoint rows for 24-hour and 2-hour reminder batches
-- [ ] Store last successful reminder cursor data needed for mid-batch resume
-- [ ] Extend `NotificationLog` to represent `cancelled-before-send` explicitly
-- [ ] Add indexes that support fast checkpoint resume and recent-run lookup
-- [ ] Keep existing notification history backward-compatible during migration rollout
-- [ ] Add a migration that introduces checkpoint and status support safely
+- [x] Persist separate checkpoint rows for 24-hour and 2-hour reminder batches
+- [x] Store last successful reminder cursor data needed for mid-batch resume
+- [x] Extend `NotificationLog` to represent `cancelled-before-send` explicitly
+- [x] Add indexes that support fast checkpoint resume and recent-run lookup
+- [x] Keep existing notification history backward-compatible during migration rollout
+- [x] Add a migration that introduces checkpoint and status support safely

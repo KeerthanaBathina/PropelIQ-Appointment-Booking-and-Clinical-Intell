@@ -130,9 +130,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Expose admin-only endpoints for filtered notification-log retrieval and aggregate delivery statistics
-- [ ] Return recipient, channel, status, retry count, and timing data needed for operational review
-- [ ] Include success rate, failure rate, and average delivery time for the filtered result set
-- [ ] Exclude `opted-out` and `cancelled-before-send` from attempted-delivery failure metrics while keeping them filterable
-- [ ] Make `permanently_failed` and staff-review-required records easy to isolate for follow-up
-- [ ] Keep the API reusable for a later UI implementation without coupling it to a specific screen
+- [x] Expose admin-only endpoints for filtered notification-log retrieval and aggregate delivery statistics
+- [x] Return recipient, channel, status, retry count, and timing data needed for operational review
+- [x] Include success rate, failure rate, and average delivery time for the filtered result set
+- [x] Exclude `opted-out` and `cancelled-before-send` from attempted-delivery failure metrics while keeping them filterable
+- [x] Make `permanently_failed` and staff-review-required records easy to isolate for follow-up
+- [x] Keep the API reusable for a later UI implementation without coupling it to a specific screen

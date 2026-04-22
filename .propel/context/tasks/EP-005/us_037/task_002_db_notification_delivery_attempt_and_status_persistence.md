@@ -126,9 +126,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Store every notification send and retry as an ordered attempt-level audit record
-- [ ] Extend `NotificationLog` to include recipient, terminal timing, staff-review, and contact-validation metadata
-- [ ] Add `permanently_failed` without breaking existing notification status values already planned in EP-005
-- [ ] Support efficient filtering by status, channel, and staff-review state for admin queries
-- [ ] Keep legacy notification rows backward-compatible during migration rollout
-- [ ] Allow buffered attempt records to flush safely into durable storage after transient persistence outages
+- [x] Store every notification send and retry as an ordered attempt-level audit record
+- [x] Extend `NotificationLog` to include recipient, terminal timing, staff-review, and contact-validation metadata
+- [x] Add `permanently_failed` without breaking existing notification status values already planned in EP-005
+- [x] Support efficient filtering by status, channel, and staff-review state for admin queries
+- [x] Keep legacy notification rows backward-compatible during migration rollout
+- [x] Allow buffered attempt records to flush safely into durable storage after transient persistence outages

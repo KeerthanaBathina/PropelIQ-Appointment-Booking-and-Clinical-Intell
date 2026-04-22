@@ -145,12 +145,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Implement drag-and-drop and browse-based document selection on SCR-012
-- [ ] Validate PDF, DOCX, TXT, PNG, and JPG files against the 10MB limit before upload starts
-- [ ] Capture the document category values required by the story and submit them with the upload request
-- [ ] Show progress, interruption, retry, success, and validation-error states in the uploaded-file list
-- [ ] Render backend-confirmed filename, upload timestamp, uploader attribution, and `uploaded` status after success
-- [ ] Announce upload progress and validation feedback accessibly for dynamic updates on the screen
-- [ ] Keep the UI aligned to the wireframe while using story rules where the wireframe hint is broader than the acceptance criteria
+- [x] Implement drag-and-drop and browse-based document selection on SCR-012
+- [x] Validate PDF, DOCX, TXT, PNG, and JPG files against the 10MB limit before upload starts
+- [x] Capture the document category values required by the story and submit them with the upload request
+- [x] Show progress, interruption, retry, success, and validation-error states in the uploaded-file list
+- [x] Render backend-confirmed filename, upload timestamp, uploader attribution, and `uploaded` status after success
+- [x] Announce upload progress and validation feedback accessibly for dynamic updates on the screen
+- [x] Keep the UI aligned to the wireframe while using story rules where the wireframe hint is broader than the acceptance criteria
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

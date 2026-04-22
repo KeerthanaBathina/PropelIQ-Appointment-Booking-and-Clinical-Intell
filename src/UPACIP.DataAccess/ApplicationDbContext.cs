@@ -28,10 +28,20 @@ public sealed class ApplicationDbContext
     public DbSet<IntakeData>       IntakeRecords     => Set<IntakeData>();
     public DbSet<ClinicalDocument> ClinicalDocuments => Set<ClinicalDocument>();
     public DbSet<ExtractedData>    ExtractedData     => Set<ExtractedData>();
+
+    /// <summary>
+    /// Per-attempt AI parsing failure records for exponential-backoff retry and terminal-failure audit (US_039 task_004, AC-4, AC-5, EC-1).
+    /// </summary>
+    public DbSet<DocumentParsingAttempt> DocumentParsingAttempts => Set<DocumentParsingAttempt>();
     public DbSet<MedicalCode>      MedicalCodes      => Set<MedicalCode>();
     public DbSet<AuditLog>         AuditLogs         => Set<AuditLog>();
     public DbSet<QueueEntry>       QueueEntries      => Set<QueueEntry>();
     public DbSet<NotificationLog>  NotificationLogs  => Set<NotificationLog>();
+
+    /// <summary>
+    /// Per-attempt audit records for every notification send and orchestration retry (US_037 AC-1, AC-4).
+    /// </summary>
+    public DbSet<NotificationDeliveryAttempt> NotificationDeliveryAttempts => Set<NotificationDeliveryAttempt>();
 
     /// <summary>Email verification tokens for the patient registration flow (US_012).</summary>
     public DbSet<EmailVerificationToken> EmailVerificationTokens => Set<EmailVerificationToken>();
@@ -50,6 +60,12 @@ public sealed class ApplicationDbContext
 
     /// <summary>Patient waitlist registrations for fully-booked slots (US_020).</summary>
     public DbSet<WaitlistEntry> WaitlistEntries => Set<WaitlistEntry>();
+
+    /// <summary>
+    /// Reminder batch checkpoint cursors for 24-hour and 2-hour reminder workers (US_035 EC-1, EC-2).
+    /// One row per (BatchType, WindowDateUtc); upserted after each successfully processed appointment.
+    /// </summary>
+    public DbSet<ReminderBatchCheckpoint> ReminderBatchCheckpoints => Set<ReminderBatchCheckpoint>();
 
     /// <summary>
     /// Dummy insurance validation reference records used by the soft pre-check

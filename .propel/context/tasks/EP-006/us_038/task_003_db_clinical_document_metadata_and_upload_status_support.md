@@ -124,9 +124,9 @@ src/
 
 ## Implementation Checklist
 
-- [ ] Add persisted metadata for original filename, MIME type, file size, secure storage reference, upload timestamp, and uploader attribution
-- [ ] Ensure `ClinicalDocument` can persist the `uploaded` status required by US_038 before later queueing workflows run
-- [ ] Keep patient-document and uploader relationships intact with existing FK behavior
-- [ ] Add indexes that support recent uploaded-document retrieval by patient and status
-- [ ] Keep migration rollout backward-compatible for existing ClinicalDocument rows
-- [ ] Support transactional upload writes so interrupted transfers do not create partial persisted records
+- [x] Add persisted metadata for original filename, MIME type, file size, secure storage reference, upload timestamp, and uploader attribution
+- [x] Ensure `ClinicalDocument` can persist the `uploaded` status required by US_038 before later queueing workflows run
+- [x] Keep patient-document and uploader relationships intact with existing FK behavior
+- [x] Add indexes that support recent uploaded-document retrieval by patient and status
+- [x] Keep migration rollout backward-compatible for existing ClinicalDocument rows
+- [x] Support transactional upload writes so interrupted transfers do not create partial persisted records

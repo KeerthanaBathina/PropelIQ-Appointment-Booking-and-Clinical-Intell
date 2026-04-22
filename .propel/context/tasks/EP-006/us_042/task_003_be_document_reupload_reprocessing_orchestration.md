@@ -139,10 +139,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Expose a staff-only replacement-upload endpoint for existing clinical documents
-- [ ] Create new document versions instead of mutating the existing active version in place
-- [ ] Reuse secure upload and queue orchestration for replacement processing
-- [ ] Keep prior versions active until replacement parsing and extraction persistence succeed
-- [ ] Archive superseded extracted rows instead of deleting them after successful activation
-- [ ] Emit a reconsolidation-needed signal or flag after replacement activation
-- [ ] Return replacement lifecycle status clearly to SCR-012 without implementing full profile consolidation here
+- [x] Expose a staff-only replacement-upload endpoint for existing clinical documents
+- [x] Create new document versions instead of mutating the existing active version in place
+- [x] Reuse secure upload and queue orchestration for replacement processing
+- [x] Keep prior versions active until replacement parsing and extraction persistence succeed
+- [x] Archive superseded extracted rows instead of deleting them after successful activation
+- [x] Emit a reconsolidation-needed signal or flag after replacement activation
+- [x] Return replacement lifecycle status clearly to SCR-012 without implementing full profile consolidation here

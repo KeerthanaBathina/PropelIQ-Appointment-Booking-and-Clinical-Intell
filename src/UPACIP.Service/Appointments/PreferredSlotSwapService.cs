@@ -4,6 +4,7 @@ using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Auth;
+using UPACIP.Service.Notifications;
 
 namespace UPACIP.Service.Appointments;
 
@@ -30,18 +31,21 @@ public sealed class PreferredSlotSwapService : IPreferredSlotSwapService
     private readonly ApplicationDbContext                  _db;
     private readonly IAppointmentBookingService            _bookingService;
     private readonly IEmailService                         _emailService;
+    private readonly ISlotSwapNotificationService          _swapNotificationService;
     private readonly ILogger<PreferredSlotSwapService>     _logger;
 
     public PreferredSlotSwapService(
         ApplicationDbContext              db,
         IAppointmentBookingService        bookingService,
         IEmailService                     emailService,
+        ISlotSwapNotificationService      swapNotificationService,
         ILogger<PreferredSlotSwapService> logger)
     {
-        _db             = db;
-        _bookingService = bookingService;
-        _emailService   = emailService;
-        _logger         = logger;
+        _db                      = db;
+        _bookingService          = bookingService;
+        _emailService            = emailService;
+        _swapNotificationService = swapNotificationService;
+        _logger                  = logger;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -157,6 +161,27 @@ public sealed class PreferredSlotSwapService : IPreferredSlotSwapService
                 SkipReason: reason);
         }
 
+        // EC-2 (US_036): Re-read appointment status to catch cancellations that
+        // occurred between the bulk candidate query and now.
+        var currentStatus = await _db.Appointments
+            .Where(a => a.Id == appointment.Id)
+            .Select(a => a.Status)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (currentStatus == AppointmentStatus.Cancelled)
+        {
+            var reason = "Appointment was cancelled before swap could be committed — slot released back to availability.";
+            _logger.LogInformation(
+                "SwapEngine: appointmentId={Id} is Cancelled — stale swap skipped. Slot {SlotId} released.",
+                appointment.Id, newSlot.SlotId);
+            WriteAuditLog(appointment, AuditAction.AutoSwapSkipped, reason);
+            await _db.SaveChangesAsync(cancellationToken);
+            return new PreferredSlotSwapResult(
+                PreferredSlotSwapStatus.NoCandidateFound,
+                appointment.Id, newSlot.SlotId,
+                SkipReason: reason);
+        }
+
         // AC-3: Auto-swap disabled by staff
         if (!patient.AutoSwapEnabled)
         {
@@ -229,18 +254,19 @@ public sealed class PreferredSlotSwapService : IPreferredSlotSwapService
 
         // Swap succeeded — write audit + notification logs
         // NOTE: appointment entity may be stale after reschedule; use result timestamps.
-        var freshAppointment = await _db.Appointments.FindAsync(
-            new object[] { appointment.Id }, cancellationToken);
+        var freshAppointment = await _db.Appointments
+            .Include(a => a.Patient)
+            .FirstOrDefaultAsync(a => a.Id == appointment.Id, cancellationToken);
 
         if (freshAppointment is not null)
         {
             WriteAuditLog(freshAppointment, AuditAction.AppointmentAutoSwapped,
                 $"Auto-swapped from {rescheduleResult.OldAppointmentTime:u} to {rescheduleResult.NewAppointmentTime:u}.");
-            WriteNotificationLog(freshAppointment, NotificationType.SlotSwapCompleted);
             await _db.SaveChangesAsync(cancellationToken);
         }
 
-        await SendSwapCompletedEmailAsync(
+        // Dispatch email + SMS via notification service (AC-2 US_036)
+        await SendSwapNotificationAsync(
             patient, appointment, rescheduleResult, newSlot, cancellationToken);
 
         _logger.LogInformation(
@@ -332,31 +358,38 @@ public sealed class PreferredSlotSwapService : IPreferredSlotSwapService
         });
     }
 
-    private async Task SendSwapCompletedEmailAsync(
+    private async Task SendSwapNotificationAsync(
         Patient           patient,
         Appointment       appointment,
         RescheduleResult  result,
         SlotItem          newSlot,
         CancellationToken cancellationToken)
     {
-        try
-        {
-            var oldTime = result.OldAppointmentTime?.ToString("MMMM d, yyyy 'at' h:mm tt") ?? "previous slot";
-            var newTime = result.NewAppointmentTime?.ToString("MMMM d, yyyy 'at' h:mm tt") ?? newSlot.StartTime;
+        var oldTime = result.OldAppointmentTime?.ToString("MMMM d, yyyy 'at' h:mm tt") ?? "previous slot";
+        var newTime = result.NewAppointmentTime?.ToString("MMMM d, yyyy 'at' h:mm tt") ?? newSlot.StartTime;
 
-            await _emailService.SendSwapCompletedEmailAsync(
-                patient.Email,
-                patient.FullName,
-                oldTime,
-                newTime,
-                newSlot.ProviderName,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Failed to send swap-completed email for appointmentId={Id}.", appointment.Id);
-        }
+        var notifyRequest = new SlotSwapNotificationRequest(
+            AppointmentId:       appointment.Id,
+            PatientId:           patient.Id,
+            PatientEmail:        patient.Email,
+            PatientPhoneNumber:  patient.PhoneNumber ?? string.Empty,
+            PatientFullName:     patient.FullName,
+            OldAppointmentTime:  result.OldAppointmentTime ?? DateTime.UtcNow,
+            NewAppointmentTime:  result.NewAppointmentTime ?? DateTime.UtcNow,
+            OldTimeFormatted:    oldTime,
+            NewTimeFormatted:    newTime,
+            ProviderName:        newSlot.ProviderName,
+            AppointmentType:     appointment.AppointmentType,
+            BookingReference:    appointment.BookingReference);
+
+        var notifyResult = await _swapNotificationService.SendSwapNotificationAsync(
+            notifyRequest, cancellationToken);
+
+        _logger.LogInformation(
+            "SwapEngine: notification sent for appointmentId={Id}. " +
+            "EmailSent={EmailSent}, SmsSent={SmsSent}, SmsOptOut={OptOut}, EmailFailed={EmailFailed}.",
+            appointment.Id, notifyResult.EmailSent, notifyResult.SmsSent,
+            notifyResult.SmsSkippedOptOut, notifyResult.EmailFailed);
     }
 
     private async Task SendManualConfirmationEmailAsync(

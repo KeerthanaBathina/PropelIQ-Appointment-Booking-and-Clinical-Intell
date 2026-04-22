@@ -133,10 +133,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Expose staff-only endpoints for verify, correct-and-verify, and bulk verify operations on extracted rows
-- [ ] Enforce that mandatory-review rows remain review-gated until explicit verification occurs
-- [ ] Stamp each verified row with verifier identity and UTC timestamp, including bulk operations
-- [ ] Support single-row correction payloads without allowing bulk payload edits
-- [ ] Return updated status and remaining flagged counts needed by SCR-012 and SCR-013
-- [ ] Record verification audit events without logging raw PHI payloads
-- [ ] Keep extraction reruns, profile consolidation, and preview workflows out of this API scope
+- [x] Expose staff-only endpoints for verify, correct-and-verify, and bulk verify operations on extracted rows
+- [x] Enforce that mandatory-review rows remain review-gated until explicit verification occurs
+- [x] Stamp each verified row with verifier identity and UTC timestamp, including bulk operations
+- [x] Support single-row correction payloads without allowing bulk payload edits
+- [x] Return updated status and remaining flagged counts needed by SCR-012 and SCR-013
+- [x] Record verification audit events without logging raw PHI payloads
+- [x] Keep extraction reruns, profile consolidation, and preview workflows out of this API scope

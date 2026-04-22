@@ -127,9 +127,9 @@ src/
 
 ## Implementation Checklist
 
-- [ ] Extend `ClinicalDocument` to support `queued`, `parsing`, `parsed`, and `failed` states alongside the upload baseline
-- [ ] Persist retry-attempt rows with failure reason and next-attempt scheduling data
-- [ ] Store manual-review-required metadata for terminal parsing failures
-- [ ] Add indexes supporting due-retry lookup, recent parsing activity, and patient-document status refresh
-- [ ] Keep uploaded-document history backward-compatible during migration rollout
-- [ ] Support durable retry resumption after worker restart or process interruption
+- [x] Extend `ClinicalDocument` to support `queued`, `parsing`, `parsed`, and `failed` states alongside the upload baseline
+- [x] Persist retry-attempt rows with failure reason and next-attempt scheduling data
+- [x] Store manual-review-required metadata for terminal parsing failures
+- [x] Add indexes supporting due-retry lookup, recent parsing activity, and patient-document status refresh
+- [x] Keep uploaded-document history backward-compatible during migration rollout
+- [x] Support durable retry resumption after worker restart or process interruption

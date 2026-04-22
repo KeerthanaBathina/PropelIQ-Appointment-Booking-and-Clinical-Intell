@@ -1,0 +1,96 @@
+{
+  "name": "extract_clinical_data",
+  "description": "Extracts structured clinical entities (medications, diagnoses, procedures, allergies) from document content with source attribution.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "extraction_outcome": {
+        "type": "string",
+        "enum": ["extracted", "no-data-extracted", "unsupported-language"],
+        "description": "Overall outcome of the extraction attempt."
+      },
+      "confidence": {
+        "type": "number",
+        "description": "Overall confidence score 0.0–1.0 for the extraction quality."
+      },
+      "medications": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "drug_name":            { "type": "string" },
+            "dosage":               { "type": ["string", "null"] },
+            "frequency":            { "type": ["string", "null"] },
+            "route":                { "type": ["string", "null"] },
+            "prescribing_physician":{ "type": ["string", "null"] },
+            "prescription_date":    { "type": ["string", "null"] },
+            "raw_text":             { "type": ["string", "null"] },
+            "page_number":          { "type": "integer" },
+            "extraction_region":    { "type": "string" },
+            "confidence":           { "type": ["number", "null"], "description": "Per-item confidence 0.0\u20131.0; null only if genuinely unassessable." }
+          },
+          "required": ["drug_name", "page_number", "extraction_region", "confidence"]
+        }
+      },
+      "diagnoses": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "condition_name":   { "type": "string" },
+            "icd_code":         { "type": ["string", "null"] },
+            "diagnosis_date":   { "type": ["string", "null"] },
+            "treating_provider":{ "type": ["string", "null"] },
+            "status":           { "type": ["string", "null"] },
+            "raw_text":         { "type": ["string", "null"] },
+            "page_number":      { "type": "integer" },
+            "extraction_region":{ "type": "string" },
+            "confidence":       { "type": ["number", "null"], "description": "Per-item confidence 0.0\u20131.0; null only if genuinely unassessable." }
+          },
+          "required": ["condition_name", "page_number", "extraction_region", "confidence"]
+        }
+      },
+      "procedures": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "procedure_name":      { "type": "string" },
+            "procedure_date":      { "type": ["string", "null"] },
+            "performing_physician":{ "type": ["string", "null"] },
+            "facility":            { "type": ["string", "null"] },
+            "cpt_code":            { "type": ["string", "null"] },
+            "raw_text":            { "type": ["string", "null"] },
+            "page_number":         { "type": "integer" },
+            "extraction_region":   { "type": "string" },
+            "confidence":          { "type": ["number", "null"], "description": "Per-item confidence 0.0\u20131.0; null only if genuinely unassessable." }
+          },
+          "required": ["procedure_name", "page_number", "extraction_region", "confidence"]
+        }
+      },
+      "allergies": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "allergen":         { "type": "string" },
+            "reaction_type":    { "type": ["string", "null"] },
+            "severity":         { "type": ["string", "null"] },
+            "onset_date":       { "type": ["string", "null"] },
+            "status":           { "type": ["string", "null"] },
+            "raw_text":         { "type": ["string", "null"] },
+            "page_number":      { "type": "integer" },
+            "extraction_region":{ "type": "string" },
+            "confidence":       { "type": ["number", "null"], "description": "Per-item confidence 0.0\u20131.0; null only if genuinely unassessable." }
+          },
+          "required": ["allergen", "page_number", "extraction_region", "confidence"]
+        }
+      },
+      "outcome_reason": {
+        "type": ["string", "null"],
+        "description": "Plain-English reason when extraction_outcome is not 'extracted'. Safe for staff display."
+      }
+    },
+    "required": ["extraction_outcome", "confidence"]
+  }
+}

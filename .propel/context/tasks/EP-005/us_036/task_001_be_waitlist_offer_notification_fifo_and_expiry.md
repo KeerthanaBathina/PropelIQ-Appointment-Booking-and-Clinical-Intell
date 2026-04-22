@@ -141,9 +141,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Notify newly eligible waitlist patients via email and SMS within 5 minutes of slot availability
-- [ ] Enforce FIFO candidate ordering from waitlist registration time
-- [ ] Skip invalid-contact patients, log the error, and advance immediately to the next candidate
-- [ ] Expire unclaimed offers after 24 hours and notify the next waitlisted patient automatically
-- [ ] Keep first-confirm-wins behavior intact while only one candidate is actively advanced for a slot at a time
-- [ ] Persist waitlist lifecycle and `NotificationLog` outcomes consistently for offer, skip, expiry, and booking transitions
+- [x] Notify newly eligible waitlist patients via email and SMS within 5 minutes of slot availability
+- [x] Enforce FIFO candidate ordering from waitlist registration time
+- [x] Skip invalid-contact patients, log the error, and advance immediately to the next candidate
+- [x] Expire unclaimed offers after 24 hours and notify the next waitlisted patient automatically
+- [x] Keep first-confirm-wins behavior intact while only one candidate is actively advanced for a slot at a time
+- [x] Persist waitlist lifecycle and `NotificationLog` outcomes consistently for offer, skip, expiry, and booking transitions
