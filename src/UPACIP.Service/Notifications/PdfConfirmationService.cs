@@ -192,7 +192,7 @@ public sealed class PdfConfirmationService : IPdfConfirmationService
                             qrCol.Item()
                                 .Width(130)
                                 .Height(130)
-                                .Image(qrPng, ImageScaling.FitArea);
+                                .Image(qrPng).FitArea();
                         });
                     }
 

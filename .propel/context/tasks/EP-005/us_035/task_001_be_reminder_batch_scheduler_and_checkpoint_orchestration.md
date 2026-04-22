@@ -135,9 +135,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Run separate checkpoint-aware 24-hour and 2-hour reminder batches
-- [ ] Calculate reminder windows using the clinic's local timezone
-- [ ] Resume mid-batch failures from the last successful appointment checkpoint
-- [ ] Skip cancelled or already-reminded appointments before dispatch
-- [ ] Keep total batch duration under 10 minutes with structured duration metrics
-- [ ] Register background worker and scheduling services without embedding channel-specific send logic
+- [x] Run separate checkpoint-aware 24-hour and 2-hour reminder batches
+- [x] Calculate reminder windows using the clinic's local timezone
+- [x] Resume mid-batch failures from the last successful appointment checkpoint
+- [x] Skip cancelled or already-reminded appointments before dispatch
+- [x] Keep total batch duration under 10 minutes with structured duration metrics
+- [x] Register background worker and scheduling services without embedding channel-specific send logic

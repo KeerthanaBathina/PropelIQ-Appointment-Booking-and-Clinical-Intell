@@ -142,10 +142,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Log every email and SMS delivery attempt with channel, recipient, status, and attempt timestamp
-- [ ] Preserve existing short transport retries while adding orchestration retries at 1 minute, 5 minutes, and 15 minutes
-- [ ] Treat bounced email outcomes as contact-validation events rather than retryable failures
-- [ ] Mark notifications `permanently_failed` after the final retry and flag them for staff review
-- [ ] Buffer pending attempt-log writes in memory with a hard cap of 1000 when persistence is unavailable
-- [ ] Flush buffered attempt logs safely when persistence recovers without duplicating final outcomes
-- [ ] Keep the orchestration reusable across all EP-005 notification trigger types
+- [x] Log every email and SMS delivery attempt with channel, recipient, status, and attempt timestamp
+- [x] Preserve existing short transport retries while adding orchestration retries at 1 minute, 5 minutes, and 15 minutes
+- [x] Treat bounced email outcomes as contact-validation events rather than retryable failures
+- [x] Mark notifications `permanently_failed` after the final retry and flag them for staff review
+- [x] Buffer pending attempt-log writes in memory with a hard cap of 1000 when persistence is unavailable
+- [x] Flush buffered attempt logs safely when persistence recovers without duplicating final outcomes
+- [x] Keep the orchestration reusable across all EP-005 notification trigger types

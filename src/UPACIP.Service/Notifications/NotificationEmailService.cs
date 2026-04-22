@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
@@ -33,24 +32,27 @@ namespace UPACIP.Service.Notifications;
 /// </summary>
 public sealed class NotificationEmailService : INotificationEmailService
 {
-    private readonly ApplicationDbContext         _db;
-    private readonly IEmailTransport              _transport;
-    private readonly EmailTemplateRenderer        _renderer;
-    private readonly ClinicSettings               _clinicSettings;
-    private readonly ILogger<NotificationEmailService> _logger;
+    private readonly ApplicationDbContext                         _db;
+    private readonly IEmailTransport                             _transport;
+    private readonly EmailTemplateRenderer                       _renderer;
+    private readonly ClinicSettings                              _clinicSettings;
+    private readonly INotificationDeliveryReliabilityService     _reliabilityService;
+    private readonly ILogger<NotificationEmailService>           _logger;
 
     public NotificationEmailService(
-        ApplicationDbContext              db,
-        IEmailTransport                   transport,
-        EmailTemplateRenderer             renderer,
-        ClinicSettings                    clinicSettings,
-        ILogger<NotificationEmailService> logger)
+        ApplicationDbContext                          db,
+        IEmailTransport                              transport,
+        EmailTemplateRenderer                        renderer,
+        ClinicSettings                               clinicSettings,
+        INotificationDeliveryReliabilityService      reliabilityService,
+        ILogger<NotificationEmailService>            logger)
     {
-        _db             = db;
-        _transport      = transport;
-        _renderer       = renderer;
-        _clinicSettings = clinicSettings;
-        _logger         = logger;
+        _db                 = db;
+        _transport          = transport;
+        _renderer           = renderer;
+        _clinicSettings     = clinicSettings;
+        _reliabilityService = reliabilityService;
+        _logger             = logger;
     }
 
     /// <inheritdoc/>
@@ -96,11 +98,6 @@ public sealed class NotificationEmailService : INotificationEmailService
         // ── 3. Send via SMTP transport (retries + failover inside transport) ───
         var deliveryResult = await _transport.SendAsync(transportMsg, cancellationToken);
 
-        // ── 4. Derive outcome fields ──────────────────────────────────────────
-        var logStatus  = MapOutcomeToStatus(deliveryResult.Outcome);
-        var retryCount = Math.Max(0, deliveryResult.AttemptsMade - 1);
-        var sentAt     = deliveryResult.IsSuccess ? DateTime.UtcNow : (DateTime?)null;
-
         // ── 5. Operational alert when fallback provider was used (EC-1) ──────
         if (deliveryResult.UsedFallback)
         {
@@ -115,23 +112,19 @@ public sealed class NotificationEmailService : INotificationEmailService
                 request.CorrelationId ?? "N/A");
         }
 
-        // ── 6. Persist outcome to NotificationLog (AC-2) ─────────────────────
-        await PersistLogAsync(
-            request,
-            providerName: deliveryResult.ProviderName,
-            status:       logStatus,
-            retryCount:   retryCount,
-            sentAt:       sentAt,
-            cancellationToken);
+        // ── 6. Build result ────────────────────────────────────────────────────
+        var serviceResult = new NotificationEmailResult(
+            Succeeded:            deliveryResult.IsSuccess,
+            IsBounced:            deliveryResult.IsBounced,
+            UsedFallbackProvider: deliveryResult.UsedFallback,
+            ProviderName:         deliveryResult.ProviderName,
+            AttemptsMade:         deliveryResult.AttemptsMade);
 
-        // ── 7. Bounce: flag patient contact for staff follow-up (EC-2) ────────
-        if (deliveryResult.IsBounced)
-        {
-            await FlagPatientContactAsync(
-                request.PatientId,
-                request.AppointmentId,
-                cancellationToken);
-        }
+        // ── 7. Delegate outcome to reliability orchestration (US_037 AC-1/AC-2/AC-3/EC-2) ──
+        // Reliability service writes the NotificationLog via BufferedNotificationLogWriter,
+        // flags the patient for contact validation on bounce, and schedules retries or marks
+        // the notification permanently_failed when all retries are exhausted.
+        await _reliabilityService.HandleEmailOutcomeAsync(request, serviceResult, cancellationToken);
 
         // ── 8. Structured diagnostics ─────────────────────────────────────────
         if (deliveryResult.IsSuccess)
@@ -162,12 +155,7 @@ public sealed class NotificationEmailService : INotificationEmailService
                 deliveryResult.FailureReason, request.CorrelationId ?? "N/A");
         }
 
-        return new NotificationEmailResult(
-            Succeeded:            deliveryResult.IsSuccess,
-            IsBounced:            deliveryResult.IsBounced,
-            UsedFallbackProvider: deliveryResult.UsedFallback,
-            ProviderName:         deliveryResult.ProviderName,
-            AttemptsMade:         deliveryResult.AttemptsMade);
+        return serviceResult;
     }
 
     // -------------------------------------------------------------------------
@@ -175,8 +163,9 @@ public sealed class NotificationEmailService : INotificationEmailService
     // -------------------------------------------------------------------------
 
     /// <summary>
-    /// Appends a <see cref="NotificationLog"/> row capturing the delivery outcome.
-    /// Each attempt (including retries) creates a new row — the entity is append-only.
+    /// Persists a <see cref="NotificationLog"/> row for non-retryable early exits
+    /// (e.g. template rendering failure) where the reliability orchestration path
+    /// is not engaged.
     /// </summary>
     private async Task PersistLogAsync(
         NotificationEmailRequest request,
@@ -204,57 +193,10 @@ public sealed class NotificationEmailService : INotificationEmailService
         }
         catch (Exception ex)
         {
-            // Log but do not propagate — a log persistence failure must not hide the
-            // delivery outcome from the caller (defence-in-depth; the email was sent
-            // or bounced regardless).
             _logger.LogError(ex,
                 "Failed to persist NotificationLog for appointment {AppointmentId} " +
                 "(provider: {Provider}, status: {Status}).",
                 request.AppointmentId, providerName, status);
         }
     }
-
-    /// <summary>
-    /// Sets <c>Patient.ContactUpdateRequired = true</c> so staff can identify
-    /// patients with invalid email addresses during the next workflow review (EC-2).
-    /// </summary>
-    private async Task FlagPatientContactAsync(
-        Guid patientId,
-        Guid appointmentId,
-        CancellationToken ct)
-    {
-        try
-        {
-            var affected = await _db.Patients
-                .Where(p => p.Id == patientId)
-                .ExecuteUpdateAsync(
-                    setters => setters
-                        .SetProperty(p => p.ContactUpdateRequired, true)
-                        .SetProperty(p => p.ContactUpdateRequestedAt, DateTime.UtcNow),
-                    ct);
-
-            if (affected == 0)
-            {
-                _logger.LogWarning(
-                    "Cannot flag contact update: patient {PatientId} not found " +
-                    "(appointment {AppointmentId}).",
-                    patientId, appointmentId);
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Failed to flag contact update for patient {PatientId} " +
-                "(appointment {AppointmentId}).",
-                patientId, appointmentId);
-        }
-    }
-
-    private static NotificationStatus MapOutcomeToStatus(EmailDeliveryOutcome outcome) =>
-        outcome switch
-        {
-            EmailDeliveryOutcome.Sent    => NotificationStatus.Sent,
-            EmailDeliveryOutcome.Bounced => NotificationStatus.Bounced,
-            _                           => NotificationStatus.Failed,
-        };
 }

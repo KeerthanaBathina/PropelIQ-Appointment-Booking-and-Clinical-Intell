@@ -136,9 +136,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Send personalized email plus SMS for 24-hour reminders and SMS-only for 2-hour reminders
-- [ ] Include the existing cancellation-link workflow in reminder communications that support cancellation
-- [ ] Skip cancelled appointments at send time and log `cancelled-before-send`
-- [ ] Respect SMS opt-out by sending email-only for 24-hour reminders and logging `opted-out`
-- [ ] Prevent duplicate reminder sends when a checkpointed batch resumes
-- [ ] Persist per-channel reminder outcomes consistently in `NotificationLog`
+- [x] Send personalized email plus SMS for 24-hour reminders and SMS-only for 2-hour reminders
+- [x] Include the existing cancellation-link workflow in reminder communications that support cancellation
+- [x] Skip cancelled appointments at send time and log `cancelled-before-send`
+- [x] Respect SMS opt-out by sending email-only for 24-hour reminders and logging `opted-out`
+- [x] Prevent duplicate reminder sends when a checkpointed batch resumes
+- [x] Persist per-channel reminder outcomes consistently in `NotificationLog`

@@ -36,6 +36,9 @@ using UPACIP.Service.Appointments;
 using UPACIP.Service.AI.NoShowRisk;
 using UPACIP.Service.AI.ConversationalIntake;
 using UPACIP.Service.Notifications;
+using UPACIP.Service.Documents;
+using UPACIP.Service.AI.DocumentParsing;
+using UPACIP.Service.AI.ClinicalExtraction;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -387,6 +390,24 @@ builder.Services.AddScoped<IEmailTransport, SmtpEmailTransport>();
 builder.Services.AddSingleton<EmailTemplateRenderer>();
 builder.Services.AddScoped<INotificationEmailService, NotificationEmailService>();
 
+// ── EP-005 notification delivery reliability (US_037 task_001) ──────────────────────────────────
+// BufferedNotificationLogWriter is Singleton — holds the in-memory log-entry buffer (max 1000)
+// that keeps attempt records safe when persistence is temporarily unavailable (EC-1).
+// NotificationDeliveryReliabilityService is Scoped — orchestrates retry scheduling, permanent-failure
+// marking, and patient contact flagging; depends on the scoped ApplicationDbContext.
+// NotificationRetryWorker is Singleton — registered both as INotificationRetryQueue (for scoped
+// callers to enqueue retries) and as IHostedService (for the 1-minute PeriodicTimer loop).
+builder.Services.AddSingleton<BufferedNotificationLogWriter>();
+builder.Services.AddScoped<INotificationDeliveryReliabilityService, NotificationDeliveryReliabilityService>();
+builder.Services.AddSingleton<NotificationRetryWorker>();
+builder.Services.AddSingleton<INotificationRetryQueue>(sp => sp.GetRequiredService<NotificationRetryWorker>());
+builder.Services.AddHostedService(sp => sp.GetRequiredService<NotificationRetryWorker>());
+
+// ── EP-005 admin notification log query (US_037 task_003_be_notification_log_admin_query_and_statistics_api)
+// NotificationLogQueryService is Scoped — depends on the scoped ApplicationDbContext.
+// Exposed via AdminNotificationLogController (AdminOnly policy).
+builder.Services.AddScoped<INotificationLogQueryService, NotificationLogQueryService>();
+
 // ── EP-005 SMS transport layer (US_033 task_001_be_twilio_provider_integration) ────────────────
 // Binds the SmsProvider configuration section (Twilio credentials, US-number scope, gateway toggle).
 // ValidateDataAnnotations ensures required fields are present at startup (fail-fast).
@@ -412,6 +433,15 @@ builder.Services.AddScoped<INotificationSmsService, NotificationSmsService>();
 builder.Services.AddSingleton<IQrCodeService, QrCodeService>();
 builder.Services.AddScoped<IPdfConfirmationService, PdfConfirmationService>();
 builder.Services.AddScoped<IBookingConfirmationNotificationService, BookingConfirmationNotificationService>();
+// ── EP-005 reminder batch scheduling (US_035 task_001 + task_002) ──────────────────────────
+// ReminderNotificationService — Scoped: orchestrates email + SMS dispatch per appointment
+// (US_035 task_002_be_reminder_notification_dispatch_and_skip_handling). Replaces stub.
+// IReminderBatchSchedulerService / ReminderBatchSchedulerService — Scoped: checkpoint-aware batch runner.
+// ReminderBatchWorker — Singleton BackgroundService: creates a fresh DI scope per batch run (EC-1).
+builder.Services.AddScoped<IReminderNotificationService, ReminderNotificationService>();
+builder.Services.AddScoped<IReminderBatchSchedulerService, ReminderBatchSchedulerService>();
+builder.Services.AddHostedService<ReminderBatchWorker>();
+
 builder.Services.AddScoped<IPasswordValidator<ApplicationUser>, PasswordComplexityValidator>();
 
 // Password reset service — token generation, validation, post-reset session cleanup (US_015).
@@ -422,6 +452,68 @@ builder.Services.AddScoped<IMfaService, MfaService>();
 
 // Audit log service — append-only auth event logging (US_016 AC-5).
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+
+// ── EP-006 Clinical Document Upload (US_038 task_002) ────────────────────────────────────────
+// DocumentStorageSettings: storage root path and AES-256 key from configuration.
+// EncryptedFileStorageService: Singleton — stateless file I/O, no DbContext dependency.
+// ClinicalDocumentUploadService: Scoped — depends on scoped ApplicationDbContext.
+builder.Services
+    .AddOptions<DocumentStorageSettings>()
+    .Bind(builder.Configuration.GetSection(DocumentStorageSettings.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<IEncryptedFileStorageService, EncryptedFileStorageService>();
+
+// ── EP-006 Document Parsing Queue Orchestration (US_039 task_002) ────────────────────────────
+// IConnectionMultiplexer: Singleton — shared Redis connection for raw list operations (RPUSH/LPOP).
+// Reuses the same ConfigurationOptions already built for IDistributedCache to avoid duplicate
+// connections. AbortOnConnectFail=false means startup succeeds even when Redis is temporarily down.
+var connectionMultiplexer = ConnectionMultiplexer.Connect(redisOptions);
+builder.Services.AddSingleton<IConnectionMultiplexer>(connectionMultiplexer);
+
+// DocumentParsingDispatcherSettings: bound from "DocumentParsing" config section (EC-2).
+// Defaults: MaxConcurrentJobs=5, PollingIntervalSeconds=5, MaxRetryAttempts=3.
+builder.Services
+    .AddOptions<DocumentParsingDispatcherSettings>()
+    .Bind(builder.Configuration.GetSection(DocumentParsingDispatcherSettings.SectionName));
+
+// DocumentParsingPromptBuilder + DocumentParsingResultValidator: Scoped helpers for
+// building AI prompts and validating/sanitising model responses (US_039 task_003).
+builder.Services.AddScoped<DocumentParsingPromptBuilder>();
+builder.Services.AddScoped<DocumentParsingResultValidator>();
+
+// Clinical extraction helpers (US_040 task_001):
+// ClinicalExtractionPromptBuilder + ClinicalExtractionResultValidator + ClinicalExtractionLanguageGate
+// are scoped to isolate per-request circuit-breaker state.
+builder.Services.AddScoped<ClinicalExtractionPromptBuilder>();
+builder.Services.AddScoped<ClinicalExtractionResultValidator>();
+builder.Services.AddScoped<ClinicalExtractionLanguageGate>();
+builder.Services.AddScoped<ClinicalExtractionService>();
+
+// Extraction persistence (US_040 task_002): converts AI extraction envelopes into ExtractedData rows.
+builder.Services.AddScoped<IExtractedDataPersistenceService, ExtractedDataPersistenceService>();
+
+// Extracted-data verification (US_041 task_002): single-row verify/correct + bulk verification.
+builder.Services.AddScoped<IExtractedDataVerificationService, ExtractedDataVerificationService>();
+
+// Document preview (US_042 task_002): annotation metadata + secure content streaming.
+builder.Services.AddScoped<IDocumentPreviewService, DocumentPreviewService>();
+
+// IDocumentParserWorker: Scoped — executes AI parsing via OpenAI (primary) / Anthropic (fallback).
+// Replaced NullDocumentParserWorker after US_039 task_003 implementation.
+builder.Services.AddScoped<IDocumentParserWorker, DocumentParsingWorker>();
+
+// IDocumentParsingQueueService: Scoped — transitions document to Queued, enqueues Redis job,
+// handles EC-1 Redis-unavailable fallback.
+builder.Services.AddScoped<IDocumentParsingQueueService, DocumentParsingQueueService>();
+
+// ClinicalDocumentUploadService: Scoped — now depends on IDocumentParsingQueueService.
+builder.Services.AddScoped<IClinicalDocumentUploadService, ClinicalDocumentUploadService>();
+
+// DocumentReplacementService: Scoped — orchestrates document replacement lifecycle (US_042 AC-2, AC-3, EC-1, EC-2).
+builder.Services.AddScoped<IDocumentReplacementService, DocumentReplacementService>();
+
+// DocumentParsingDispatcher: Singleton BackgroundService — FIFO Redis dequeue + Polly retry (EC-2).
+builder.Services.AddHostedService<DocumentParsingDispatcher>();
 
 // Appointment slot service — slot availability queries with Redis cache-aside (US_017 AC-1, AC-4).
 builder.Services.AddScoped<IAppointmentSlotService, AppointmentSlotService>();
@@ -438,6 +530,7 @@ builder.Services.AddScoped<IAppointmentCancellationService, AppointmentCancellat
 // Waitlist orchestration — registration, offer dispatch, and claim-link redemption (US_020).
 // WaitlistOfferProcessor is registered as both IWaitlistOfferQueue (singleton) and IHostedService
 // so the same channel instance is shared between the cancellation enqueue path and the processor.
+builder.Services.AddScoped<IWaitlistOfferNotificationService, WaitlistOfferNotificationService>();
 builder.Services.AddSingleton<WaitlistOfferProcessor>();
 builder.Services.AddSingleton<IWaitlistOfferQueue>(sp => sp.GetRequiredService<WaitlistOfferProcessor>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<WaitlistOfferProcessor>());
@@ -445,6 +538,7 @@ builder.Services.AddScoped<IWaitlistService, WaitlistService>();
 
 // Preferred-slot swap engine (US_021) — evaluates freed slots against waiting patients'
 // preferred criteria and auto-swaps or sends manual confirmation offers.
+builder.Services.AddScoped<ISlotSwapNotificationService, SlotSwapNotificationService>();
 builder.Services.AddSingleton<PreferredSlotSwapProcessor>();
 builder.Services.AddSingleton<IPreferredSlotSwapQueue>(sp => sp.GetRequiredService<PreferredSlotSwapProcessor>());
 builder.Services.AddHostedService(sp => sp.GetRequiredService<PreferredSlotSwapProcessor>());

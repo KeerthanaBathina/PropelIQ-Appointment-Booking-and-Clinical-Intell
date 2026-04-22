@@ -147,12 +147,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Add preview actions for parsed documents on SCR-012
-- [ ] Render extraction-region highlights for supported preview formats
-- [ ] Provide inline extracted-value annotations for non-region-capable formats such as TXT
-- [ ] Show tooltip content containing extracted value and confidence score for highlighted regions
-- [ ] Support replacement upload from the preview workflow with clear progress and error handling
-- [ ] Refresh active or superseded document state after replacement or reprocessing events
-- [ ] Keep the UI limited to preview and replacement without exposing downstream consolidation internals
+- [x] Add preview actions for parsed documents on SCR-012
+- [x] Render extraction-region highlights for supported preview formats
+- [x] Provide inline extracted-value annotations for non-region-capable formats such as TXT
+- [x] Show tooltip content containing extracted value and confidence score for highlighted regions
+- [x] Support replacement upload from the preview workflow with clear progress and error handling
+- [x] Refresh active or superseded document state after replacement or reprocessing events
+- [x] Keep the UI limited to preview and replacement without exposing downstream consolidation internals
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

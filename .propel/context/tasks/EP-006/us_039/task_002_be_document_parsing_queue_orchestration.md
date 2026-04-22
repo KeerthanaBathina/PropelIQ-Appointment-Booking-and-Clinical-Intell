@@ -136,10 +136,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Enqueue successful uploads into Redis and transition `ClinicalDocument` status from `uploaded` to `queued`
-- [ ] Preserve FIFO dispatch behavior under high queue depth
-- [ ] Enforce the default concurrency cap of 5 active parsing jobs through configuration
-- [ ] Fall back to synchronous parsing with warning telemetry when Redis is unavailable
-- [ ] Retry transient parsing failures up to 3 times with exponential backoff
-- [ ] Mark terminal failures consistently after the final retry attempt
-- [ ] Keep queue orchestration reusable and separate from parser-model specifics
+- [x] Enqueue successful uploads into Redis and transition `ClinicalDocument` status from `uploaded` to `queued`
+- [x] Preserve FIFO dispatch behavior under high queue depth
+- [x] Enforce the default concurrency cap of 5 active parsing jobs through configuration
+- [x] Fall back to synchronous parsing with warning telemetry when Redis is unavailable
+- [x] Retry transient parsing failures up to 3 times with exponential backoff
+- [x] Mark terminal failures consistently after the final retry attempt
+- [x] Keep queue orchestration reusable and separate from parser-model specifics

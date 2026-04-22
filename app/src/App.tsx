@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import AppRoutes from '@/router';
 import { SessionTimeoutProvider } from '@/context/SessionTimeoutProvider';
 import RoleThemeProvider from '@/theme/RoleThemeProvider';
+import { ToastProvider } from '@/components/common/ToastProvider';
 
 // 5-minute stale time for healthcare data per NFR-030
 const queryClient = new QueryClient({
@@ -24,7 +25,10 @@ function App() {
           <CssBaseline />
           {/* SessionTimeoutProvider activates only when accessToken is present (UXR-603) */}
           <SessionTimeoutProvider>
-            <AppRoutes />
+            {/* ToastProvider supplies showToast() for upload feedback (US_038 UXR-505) */}
+            <ToastProvider>
+              <AppRoutes />
+            </ToastProvider>
           </SessionTimeoutProvider>
         </RoleThemeProvider>
       </BrowserRouter>

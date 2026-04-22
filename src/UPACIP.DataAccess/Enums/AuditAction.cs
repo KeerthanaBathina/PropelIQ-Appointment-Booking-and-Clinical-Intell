@@ -53,4 +53,10 @@ public enum AuditAction
     WalkInUrgentEscalation,
     /// <summary>Patient rescheduled an existing appointment to a new slot (US_023 AC-1, AC-4).</summary>
     AppointmentRescheduled,
+    /// <summary>Staff uploaded a clinical document with AES-256 encryption at rest (US_038 AC-2, AC-4).</summary>
+    DocumentUploaded,
+    /// <summary>Staff verified or corrected a single extracted clinical data row (US_041 AC-4).</summary>
+    ExtractedDataVerified,
+    /// <summary>Staff bulk-verified multiple extracted data rows in one operation (US_041 EC-2).</summary>
+    ExtractedDataBulkVerified,
 }

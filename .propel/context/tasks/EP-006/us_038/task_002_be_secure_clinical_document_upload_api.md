@@ -139,10 +139,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Expose a staff-only multipart upload endpoint for clinical documents
-- [ ] Enforce server-side file type and 10MB size validation regardless of client behavior
-- [ ] Encrypt accepted file payloads with AES-256 before durable storage
-- [ ] Persist ClinicalDocument category, original filename, upload timestamp, uploader user, and `uploaded` status
-- [ ] Remove partial files and avoid orphaned ClinicalDocument rows when upload, encryption, or persistence fails
-- [ ] Return the metadata needed by SCR-012 to show uploaded attribution immediately after success
-- [ ] Keep AI queueing and later processing-status transitions out of this story scope
+- [x] Expose a staff-only multipart upload endpoint for clinical documents
+- [x] Enforce server-side file type and 10MB size validation regardless of client behavior
+- [x] Encrypt accepted file payloads with AES-256 before durable storage
+- [x] Persist ClinicalDocument category, original filename, upload timestamp, uploader user, and `uploaded` status
+- [x] Remove partial files and avoid orphaned ClinicalDocument rows when upload, encryption, or persistence fails
+- [x] Return the metadata needed by SCR-012 to show uploaded attribution immediately after success
+- [x] Keep AI queueing and later processing-status transitions out of this story scope

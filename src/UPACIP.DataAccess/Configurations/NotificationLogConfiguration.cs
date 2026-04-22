@@ -26,13 +26,41 @@ public sealed class NotificationLogConfiguration : IEntityTypeConfiguration<Noti
 
         builder.Property(n => n.Status)
             .HasConversion<string>()
-            .HasMaxLength(10)
+            .HasMaxLength(25)
             .IsRequired();
 
         builder.Property(n => n.SentAt).IsRequired(false);
 
+        // New columns added in US_037 task_002 — nullable for backward compatibility
+        builder.Property(n => n.RecipientAddress)
+            .HasMaxLength(320)
+            .IsRequired(false);
+
+        builder.Property(n => n.FinalAttemptAt)
+            .IsRequired(false);
+
+        builder.Property(n => n.IsStaffReviewRequired)
+            .IsRequired()
+            .HasDefaultValue(false);
+
+        builder.Property(n => n.IsContactValidationRequired)
+            .IsRequired()
+            .HasDefaultValue(false);
+
         builder.HasIndex(n => n.AppointmentId)
             .HasDatabaseName("ix_notification_logs_appointment_id");
+
+        // Admin queries: filter by final status (permanently_failed, failed, sent)
+        builder.HasIndex(n => n.Status)
+            .HasDatabaseName("ix_notification_logs_status");
+
+        // Staff-review queue: efficiently surface all rows awaiting follow-up
+        builder.HasIndex(n => n.IsStaffReviewRequired)
+            .HasDatabaseName("ix_notification_logs_staff_review_required");
+
+        // Time-range analytics and ordered buffer flushing (EC-1)
+        builder.HasIndex(n => n.CreatedAt)
+            .HasDatabaseName("ix_notification_logs_created_at");
 
         // The inverse side is configured in AppointmentConfiguration.
         builder.HasOne(n => n.Appointment)

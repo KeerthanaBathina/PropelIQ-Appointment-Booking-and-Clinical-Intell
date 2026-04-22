@@ -134,10 +134,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Expose secure staff-only preview endpoints for parsed clinical documents
-- [ ] Return region overlays using stored page number and extraction-region metadata where available
-- [ ] Return inline text annotations when region highlighting is not supported
-- [ ] Include extracted values and confidence scores in preview annotation payloads for tooltip rendering
-- [ ] Restrict preview annotations to the active document version and non-archived extracted rows
-- [ ] Prevent raw storage paths or encryption keys from being exposed in preview responses
-- [ ] Keep preview-read behavior separate from replacement-upload orchestration
+- [x] Expose secure staff-only preview endpoints for parsed clinical documents
+- [x] Return region overlays using stored page number and extraction-region metadata where available
+- [x] Return inline text annotations when region highlighting is not supported
+- [x] Include extracted values and confidence scores in preview annotation payloads for tooltip rendering
+- [x] Restrict preview annotations to the active document version and non-archived extracted rows
+- [x] Prevent raw storage paths or encryption keys from being exposed in preview responses
+- [x] Keep preview-read behavior separate from replacement-upload orchestration

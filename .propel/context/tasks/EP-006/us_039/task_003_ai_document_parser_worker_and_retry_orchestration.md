@@ -151,13 +151,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create the worker that moves documents into `parsing` and processes them through the AI Gateway
-- [ ] Add versioned prompt templates and guardrails for clinical document parsing
-- [ ] Enforce PII redaction and the 4K input or 1K output token budget before external model calls
-- [ ] Route provider failures through configured fallback behavior and retry scheduling
-- [ ] Log each parsing failure attempt without leaking PHI
-- [ ] Mark successful jobs `parsed` and emit a result envelope usable by downstream review flows
-- [ ] Mark terminal failures `failed` and return a manual-review fallback outcome after the last retry
+- [x] Create the worker that moves documents into `parsing` and processes them through the AI Gateway
+- [x] Add versioned prompt templates and guardrails for clinical document parsing
+- [x] Enforce PII redaction and the 4K input or 1K output token budget before external model calls
+- [x] Route provider failures through configured fallback behavior and retry scheduling
+- [x] Log each parsing failure attempt without leaking PHI
+- [x] Mark successful jobs `parsed` and emit a result envelope usable by downstream review flows
+- [x] Mark terminal failures `failed` and return a manual-review fallback outcome after the last retry
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational)

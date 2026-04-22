@@ -6,6 +6,7 @@ using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Auth;
+using UPACIP.Service.Notifications;
 
 namespace UPACIP.Service.Appointments;
 
@@ -24,26 +25,33 @@ namespace UPACIP.Service.Appointments;
 /// </summary>
 public sealed class WaitlistService : IWaitlistService
 {
-    private static readonly TimeSpan ClaimHoldTtl = TimeSpan.FromSeconds(60); // AC-3
+    /// <summary>Slot-hold TTL — how long the patient has to complete booking after claiming (AC-3, US_018).</summary>
+    private static readonly TimeSpan ClaimHoldTtl     = TimeSpan.FromSeconds(60);
 
-    private readonly ApplicationDbContext         _db;
-    private readonly IEmailService                _emailService;
-    private readonly ISlotHoldService             _holdService;
-    private readonly IConfiguration               _configuration;
-    private readonly ILogger<WaitlistService>     _logger;
+    /// <summary>Offer TTL — how long the patient has to claim the offer before the next candidate is advanced (AC-4).</summary>
+    private static readonly TimeSpan OfferExpiryWindow = TimeSpan.FromHours(24);
+
+    private readonly ApplicationDbContext                     _db;
+    private readonly IEmailService                            _emailService;
+    private readonly IWaitlistOfferNotificationService        _offerNotificationService;
+    private readonly ISlotHoldService                         _holdService;
+    private readonly IConfiguration                           _configuration;
+    private readonly ILogger<WaitlistService>                 _logger;
 
     public WaitlistService(
-        ApplicationDbContext         db,
-        IEmailService                emailService,
-        ISlotHoldService             holdService,
-        IConfiguration               configuration,
-        ILogger<WaitlistService>     logger)
+        ApplicationDbContext                     db,
+        IEmailService                            emailService,
+        IWaitlistOfferNotificationService        offerNotificationService,
+        ISlotHoldService                         holdService,
+        IConfiguration                           configuration,
+        ILogger<WaitlistService>                 logger)
     {
-        _db            = db;
-        _emailService  = emailService;
-        _holdService   = holdService;
-        _configuration = configuration;
-        _logger        = logger;
+        _db                       = db;
+        _emailService             = emailService;
+        _offerNotificationService = offerNotificationService;
+        _holdService              = holdService;
+        _configuration            = configuration;
+        _logger                   = logger;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -250,7 +258,9 @@ public sealed class WaitlistService : IWaitlistService
 
         var providerGuid = Guid.TryParse(openedSlot.ProviderId, out var pg) ? pg : (Guid?)null;
 
-        // Find all Active entries where criteria match (AC-4 — notify all, first-confirm-wins)
+        // Select Active candidates in FIFO order (AC-3 — registration time ascending).
+        // Only one candidate is notified at a time; if they have invalid contact details
+        // the offer is skipped and the next candidate in order is tried (EC-1).
         var candidates = await _db.WaitlistEntries
             .Include(w => w.Patient)
             .Where(w =>
@@ -260,6 +270,7 @@ public sealed class WaitlistService : IWaitlistService
                 slotStart <  w.PreferredEndTime            &&
                 w.AppointmentType == openedSlot.AppointmentType &&
                 (w.PreferredProviderId == null || w.PreferredProviderId == providerGuid))
+            .OrderBy(w => w.CreatedAt)  // FIFO: oldest registration first (AC-3)
             .ToListAsync(cancellationToken);
 
         if (candidates.Count == 0)
@@ -281,14 +292,122 @@ public sealed class WaitlistService : IWaitlistService
         var appointmentDetails = $"{slotDate:MMMM d, yyyy} at {slotStart:h:mm tt} with {openedSlot.ProviderName}";
 
         _logger.LogInformation(
-            "Dispatching waitlist offers for slot {SlotId} to {Count} candidate(s).",
-            openedSlot.SlotId, candidates.Count);
+            "DispatchOffersForSlotAsync: {Count} FIFO candidate(s) for slot {SlotId}.",
+            candidates.Count, openedSlot.SlotId);
 
+        // Advance through candidates in FIFO order until one successfully receives the offer
+        // or all are exhausted (EC-1: skip invalid-contact patients).
         foreach (var entry in candidates)
         {
-            await DispatchSingleOfferAsync(
+            var dispatched = await DispatchSingleOfferAsync(
                 entry, openedSlot, now, isWithin24Hrs,
                 frontendBase, appointmentDetails, cancellationToken);
+
+            if (dispatched)
+                return; // Offer sent to one candidate — first-confirm-wins (EC-2)
+
+            // Invalid contact — continue to next candidate in FIFO order (EC-1)
+        }
+
+        _logger.LogWarning(
+            "DispatchOffersForSlotAsync: all {Count} candidate(s) for slot {SlotId} had invalid contact details.",
+            candidates.Count, openedSlot.SlotId);
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // AdvanceExpiredOffersAsync
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <inheritdoc/>
+    public async Task AdvanceExpiredOffersAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var now = DateTime.UtcNow;
+
+            // Find all Offered entries whose 24-hour window has elapsed (AC-4)
+            var expiredEntries = await _db.WaitlistEntries
+                .Include(w => w.Patient)
+                .Where(w =>
+                    w.Status == WaitlistStatus.Offered &&
+                    w.ClaimExpiresAtUtc != null        &&
+                    w.ClaimExpiresAtUtc < now)
+                .ToListAsync(cancellationToken);
+
+            if (expiredEntries.Count == 0)
+                return;
+
+            _logger.LogInformation(
+                "AdvanceExpiredOffersAsync: {Count} expired offer(s) to advance.",
+                expiredEntries.Count);
+
+            foreach (var entry in expiredEntries)
+            {
+                // Mark this entry as expired
+                entry.Status    = WaitlistStatus.Expired;
+                entry.UpdatedAt = now;
+
+                _db.AuditLogs.Add(new AuditLog
+                {
+                    UserId       = null,
+                    Action       = AuditAction.WaitlistOfferDispatched, // reuse closest action for expiry
+                    ResourceType = "WaitlistEntry",
+                    ResourceId   = entry.Id,
+                    Timestamp    = now,
+                    IpAddress    = string.Empty,
+                    UserAgent    = string.Empty,
+                });
+
+                await _db.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation(
+                    "AdvanceExpiredOffersAsync: entry {EntryId} expired (slot {SlotId}). Advancing to next candidate.",
+                    entry.Id, entry.OfferedSlotId);
+
+                // Re-dispatch to the next FIFO candidate for the same slot criteria
+                if (entry.OfferedSlotId is not null &&
+                    entry.PreferredProviderId.HasValue)
+                {
+                    // Reconstruct a minimal SlotItem from stored entry data
+                    var providerId   = entry.PreferredProviderId.Value;
+                    var providerName = await _db.Users
+                        .Where(u => u.Id == providerId)
+                        .Select(u => u.FullName)
+                        .FirstOrDefaultAsync(cancellationToken)
+                        ?? "your selected provider";
+
+                    var slot = new SlotItem(
+                        SlotId:          entry.OfferedSlotId,
+                        Date:            entry.PreferredDate.ToString("yyyy-MM-dd"),
+                        StartTime:       entry.PreferredStartTime.ToString("HH:mm"),
+                        EndTime:         entry.PreferredEndTime.ToString("HH:mm"),
+                        ProviderName:    providerName,
+                        ProviderId:      entry.PreferredProviderId?.ToString("N") ?? string.Empty,
+                        AppointmentType: entry.AppointmentType,
+                        Available:       true);
+
+                    await DispatchOffersForSlotAsync(slot, cancellationToken);
+                }
+                else if (entry.OfferedSlotId is not null)
+                {
+                    // Any-provider entry — reconstruct slot without provider constraint
+                    var slot = new SlotItem(
+                        SlotId:          entry.OfferedSlotId,
+                        Date:            entry.PreferredDate.ToString("yyyy-MM-dd"),
+                        StartTime:       entry.PreferredStartTime.ToString("HH:mm"),
+                        EndTime:         entry.PreferredEndTime.ToString("HH:mm"),
+                        ProviderName:    string.Empty,
+                        ProviderId:      string.Empty,
+                        AppointmentType: entry.AppointmentType,
+                        Available:       true);
+
+                    await DispatchOffersForSlotAsync(slot, cancellationToken);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "AdvanceExpiredOffersAsync: unhandled error during expiry advancement.");
         }
     }
 
@@ -338,7 +457,13 @@ public sealed class WaitlistService : IWaitlistService
     // Private helpers
     // ─────────────────────────────────────────────────────────────────────────
 
-    private async Task DispatchSingleOfferAsync(
+    /// <summary>
+    /// Dispatches a waitlist offer to a single candidate.
+    /// Returns <c>true</c> when at least one channel succeeded (email or SMS),
+    /// or when the contact is valid but opted-out of SMS (we still offered via email).
+    /// Returns <c>false</c> when both channels confirmed the contact is permanently invalid (EC-1).
+    /// </summary>
+    private async Task<bool> DispatchSingleOfferAsync(
         WaitlistEntry     entry,
         SlotItem          slot,
         DateTime          now,
@@ -348,14 +473,14 @@ public sealed class WaitlistService : IWaitlistService
         CancellationToken cancellationToken)
     {
         // Generate a cryptographically secure claim token (OWASP A07, NFR-013)
-        var tokenBytes  = RandomNumberGenerator.GetBytes(48);
-        var claimToken  = Convert.ToBase64String(tokenBytes)
+        var tokenBytes = RandomNumberGenerator.GetBytes(48);
+        var claimToken = Convert.ToBase64String(tokenBytes)
             .Replace('+', '-').Replace('/', '_').TrimEnd('='); // URL-safe Base64
 
         entry.ClaimToken        = claimToken;
         entry.OfferedSlotId     = slot.SlotId;
         entry.OfferedAtUtc      = now;
-        entry.ClaimExpiresAtUtc = now.Add(ClaimHoldTtl);
+        entry.ClaimExpiresAtUtc = now.Add(OfferExpiryWindow); // 24-hour offer window (AC-4)
         entry.LastNotifiedAtUtc = now;
         entry.Status            = WaitlistStatus.Offered;
         entry.UpdatedAt         = now;
@@ -375,23 +500,51 @@ public sealed class WaitlistService : IWaitlistService
 
         await _db.SaveChangesAsync(cancellationToken);
 
-        // Dispatch email (failures are caught per-patient so one bad address doesn't halt the batch)
-        try
+        // Dispatch via the notification service (email + SMS with opt-out respect)
+        var request = new WaitlistOfferNotificationRequest(
+            WaitlistEntryId:    entry.Id,
+            PatientId:          entry.PatientId,
+            PatientEmail:       entry.Patient.Email,
+            PatientPhoneNumber: entry.Patient.PhoneNumber ?? string.Empty,
+            PatientFullName:    entry.Patient.FullName,
+            SlotId:             slot.SlotId,
+            AppointmentDetails: appointmentDetails,
+            AppointmentTimeUtc: new DateTime(
+                entry.PreferredDate.Year, entry.PreferredDate.Month, entry.PreferredDate.Day,
+                entry.PreferredStartTime.Hour, entry.PreferredStartTime.Minute, 0, DateTimeKind.Utc),
+            ProviderName:       slot.ProviderName,
+            AppointmentType:    entry.AppointmentType,
+            ClaimLink:          claimLink,
+            IsWithin24Hours:    isWithin24Hours);
+
+        var result = await _offerNotificationService.SendOfferAsync(request, cancellationToken);
+
+        if (result.IsInvalidContact)
         {
-            await _emailService.SendWaitlistOfferEmailAsync(
-                entry.Patient.Email,
-                entry.Patient.FullName,
-                claimLink,
-                appointmentDetails,
-                isWithin24Hours,
-                cancellationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex,
-                "Failed to send waitlist offer email for entryId={EntryId}. Offer token persisted.",
+            // Revert the offer state — this candidate cannot be reached (EC-1)
+            entry.Status            = WaitlistStatus.Active;
+            entry.ClaimToken        = null;
+            entry.OfferedSlotId     = null;
+            entry.OfferedAtUtc      = null;
+            entry.ClaimExpiresAtUtc = null;
+            entry.LastNotifiedAtUtc = null;
+            entry.UpdatedAt         = DateTime.UtcNow;
+            await _db.SaveChangesAsync(cancellationToken);
+
+            _logger.LogWarning(
+                "Waitlist offer skipped for entry {EntryId} — invalid contact details. " +
+                "Advancing to next FIFO candidate.",
                 entry.Id);
+
+            return false; // Advance to next candidate
         }
+
+        _logger.LogInformation(
+            "Waitlist offer dispatched: entryId={EntryId}, slotId={SlotId}, " +
+            "emailSent={EmailSent}, smsSent={SmsSent}.",
+            entry.Id, slot.SlotId, result.EmailSent, result.SmsSent);
+
+        return true;
     }
 
     private ClaimWaitlistOfferResult BuildClaimResponse(

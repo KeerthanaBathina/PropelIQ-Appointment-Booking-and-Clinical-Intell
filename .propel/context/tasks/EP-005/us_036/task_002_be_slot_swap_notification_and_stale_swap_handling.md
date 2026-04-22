@@ -137,9 +137,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Send slot-swap notifications that list old and new appointment times after successful swaps
-- [ ] Reuse existing email and SMS integrations without duplicating provider-specific logic
-- [ ] Skip stale swap candidates that have since been cancelled and release the slot back to availability
-- [ ] Log stale-swap skip events for audit and troubleshooting
-- [ ] Record invalid-contact or delivery-failure outcomes without rolling back an already-completed swap
-- [ ] Persist per-channel slot-swap notification outcomes in `NotificationLog`
+- [x] Send slot-swap notifications that list old and new appointment times after successful swaps
+- [x] Reuse existing email and SMS integrations without duplicating provider-specific logic
+- [x] Skip stale swap candidates that have since been cancelled and release the slot back to availability
+- [x] Log stale-swap skip events for audit and troubleshooting
+- [x] Record invalid-contact or delivery-failure outcomes without rolling back an already-completed swap
+- [x] Persist per-channel slot-swap notification outcomes in `NotificationLog`

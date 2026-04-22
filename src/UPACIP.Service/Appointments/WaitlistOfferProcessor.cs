@@ -33,6 +33,8 @@ public interface IWaitlistOfferQueue
 ///   - Uses <see cref="IServiceScopeFactory"/> to resolve the scoped
 ///     <see cref="IWaitlistService"/> per item — this matches the scoped EF DbContext lifecycle.
 ///   - Graceful shutdown: the loop honours the <see cref="CancellationToken"/> passed by the host.
+///   - Expiry advancement (US_036 AC-4): a secondary <see cref="PeriodicTimer"/> runs every
+///     5 minutes to advance past-due 24-hour offers to the next FIFO waitlist candidate.
 /// </summary>
 public sealed class WaitlistOfferProcessor : BackgroundService, IWaitlistOfferQueue
 {
@@ -76,12 +78,28 @@ public sealed class WaitlistOfferProcessor : BackgroundService, IWaitlistOfferQu
     // ─────────────────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Long-running loop that dequeues slots and processes each one inside a fresh DI scope.
+    /// Long-running loop that drains the slot channel while a parallel expiry timer
+    /// advances past-due offers to the next FIFO waitlist candidate (US_036 AC-4).
     /// </summary>
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         _logger.LogInformation("WaitlistOfferProcessor started.");
 
+        // Run the channel drain and the expiry timer concurrently.
+        // Both stop when the host signals the stopping token.
+        await Task.WhenAll(
+            DrainChannelAsync(stoppingToken),
+            RunExpiryTimerAsync(stoppingToken));
+
+        _logger.LogInformation("WaitlistOfferProcessor stopped.");
+    }
+
+    /// <summary>
+    /// Continuously reads freed-slot events from the bounded channel and dispatches
+    /// the next FIFO offer for each slot.
+    /// </summary>
+    private async Task DrainChannelAsync(CancellationToken stoppingToken)
+    {
         try
         {
             await foreach (var slot in _channel.Reader.ReadAllAsync(stoppingToken))
@@ -93,8 +111,44 @@ public sealed class WaitlistOfferProcessor : BackgroundService, IWaitlistOfferQu
         {
             // Expected on host shutdown — do not rethrow
         }
+    }
 
-        _logger.LogInformation("WaitlistOfferProcessor stopped.");
+    /// <summary>
+    /// Fires every 5 minutes to expire unclaimed 24-hour offers and advance to the
+    /// next FIFO waitlist candidate (US_036 AC-4, EC-2).
+    /// </summary>
+    private async Task RunExpiryTimerAsync(CancellationToken stoppingToken)
+    {
+        using var timer = new PeriodicTimer(TimeSpan.FromMinutes(5));
+        try
+        {
+            while (await timer.WaitForNextTickAsync(stoppingToken))
+            {
+                await AdvanceExpiredOffersAsync(stoppingToken);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected on host shutdown
+        }
+    }
+
+    /// <summary>
+    /// Invokes <see cref="IWaitlistService.AdvanceExpiredOffersAsync"/> inside a fresh
+    /// DI scope so it has access to a scoped <see cref="ApplicationDbContext"/>.
+    /// </summary>
+    private async Task AdvanceExpiredOffersAsync(CancellationToken stoppingToken)
+    {
+        try
+        {
+            using var scope          = _scopeFactory.CreateScope();
+            var waitlistService      = scope.ServiceProvider.GetRequiredService<IWaitlistService>();
+            await waitlistService.AdvanceExpiredOffersAsync(stoppingToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "WaitlistOfferProcessor: unhandled error during expiry advancement.");
+        }
     }
 
     /// <summary>

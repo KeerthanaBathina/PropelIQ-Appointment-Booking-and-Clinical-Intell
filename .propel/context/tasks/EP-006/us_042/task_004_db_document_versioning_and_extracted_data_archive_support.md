@@ -129,9 +129,9 @@ src/
 
 ## Implementation Checklist
 
-- [ ] Add document version-lineage fields that allow replacements to coexist with the current active version during processing
-- [ ] Add extracted-data archive fields so superseded rows are retained instead of deleted
-- [ ] Support document lifecycle distinctions for active, superseded, and replacement-processing versions
-- [ ] Add indexes that make active-version and non-archived extracted-data queries efficient
-- [ ] Default existing rows to active current-version and non-archived states during migration
-- [ ] Persist a reconsolidation-needed hook without implementing EP-007 consolidation tables in this story
+- [x] Add document version-lineage fields that allow replacements to coexist with the current active version during processing
+- [x] Add extracted-data archive fields so superseded rows are retained instead of deleted
+- [x] Support document lifecycle distinctions for active, superseded, and replacement-processing versions
+- [x] Add indexes that make active-version and non-archived extracted-data queries efficient
+- [x] Default existing rows to active current-version and non-archived states during migration
+- [x] Persist a reconsolidation-needed hook without implementing EP-007 consolidation tables in this story

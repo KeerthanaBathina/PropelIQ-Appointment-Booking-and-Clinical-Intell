@@ -1,0 +1,57 @@
+{
+  "version": "1.1",
+  "description": "AI guardrails for clinical data extraction (US_040, US_041, AIR-002, AIR-S01, AIR-O01, AIR-O08).",
+  "TokenBudget": {
+    "MaxInputTokens": 4096,
+    "MaxOutputTokens": 2048,
+    "MaxDocumentContentChars": 12000,
+    "MaxSystemPromptChars": 3000
+  },
+  "ConfidenceThreshold": 0.80,
+  "PerItemConfidence": {
+    "Required": true,
+    "AllowNull": true,
+    "NullMeaning": "confidence-unavailable",
+    "NullDefaultScore": 0.00,
+    "NullOutcome": "flagged-for-mandatory-review",
+    "BoundsMin": 0.00,
+    "BoundsMax": 1.00,
+    "ClampOutOfRange": true
+  },
+  "LanguageGate": {
+    "SupportedLanguages": ["en"],
+    "MinEnglishCharRatio": 0.60,
+    "UnsupportedLanguageOutcome": "unsupported-language"
+  },
+  "NoDataOutcome": "no-data-extracted",
+  "CircuitBreaker": {
+    "FailuresBeforeOpen": 3,
+    "BreakDurationSeconds": 30
+  },
+  "MaxRetryAttempts": 3,
+  "PiiRedaction": {
+    "Patterns": [
+      "\\b\\d{3}-\\d{2}-\\d{4}\\b",
+      "\\b\\d{9}\\b"
+    ],
+    "RedactionToken": "[REDACTED]"
+  },
+  "InjectionKeywords": [
+    "ignore previous instructions",
+    "disregard above",
+    "system prompt",
+    "jailbreak",
+    "act as",
+    "you are now",
+    "</system>",
+    "<|im_end|>",
+    "DAN mode",
+    "developer mode",
+    "bypass guardrails",
+    "override safety"
+  ],
+  "Attribution": {
+    "RequirePageNumber": true,
+    "RequireExtractionRegion": true
+  }
+}

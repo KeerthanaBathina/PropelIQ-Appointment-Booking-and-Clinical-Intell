@@ -146,12 +146,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Display `queued`, `parsing`, `parsed`, and `failed` states distinctly from file-upload progress on SCR-012
-- [ ] Show toasts when parsing begins, completes, or permanently fails
-- [ ] Include a review-results link when parsing succeeds
-- [ ] Include a manual-review action when parsing fails after all retries
-- [ ] Warn staff when Redis fallback causes slower synchronous parsing
-- [ ] Announce parsing-state changes accessibly for dynamic updates on the screen
-- [ ] Keep the status UI and notifications aligned to the SCR-012 wireframe and error-state guidance
+- [x] Display `queued`, `parsing`, `parsed`, and `failed` states distinctly from file-upload progress on SCR-012
+- [x] Show toasts when parsing begins, completes, or permanently fails
+- [x] Include a review-results link when parsing succeeds
+- [x] Include a manual-review action when parsing fails after all retries
+- [x] Warn staff when Redis fallback causes slower synchronous parsing
+- [x] Announce parsing-state changes accessibly for dynamic updates on the screen
+- [x] Keep the status UI and notifications aligned to the SCR-012 wireframe and error-state guidance
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

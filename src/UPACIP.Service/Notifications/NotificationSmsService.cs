@@ -37,21 +37,24 @@ namespace UPACIP.Service.Notifications;
 /// </summary>
 public sealed class NotificationSmsService : INotificationSmsService
 {
-    private readonly ApplicationDbContext            _db;
-    private readonly ISmsTransport                   _transport;
-    private readonly ClinicSettings                  _clinicSettings;
-    private readonly ILogger<NotificationSmsService> _logger;
+    private readonly ApplicationDbContext                        _db;
+    private readonly ISmsTransport                               _transport;
+    private readonly ClinicSettings                              _clinicSettings;
+    private readonly INotificationDeliveryReliabilityService     _reliabilityService;
+    private readonly ILogger<NotificationSmsService>             _logger;
 
     public NotificationSmsService(
-        ApplicationDbContext             db,
-        ISmsTransport                    transport,
-        ClinicSettings                   clinicSettings,
-        ILogger<NotificationSmsService> logger)
+        ApplicationDbContext                         db,
+        ISmsTransport                               transport,
+        ClinicSettings                              clinicSettings,
+        INotificationDeliveryReliabilityService     reliabilityService,
+        ILogger<NotificationSmsService>             logger)
     {
-        _db             = db;
-        _transport      = transport;
-        _clinicSettings = clinicSettings;
-        _logger         = logger;
+        _db                 = db;
+        _transport          = transport;
+        _clinicSettings     = clinicSettings;
+        _reliabilityService = reliabilityService;
+        _logger             = logger;
     }
 
     /// <inheritdoc/>
@@ -124,16 +127,21 @@ public sealed class NotificationSmsService : INotificationSmsService
                 IsInvalidNumber: false, AttemptsMade: 0);
         }
 
-        // ── 5. Map transport outcome to persistence status (AC-4) ─────────────
-        var retryCount           = Math.Max(0, deliveryResult.AttemptsMade - 1);
-        var (logStatus, sentAt)  = deliveryResult.Outcome switch
-        {
-            SmsDeliveryOutcome.Sent => (NotificationStatus.Sent, (DateTime?)DateTime.UtcNow),
-            _                      => (NotificationStatus.Failed, (DateTime?)null),
-        };
+        // ── 5. Build result ────────────────────────────────────────────────────
+        var smsResult = new NotificationSmsResult(
+            Succeeded:         deliveryResult.IsSuccess,
+            IsOptedOut:        false,
+            IsGatewayDisabled: false,
+            IsInvalidNumber:   deliveryResult.IsInvalidNumber,
+            AttemptsMade:      deliveryResult.AttemptsMade,
+            TwilioMessageSid:  deliveryResult.TwilioMessageSid);
 
-        // ── 6. Persist outcome to NotificationLog ─────────────────────────────
-        await PersistLogAsync(request, logStatus, retryCount, sentAt, cancellationToken);
+        // ── 6. Delegate outcome to reliability orchestration (US_037 AC-1/AC-2/AC-3) ─
+        // Reliability service writes the NotificationLog via BufferedNotificationLogWriter
+        // and schedules retries or marks the notification permanently_failed on exhaustion.
+        // Gateway-disabled and invalid-number outcomes are flagged as non-retryable inside
+        // the reliability service via IsGatewayDisabled / IsInvalidNumber on the result.
+        await _reliabilityService.HandleSmsOutcomeAsync(request, smsResult, cancellationToken);
 
         // ── 7. Structured diagnostics ─────────────────────────────────────────
         if (deliveryResult.IsSuccess)
@@ -164,13 +172,7 @@ public sealed class NotificationSmsService : INotificationSmsService
                 request.CorrelationId ?? "N/A");
         }
 
-        return new NotificationSmsResult(
-            Succeeded:        deliveryResult.IsSuccess,
-            IsOptedOut:       false,
-            IsGatewayDisabled: false,
-            IsInvalidNumber:  deliveryResult.IsInvalidNumber,
-            AttemptsMade:     deliveryResult.AttemptsMade,
-            TwilioMessageSid: deliveryResult.TwilioMessageSid);
+        return smsResult;
     }
 
     // -------------------------------------------------------------------------
