@@ -126,6 +126,51 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("asp_net_user_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AgreementRateMetric", b =>
+                {
+                    b.Property<Guid>("MetricId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("CalculationDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("CodesApprovedWithoutOverride")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CodesOverridden")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("CodesPartiallyOverridden")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<decimal>("DailyAgreementRate")
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<bool>("MeetsMinimumThreshold")
+                        .HasColumnType("boolean");
+
+                    b.Property<decimal?>("Rolling30DayRate")
+                        .HasColumnType("numeric(5,4)");
+
+                    b.Property<int>("TotalCodesVerified")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("MetricId");
+
+                    b.HasIndex("CalculationDate")
+                        .IsUnique()
+                        .HasDatabaseName("ix_agreement_rate_metrics_calculation_date");
+
+                    b.ToTable("agreement_rate_metrics", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ApplicationRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -435,6 +480,64 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.BundlingEdit", b =>
+                {
+                    b.Property<Guid>("EditId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AllowedModifiers")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("[]");
+
+                    b.Property<string>("Column1Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("Column2Code")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("EditType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ExpirationDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("ModifierAllowed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Source")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("NCCI");
+
+                    b.HasKey("EditId");
+
+                    b.HasIndex("Column1Code", "Column2Code")
+                        .IsUnique()
+                        .HasDatabaseName("uq_bundling_edits_column1_column2");
+
+                    b.ToTable("bundling_edits", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalConflict", b =>
                 {
                     b.Property<Guid>("Id")
@@ -682,6 +785,249 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("clinical_documents", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CodeModifier", b =>
+                {
+                    b.Property<Guid>("ModifierId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ApplicableCodeTypes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)")
+                        .HasDefaultValue("[\"cpt\"]");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("DocumentationRequired")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ModifierCode")
+                        .IsRequired()
+                        .HasMaxLength(5)
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<string>("ModifierDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.HasKey("ModifierId");
+
+                    b.HasIndex("ModifierCode")
+                        .IsUnique()
+                        .HasDatabaseName("uq_code_modifiers_modifier_code");
+
+                    b.ToTable("code_modifiers", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CodingAuditLog", b =>
+                {
+                    b.Property<Guid>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(25)
+                        .HasColumnType("character varying(25)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Justification")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("MedicalCodeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("NewCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("OldCodeValue")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTimeOffset>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("LogId");
+
+                    b.HasIndex("MedicalCodeId")
+                        .HasDatabaseName("ix_coding_audit_log_medical_code_id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("PatientId", "Timestamp")
+                        .HasDatabaseName("ix_coding_audit_log_patient_id_timestamp");
+
+                    b.ToTable("coding_audit_log", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CodingDiscrepancy", b =>
+                {
+                    b.Property<Guid>("DiscrepancyId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AiSuggestedCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("CodeType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("DetectedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DiscrepancyType")
+                        .IsRequired()
+                        .HasMaxLength(16)
+                        .HasColumnType("character varying(16)");
+
+                    b.Property<Guid>("MedicalCodeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OverrideJustification")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("StaffSelectedCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("DiscrepancyId");
+
+                    b.HasIndex("MedicalCodeId")
+                        .HasDatabaseName("ix_coding_discrepancies_medical_code_id");
+
+                    b.HasIndex("PatientId", "DetectedAt")
+                        .HasDatabaseName("ix_coding_discrepancies_patient_id_detected_at");
+
+                    b.ToTable("coding_discrepancies", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CptBundleRule", b =>
+                {
+                    b.Property<Guid>("BundleRuleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BundleCptCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("BundleDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<string>("ComponentCptCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.HasKey("BundleRuleId");
+
+                    b.HasIndex("BundleCptCode")
+                        .HasDatabaseName("ix_cpt_bundle_rules_bundle_cpt_code");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_cpt_bundle_rules_is_active");
+
+                    b.HasIndex("BundleCptCode", "ComponentCptCode")
+                        .IsUnique()
+                        .HasDatabaseName("uq_cpt_bundle_rules_bundle_component");
+
+                    b.ToTable("cpt_bundle_rules", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CptCodeLibrary", b =>
+                {
+                    b.Property<Guid>("CptCodeId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("CptCode")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ExpirationDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("CptCodeId");
+
+                    b.HasIndex("CptCode")
+                        .IsUnique()
+                        .HasDatabaseName("uq_cpt_code_library_cpt_code");
+
+                    b.HasIndex("IsActive")
+                        .HasDatabaseName("ix_cpt_code_library_is_active");
+
+                    b.HasIndex("Category", "IsActive")
+                        .HasDatabaseName("ix_cpt_code_library_category_is_active");
+
+                    b.ToTable("cpt_code_library", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.DocumentParsingAttempt", b =>
                 {
                     b.Property<Guid>("AttemptId")
@@ -878,6 +1224,68 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("extracted_data", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.Icd10CodeLibrary", b =>
+                {
+                    b.Property<Guid>("LibraryEntryId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("CodeValue")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly?>("DeprecatedDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCurrent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("LibraryVersion")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("ReplacementCode")
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("LibraryEntryId");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("ix_icd10_code_library_category");
+
+                    b.HasIndex("CodeValue", "IsCurrent")
+                        .HasDatabaseName("ix_icd10_code_library_code_value_is_current");
+
+                    b.HasIndex("CodeValue", "LibraryVersion")
+                        .IsUnique()
+                        .HasDatabaseName("uq_icd10_code_library_code_version");
+
+                    b.ToTable("icd10_code_library", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.InsuranceValidationRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -1008,6 +1416,16 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<Guid?>("ApprovedByUserId")
                         .HasColumnType("uuid");
 
+                    b.Property<Guid?>("BundleGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("BundlingCheckResult")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasDefaultValue("NotChecked");
+
                     b.Property<string>("CodeType")
                         .IsRequired()
                         .HasMaxLength(10)
@@ -1026,13 +1444,54 @@ namespace UPACIP.DataAccess.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<bool>("IsBundled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsDeprecated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Justification")
                         .IsRequired()
                         .HasMaxLength(1000)
                         .HasColumnType("character varying(1000)");
 
+                    b.Property<string>("LibraryVersion")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("OriginalCodeValue")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("OverrideJustification")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
                     b.Property<Guid>("PatientId")
                         .HasColumnType("uuid");
+
+                    b.Property<string>("PayerValidationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasDefaultValue("NotValidated");
+
+                    b.Property<int?>("RelevanceRank")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RevalidationStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("SequenceOrder")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<bool>("SuggestedByAi")
                         .HasColumnType("boolean");
@@ -1040,9 +1499,27 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)")
+                        .HasDefaultValue("Pending");
+
+                    b.Property<DateTime?>("VerifiedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("VerifiedByUserId")
+                        .HasColumnType("uuid");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ApprovedByUserId");
+
+                    b.HasIndex("VerifiedByUserId");
+
+                    b.HasIndex("PatientId", "VerificationStatus")
+                        .HasDatabaseName("ix_medical_codes_patient_verification_status");
 
                     b.HasIndex("PatientId", "CodeType", "CodeValue")
                         .HasDatabaseName("ix_medical_codes_patient_codetype_codevalue");
@@ -1375,6 +1852,144 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("uq_patient_profile_versions_patient_version");
 
                     b.ToTable("patient_profile_versions", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PayerRule", b =>
+                {
+                    b.Property<Guid>("RuleId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CodeType")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("CorrectiveAction")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<string>("DenialReason")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateOnly>("EffectiveDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateOnly?>("ExpirationDate")
+                        .HasColumnType("date");
+
+                    b.Property<bool>("IsCmsDefault")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("PayerId")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("PayerName")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("PrimaryCode")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("RuleDescription")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("RuleType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<string>("SecondaryCode")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("RuleId");
+
+                    b.HasIndex("IsCmsDefault")
+                        .HasDatabaseName("ix_payer_rules_is_cms_default");
+
+                    b.HasIndex("PayerId", "PrimaryCode", "SecondaryCode")
+                        .HasDatabaseName("ix_payer_rules_payer_primary_secondary");
+
+                    b.ToTable("payer_rules", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PayerRuleViolation", b =>
+                {
+                    b.Property<Guid>("ViolationId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateOnly>("EncounterDate")
+                        .HasColumnType("date");
+
+                    b.Property<Guid>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ResolutionJustification")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<string>("ResolutionStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("ResolvedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("RuleId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Severity")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<string>("ViolatingCodes")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)")
+                        .HasDefaultValue("[]");
+
+                    b.HasKey("ViolationId");
+
+                    b.HasIndex("ResolvedByUserId");
+
+                    b.HasIndex("RuleId");
+
+                    b.HasIndex("PatientId", "EncounterDate")
+                        .HasDatabaseName("ix_payer_rule_violations_patient_encounter");
+
+                    b.ToTable("payer_rule_violations", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ProviderAvailabilityTemplate", b =>
@@ -2019,6 +2634,51 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("UploaderUser");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CodingAuditLog", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.MedicalCode", "MedicalCode")
+                        .WithMany("CodingAuditLogs")
+                        .HasForeignKey("MedicalCodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("MedicalCode");
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CodingDiscrepancy", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.MedicalCode", "MedicalCode")
+                        .WithMany()
+                        .HasForeignKey("MedicalCodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MedicalCode");
+
+                    b.Navigation("Patient");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.DocumentParsingAttempt", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.ClinicalDocument", "Document")
@@ -2421,9 +3081,16 @@ namespace UPACIP.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "VerifiedByUser")
+                        .WithMany()
+                        .HasForeignKey("VerifiedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.Navigation("ApprovedByUser");
 
                     b.Navigation("Patient");
+
+                    b.Navigation("VerifiedByUser");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.NotificationDeliveryAttempt", b =>
@@ -2482,6 +3149,32 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("VerifiedByUser");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.PayerRuleViolation", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "ResolvedByUser")
+                        .WithMany()
+                        .HasForeignKey("ResolvedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("UPACIP.DataAccess.Entities.PayerRule", "Rule")
+                        .WithMany()
+                        .HasForeignKey("RuleId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("ResolvedByUser");
+
+                    b.Navigation("Rule");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ProviderAvailabilityTemplate", b =>
@@ -2553,6 +3246,11 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("ParseAttempts");
 
                     b.Navigation("ReplacementVersions");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.MedicalCode", b =>
+                {
+                    b.Navigation("CodingAuditLogs");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.NotificationLog", b =>

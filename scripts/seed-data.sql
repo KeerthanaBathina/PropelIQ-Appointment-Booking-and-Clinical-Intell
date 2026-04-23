@@ -47,7 +47,13 @@ TRUNCATE TABLE
     intake_data,
     clinical_documents,
     appointments,
-    patients
+    patients,
+    cpt_bundle_rules,
+    cpt_code_library,
+    payer_rule_violations,
+    payer_rules,
+    bundling_edits,
+    code_modifiers
 RESTART IDENTITY CASCADE;
 
 -- Identity tables: delete seed rows by known UUIDs to preserve non-seed users.
@@ -678,6 +684,449 @@ INSERT INTO notification_logs (
 ('90000000-0000-0000-0000-000000000025','20000000-0000-0000-0000-000000000042','Confirmation','Sms','Sent',0,'2026-04-19 08:10:00+00','2026-04-19 08:10:00+00');
 
 -- ---------------------------------------------------------------------------
+-- SECTION 13 — CPT Code Library (62 records across 5 categories)
+-- ---------------------------------------------------------------------------
+-- Covers the most common procedure categories used in primary/specialty care:
+--   Evaluation & Management (E&M): 99201–99215 (new + established office visits)
+--   Preventive Medicine:           99381–99397 (annual wellness visits)
+--   Laboratory / Pathology:        80047–80076, 83036, 85025 (common lab panels)
+--   Radiology:                     70553, 71046, 72148, 73721, 74177 (common imaging)
+--   Surgery / Procedures:          10060, 10061, 10080, 10120, 20610, 36415 (minor surg)
+--   Medicine / Vaccines:           90471–90474, 90686, 90715 (vaccine admin + flu/Td)
+--   Anesthesia / Psychiatry:       99202–99205, 99212–99215 covered above
+--
+-- All rows use 'dev-2026.Q1' as library version for development purposes.
+-- Effective date 2025-01-01; no expiration (null) = currently active.
+-- Idempotent: ON CONFLICT (cpt_code) DO UPDATE so re-runs are safe.
+-- ---------------------------------------------------------------------------
+INSERT INTO cpt_code_library
+    ("CptCodeId", "CptCode", "Description", "Category", "EffectiveDate", "ExpirationDate", "IsActive", "CreatedAt", "UpdatedAt")
+VALUES
+-- ── Evaluation & Management — New Patient ───────────────────────────────────
+(gen_random_uuid(), '99201', 'Office or other outpatient visit, new patient — problem-focused', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99202', 'Office or other outpatient visit, new patient — straightforward MDM (or <30 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99203', 'Office or other outpatient visit, new patient — low MDM (or 30–44 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99204', 'Office or other outpatient visit, new patient — moderate MDM (or 45–59 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99205', 'Office or other outpatient visit, new patient — high MDM (or 60–74 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+-- ── Evaluation & Management — Established Patient ───────────────────────────
+(gen_random_uuid(), '99211', 'Office or other outpatient visit, established patient — minimal presenting problem', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99212', 'Office or other outpatient visit, established patient — straightforward MDM (or <20 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99213', 'Office or other outpatient visit, established patient — low MDM (or 20–29 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99214', 'Office or other outpatient visit, established patient — moderate MDM (or 30–39 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99215', 'Office or other outpatient visit, established patient — high MDM (or 40–54 min)', 'Evaluation & Management', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+-- ── Preventive Medicine ─────────────────────────────────────────────────────
+(gen_random_uuid(), '99381', 'Preventive medicine evaluation, new patient, infant (under 1 year)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99382', 'Preventive medicine evaluation, new patient, early childhood (1–4 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99383', 'Preventive medicine evaluation, new patient, late childhood (5–11 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99384', 'Preventive medicine evaluation, new patient, adolescent (12–17 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99385', 'Preventive medicine evaluation, new patient, adult (18–39 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99386', 'Preventive medicine evaluation, new patient, adult (40–64 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99387', 'Preventive medicine evaluation, new patient, adult (65+ years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99391', 'Preventive medicine evaluation, established patient, infant (under 1 year)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99392', 'Preventive medicine evaluation, established patient, early childhood (1–4 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99393', 'Preventive medicine evaluation, established patient, late childhood (5–11 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99394', 'Preventive medicine evaluation, established patient, adolescent (12–17 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99395', 'Preventive medicine evaluation, established patient, adult (18–39 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99396', 'Preventive medicine evaluation, established patient, adult (40–64 years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99397', 'Preventive medicine evaluation, established patient, adult (65+ years)', 'Preventive Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+-- ── Laboratory / Pathology ──────────────────────────────────────────────────
+(gen_random_uuid(), '80047', 'Basic metabolic panel (calcium, total)', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '80048', 'Basic metabolic panel (calcium, ionized)', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '80053', 'Comprehensive metabolic panel', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '80061', 'Lipid panel (cholesterol, triglycerides, HDL, LDL)', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '80076', 'Hepatic function panel', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '82962', 'Glucose; blood glucose monitoring device cleared by FDA', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '83036', 'Hemoglobin A1c (glycated hemoglobin)', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '83540', 'Iron; serum', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '83970', 'Parathyroid hormone (PTH)', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '84153', 'Prostate-specific antigen (PSA), total', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '84443', 'Thyroid stimulating hormone (TSH)', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '85025', 'Complete blood count (CBC) with automated differential', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '85027', 'Complete blood count (CBC) without differential', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '86580', 'Intradermal tuberculin skin test (PPD) — placement', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '87040', 'Culture, bacterial; blood', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '87086', 'Culture, bacterial; urine, quantitative colony count', 'Laboratory', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+-- ── Radiology ───────────────────────────────────────────────────────────────
+(gen_random_uuid(), '70553', 'MRI, brain; without contrast, followed by with contrast', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '71046', 'Radiologic examination, chest; 2 views', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '71048', 'Radiologic examination, chest; 4 or more views', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '72148', 'MRI, spinal canal and contents, lumbar; without contrast', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '73721', 'MRI, any joint of lower extremity; without contrast', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '74177', 'CT, abdomen and pelvis; with contrast', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '76942', 'Ultrasonic guidance for needle placement, imaging supervision and interpretation', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '77067', 'Screening mammography, bilateral', 'Radiology', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+-- ── Surgery / Minor Procedures ──────────────────────────────────────────────
+(gen_random_uuid(), '10060', 'Incision and drainage of abscess; simple or single', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '10061', 'Incision and drainage of abscess; complicated or multiple', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '10080', 'Incision and drainage of pilonidal cyst; simple', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '10120', 'Incision and removal of foreign body, subcutaneous tissues; simple', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '20610', 'Arthrocentesis, aspiration and/or injection, major joint or bursa', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '29125', 'Application of short arm splint; static', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '36415', 'Collection of venous blood by venipuncture', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '36416', 'Collection of capillary blood specimen (e.g., finger, heel, ear stick)', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '69210', 'Removal of impacted cerumen, one or both ears', 'Surgery', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+-- ── Medicine / Vaccines ─────────────────────────────────────────────────────
+(gen_random_uuid(), '90471', 'Immunization administration (includes percutaneous, intradermal, subcutaneous, or intramuscular injection); 1st injection, any route', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '90472', 'Immunization administration; each additional injection, any route', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '90473', 'Immunization administration; intranasal or oral, 1st administration', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '90474', 'Immunization administration; intranasal or oral, each additional administration', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '90686', 'Influenza virus vaccine, quadrivalent (IIV4), split virus, preservative free; 0.5 mL intramuscular', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '90715', 'Tetanus, diphtheria toxoids (Td) adsorbed, preservative free, for use in individuals 7 years or older; 0.5 mL IM', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '93000', 'Electrocardiogram, routine ECG with at least 12 leads; with interpretation and report', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '94760', 'Noninvasive ear or pulse oximetry for oxygen saturation; single determination', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '96372', 'Therapeutic, prophylactic, or diagnostic injection; subcutaneous or intramuscular', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '97110', 'Therapeutic exercises to develop strength and endurance, range of motion; each 15 minutes', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99406', 'Smoking and tobacco use cessation counseling visit; intermediate, greater than 3 minutes, up to 10 minutes', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW()),
+(gen_random_uuid(), '99407', 'Smoking and tobacco use cessation counseling visit; intensive, greater than 10 minutes', 'Medicine', '2025-01-01', NULL, TRUE, NOW(), NOW())
+ON CONFLICT ("CptCode") DO UPDATE
+    SET "Description" = EXCLUDED."Description",
+        "Category"    = EXCLUDED."Category",
+        "IsActive"    = EXCLUDED."IsActive",
+        "UpdatedAt"   = NOW();
+
+-- ---------------------------------------------------------------------------
+-- SECTION 14 — CPT Bundle Rules (10 NCCI / AMA bundling examples)
+-- ---------------------------------------------------------------------------
+-- These rules define common NCCI (National Correct Coding Initiative) and AMA
+-- guidelines where individual procedure codes should be consolidated into a
+-- single bundled code.  The AI coding pipeline uses these rows to flag bundling
+-- opportunities for staff review (US_048 AC-3, edge case).
+--
+-- Idempotent: ON CONFLICT (bundle_cpt_code, component_cpt_code) DO NOTHING.
+-- ---------------------------------------------------------------------------
+INSERT INTO cpt_bundle_rules
+    ("BundleRuleId", "BundleCptCode", "ComponentCptCode", "BundleDescription", "IsActive", "CreatedAt")
+VALUES
+-- ── E&M + Venipuncture bundle ────────────────────────────────────────────────
+(gen_random_uuid(), '99213', '36415',
+ 'NCCI edit: venipuncture (36415) is bundled into E&M level 3 (99213) when performed during the same office visit.',
+ TRUE, NOW()),
+(gen_random_uuid(), '99214', '36415',
+ 'NCCI edit: venipuncture (36415) is bundled into E&M level 4 (99214) when performed during the same office visit.',
+ TRUE, NOW()),
+-- ── E&M + Glucose monitoring ─────────────────────────────────────────────────
+(gen_random_uuid(), '99213', '82962',
+ 'Glucose fingerstick (82962) is typically bundled with E&M level 3 (99213) when done as part of the same visit.',
+ TRUE, NOW()),
+-- ── E&M + ECG ────────────────────────────────────────────────────────────────
+(gen_random_uuid(), '99215', '93000',
+ 'Routine ECG (93000) may be bundled with high-complexity E&M (99215) per payer global service rules.',
+ TRUE, NOW()),
+-- ── Influenza vaccine + administration ──────────────────────────────────────
+(gen_random_uuid(), '90686', '90471',
+ 'Influenza vaccine (90686) and immunization administration (90471) are billed together as a standard vaccine bundle.',
+ TRUE, NOW()),
+-- ── Comprehensive metabolic panel + basic metabolic panel ────────────────────
+(gen_random_uuid(), '80053', '80047',
+ 'Comprehensive metabolic panel (80053) supersedes basic metabolic panel (80047) — billing both on the same date is not allowed.',
+ TRUE, NOW()),
+-- ── CXR views ────────────────────────────────────────────────────────────────
+(gen_random_uuid(), '71048', '71046',
+ '4-view chest X-ray (71048) supersedes 2-view CXR (71046); billing both on the same date is not appropriate.',
+ TRUE, NOW()),
+-- ── Arthrocentesis + splinting ───────────────────────────────────────────────
+(gen_random_uuid(), '20610', '29125',
+ 'Short arm splint application (29125) may be bundled with arthrocentesis (20610) when performed at the same encounter per payer rules.',
+ TRUE, NOW()),
+-- ── Wound I&D complexity ─────────────────────────────────────────────────────
+(gen_random_uuid(), '10061', '10060',
+ 'Complicated I&D (10061) supersedes simple I&D (10060) when both are reported for the same lesion.',
+ TRUE, NOW()),
+-- ── Preventive visit + smoking cessation ─────────────────────────────────────
+(gen_random_uuid(), '99395', '99406',
+ 'Intermediate smoking cessation counseling (99406) may be separately reportable from a preventive visit (99395) when performed as a distinct service exceeding the bundled E&M time.',
+ FALSE, NOW())   -- inactive: payer coverage varies; disabled by default for staff review
+ON CONFLICT ("BundleCptCode", "ComponentCptCode") DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- SECTION 15 — Code Modifiers (10 standard CMS modifiers)
+-- ---------------------------------------------------------------------------
+-- Deterministic UUIDs in the 00000000-0000-0000-0015-xxxxxxxxxxxx range.
+INSERT INTO code_modifiers (
+    "ModifierId", "ModifierCode", "ModifierDescription",
+    "ApplicableCodeTypes", "DocumentationRequired", "CreatedAt"
+) VALUES
+('00000000-0000-0000-0015-000000000001', '25',
+ 'Significant, Separately Identifiable E/M Service by the Same Physician or Other Qualified Health Care Professional on the Same Day of the Procedure or Other Service',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000002', '59',
+ 'Distinct Procedural Service — indicates a procedure or service was distinct or independent from other non-E/M services performed on the same day',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000003', '51',
+ 'Multiple Procedures — used when multiple procedures, other than E/M services, are performed at the same session by the same provider',
+ '["cpt"]', false, NOW()),
+('00000000-0000-0000-0015-000000000004', '76',
+ 'Repeat Procedure or Service by Same Physician or Other Qualified Health Care Professional',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000005', '77',
+ 'Repeat Procedure by Another Physician or Other Qualified Health Care Professional',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000006', 'XU',
+ 'Unusual Non-Overlapping Service — the use of a service that is distinct because it does not overlap usual components of the main service',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000007', 'XE',
+ 'Separate Encounter — a service that is distinct because it occurred during a separate encounter',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000008', 'XP',
+ 'Separate Practitioner — a service that is distinct because it was performed by a different practitioner',
+ '["cpt"]', true, NOW()),
+('00000000-0000-0000-0015-000000000009', 'XS',
+ 'Separate Structure — a service that is distinct because it was performed on a separate organ/structure',
+ '["cpt"]', false, NOW()),
+('00000000-0000-0000-0015-000000000010', '91',
+ 'Repeat Clinical Diagnostic Laboratory Test — same test on same patient same day in situations where it is necessary to obtain multiple test results',
+ '["cpt"]', true, NOW())
+ON CONFLICT ("ModifierId") DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- SECTION 16 — NCCI Bundling Edits (20 common edit pairs)
+-- ---------------------------------------------------------------------------
+-- Column 1 is the comprehensive code; Column 2 is the component code.
+-- Effective 2026-01-01; no expiration set for active edits.
+INSERT INTO bundling_edits (
+    "EditId", "Column1Code", "Column2Code", "EditType",
+    "ModifierAllowed", "AllowedModifiers", "Source",
+    "EffectiveDate", "ExpirationDate", "CreatedAt"
+) VALUES
+-- ── E&M + Minor Procedures ───────────────────────────────────────────────
+('00000000-0000-0000-0016-000000000001', '99213', '99211',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000002', '99214', '99211',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000003', '99214', '99213',
+ 'ComponentPart', true, '["25"]', 'NCCI', '2026-01-01', NULL, NOW()),
+-- ── Surgical Pairs ───────────────────────────────────────────────────────
+('00000000-0000-0000-0016-000000000004', '27447', '27310',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000005', '27447', '27370',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000006', '43239', '43235',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000007', '45378', '45330',
+ 'ComponentPart', true, '["59","XU"]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000008', '45385', '45378',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+-- ── Mutually Exclusive Procedures ────────────────────────────────────────
+('00000000-0000-0000-0016-000000000009', '93306', '93307',
+ 'MutuallyExclusive', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000010', '93306', '93308',
+ 'MutuallyExclusive', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000011', '27130', '27132',
+ 'MutuallyExclusive', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000012', '64483', '64484',
+ 'MutuallyExclusive', true, '["59","XS"]', 'NCCI', '2026-01-01', NULL, NOW()),
+-- ── Imaging + Guidance ───────────────────────────────────────────────────
+('00000000-0000-0000-0016-000000000013', '77080', '77081',
+ 'MutuallyExclusive', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000014', '70553', '70551',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000015', '70553', '70552',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+-- ── Lab Panels ───────────────────────────────────────────────────────────
+('00000000-0000-0000-0016-000000000016', '80053', '80048',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000017', '80053', '82565',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+('00000000-0000-0000-0016-000000000018', '80061', '82465',
+ 'ComponentPart', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+-- ── Anesthesia ───────────────────────────────────────────────────────────
+('00000000-0000-0000-0016-000000000019', '00840', '00834',
+ 'MutuallyExclusive', false, '[]', 'NCCI', '2026-01-01', NULL, NOW()),
+-- ── Standard (informational) ─────────────────────────────────────────────
+('00000000-0000-0000-0016-000000000020', '99291', '99292',
+ 'Standard', true, '["25"]', 'NCCI', '2026-01-01', NULL, NOW())
+ON CONFLICT ("EditId") DO NOTHING;
+
+-- ---------------------------------------------------------------------------
+-- SECTION 17 — CMS Default Payer Rules (20 records, is_cms_default = TRUE)
+-- ---------------------------------------------------------------------------
+-- All rules effective 2026-01-01; CodeType stored as string matching CodeType enum.
+INSERT INTO payer_rules (
+    "RuleId", "PayerId", "PayerName", "RuleType", "CodeType",
+    "PrimaryCode", "SecondaryCode",
+    "RuleDescription", "DenialReason", "CorrectiveAction",
+    "Severity", "IsCmsDefault", "EffectiveDate", "ExpirationDate",
+    "CreatedAt", "UpdatedAt"
+) VALUES
+-- ── E/M + Same-Day Procedure Rules ──────────────────────────────────────
+('00000000-0000-0000-0017-000000000001', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '99213', '99211',
+ 'Office visit 99213 includes the work of 99211 on the same date of service.',
+ 'Component code 99211 is bundled into 99213 by NCCI edit; separate billing not permitted.',
+ 'Remove 99211 from the claim. Bill only 99213 for the encounter.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+('00000000-0000-0000-0017-000000000002', NULL, NULL,
+ 'ModifierRequired', 'Cpt',
+ '99214', '99213',
+ 'Two E/M codes for the same provider on the same day require modifier 25 to indicate a significant, separately identifiable service.',
+ 'Duplicate E/M codes billed same-day without appropriate modifier.',
+ 'Append modifier 25 to 99213 and document the clinical distinction in the encounter note.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Preventive vs Diagnostic E/M ─────────────────────────────────────────
+('00000000-0000-0000-0017-000000000003', NULL, NULL,
+ 'ModifierRequired', 'Cpt',
+ '99395', '99213',
+ 'Preventive visit (99395) and problem-oriented E/M (99213) billed same-day require modifier 25 on the problem E/M code.',
+ 'Same-day preventive and problem E/M without appropriate modifier.',
+ 'Add modifier 25 to 99213 and document a separate problem that was addressed beyond the preventive scope.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Surgical Global Period ────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000004', NULL, NULL,
+ 'FrequencyLimit', 'Cpt',
+ '27447', NULL,
+ 'Total knee arthroplasty (27447) carries a 90-day global surgical period. Routine follow-up E/M services during this period are bundled.',
+ 'E/M services billed during global period of 27447 without unrelated diagnosis or modifier 24.',
+ 'Attach modifier 24 and an unrelated ICD-10 code when billing E/M during the global period, or defer billing until post-global.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Duplicate Diagnosis Codes ────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000005', NULL, NULL,
+ 'CombinationInvalid', 'Icd10',
+ 'J45.40', 'J45.41',
+ 'Moderate persistent asthma (J45.40) and moderate persistent asthma with acute exacerbation (J45.41) should not be coded together on the same claim.',
+ 'Mutually exclusive asthma specificity codes billed together.',
+ 'Select only the code that best describes the documented severity and acuity. Remove the less specific code.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+('00000000-0000-0000-0017-000000000006', NULL, NULL,
+ 'CombinationInvalid', 'Icd10',
+ 'E11.9', 'E11.65',
+ 'Type 2 diabetes without complications (E11.9) and type 2 diabetes with hyperglycemia (E11.65) are mutually exclusive and should not be reported together.',
+ 'Contradictory diabetes specificity codes on the same claim.',
+ 'Use E11.65 when hyperglycemia is documented; E11.9 only when no complications are specified.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Imaging Bundling ─────────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000007', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '70553', '70551',
+ 'MRI brain with and without contrast (70553) includes the without-contrast component (70551). Both cannot be billed on the same date.',
+ '70551 is a component of 70553; reporting both results in duplicate billing.',
+ 'Bill only 70553 (with and without contrast) when both sequences are performed.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Lab Panel Unbundling ─────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000008', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '80053', '80048',
+ 'Comprehensive metabolic panel (80053) already includes the basic metabolic panel (80048). Billing both constitutes unbundling.',
+ 'Component panel 80048 is contained within comprehensive panel 80053.',
+ 'Remove 80048 from the claim when 80053 is billed.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+('00000000-0000-0000-0017-000000000009', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '80061', '82465',
+ 'Lipid panel (80061) includes total cholesterol (82465) as a component; billing both is unbundling.',
+ 'Total cholesterol 82465 is a component of the lipid panel 80061.',
+ 'Remove 82465 from the claim and bill only 80061.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Colonoscopy Codes ────────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000010', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '45385', '45378',
+ 'Colonoscopy with polypectomy (45385) includes the diagnostic colonoscopy (45378); billing both is incorrect.',
+ '45378 is the base procedure component of 45385.',
+ 'Bill only 45385 when a polypectomy was performed during the colonoscopy.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Echocardiography ─────────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000011', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '93306', '93307',
+ 'Complete transthoracic echo with Doppler (93306) and echo without Doppler (93307) are mutually exclusive.',
+ 'Mutually exclusive echocardiography codes billed on the same date.',
+ 'Select only 93306 when complete Doppler evaluation is documented.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Cardiac Monitoring ───────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000012', NULL, NULL,
+ 'DocumentationRequired', 'Cpt',
+ '93306', NULL,
+ 'Complete transthoracic echocardiography (93306) requires documentation of M-mode, 2D imaging, spectral Doppler, and color flow Doppler in the report.',
+ 'Incomplete documentation for comprehensive echocardiography service.',
+ 'Ensure the procedure report documents all required imaging modalities. If any component is absent, bill the appropriate limited code.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Physical Therapy Frequency ───────────────────────────────────────────
+('00000000-0000-0000-0017-000000000013', NULL, NULL,
+ 'FrequencyLimit', 'Cpt',
+ '97110', NULL,
+ 'Therapeutic exercise (97110) is subject to functional improvement and medical necessity documentation requirements after 12 visits per episode of care.',
+ 'Therapeutic exercise billed beyond 12 visits without supporting documentation of functional progress.',
+ 'Include functional outcome measures (e.g., OPTIMAL, FOTO) and physician re-certification of medical necessity in the claim documentation.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Anesthesia Unbundling ────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000014', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '00840', '00834',
+ 'Anesthesia for lower abdominal surgery (00840) and anesthesia for hernia repair (00834) are mutually exclusive; only one anesthesia base code may be reported per anesthetic.',
+ 'Two mutually exclusive anesthesia base codes billed for the same anesthetic.',
+ 'Report only the single anesthesia base code corresponding to the primary operative procedure.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Modifier 59 Overuse ───────────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000015', NULL, NULL,
+ 'DocumentationRequired', 'Cpt',
+ '45378', '45330',
+ 'Colonoscopy (45378) and flexible sigmoidoscopy (45330) performed same session require modifier 59 and documentation that distinct anatomic regions were examined separately.',
+ 'Insufficiently documented distinct procedural services during the same encounter.',
+ 'Attach modifier 59 (or XS) to 45330 and document the separate anatomic region in the operative note.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Spine Injection Bilateral ────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000016', NULL, NULL,
+ 'ModifierRequired', 'Cpt',
+ '64483', '64484',
+ 'Transforaminal epidural injection L4-L5 (64483) and L5-S1 (64484) are separate anatomic levels. Multiple levels require modifier XS or 59 to indicate distinct structures.',
+ 'Multiple-level spine injections billed without appropriate distinct-service modifier.',
+ 'Append modifier XS to the secondary level injection code and document each level in the procedure note.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── ICD-10 Bilateral Coding ───────────────────────────────────────────────
+('00000000-0000-0000-0017-000000000017', NULL, NULL,
+ 'CombinationInvalid', 'Icd10',
+ 'M17.11', 'M17.12',
+ 'Primary osteoarthritis of right knee (M17.11) and primary osteoarthritis of left knee (M17.12) may be reported together, but M17.0 (bilateral) is preferred when both knees are affected.',
+ 'Unilateral codes used instead of bilateral combination code M17.0.',
+ 'Replace M17.11 and M17.12 with M17.0 when bilateral primary osteoarthritis is documented, unless laterality-specific coding is required by payer.',
+ 'Info', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Preventive Colonoscopy vs Diagnostic ─────────────────────────────────
+('00000000-0000-0000-0017-000000000018', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ 'G0121', '45378',
+ 'Colorectal cancer screening colonoscopy (G0121) and diagnostic colonoscopy (45378) cannot both be billed for the same session. Correct code selection depends on the patient''s indication.',
+ 'Screening and diagnostic colonoscopy codes billed for the same procedure.',
+ 'If the procedure began as screening but polyps were found, bill 45378 or 45385 with a note that the screening converted to diagnostic.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Well-Child + Sick Visit Same Day ─────────────────────────────────────
+('00000000-0000-0000-0017-000000000019', NULL, NULL,
+ 'ModifierRequired', 'Cpt',
+ '99393', '99213',
+ 'Preventive medicine visit (99393) and problem-focused E/M (99213) billed same day require modifier 25 on the problem E/M when a significant, separately identifiable service is provided.',
+ 'Same-day preventive and sick-visit E/M without modifier 25.',
+ 'Append modifier 25 to 99213 and document the distinct problem addressed beyond the well-child scope.',
+ 'Warning', TRUE, '2026-01-01', NULL, NOW(), NOW()),
+
+-- ── Critical Care + Procedures ───────────────────────────────────────────
+('00000000-0000-0000-0017-000000000020', NULL, NULL,
+ 'CombinationInvalid', 'Cpt',
+ '99291', '36620',
+ 'Critical care (99291) includes arterial line placement (36620) as a bundled service; they should not be billed together on the same date.',
+ 'Arterial catheterization bundled into critical care is reported separately in error.',
+ 'Remove 36620 from the claim. The work is included in the critical care time reported.',
+ 'Error', TRUE, '2026-01-01', NULL, NOW(), NOW())
+ON CONFLICT ("RuleId") DO NOTHING;
+
+-- ---------------------------------------------------------------------------
 -- SECTION 12 — Verification queries
 -- ---------------------------------------------------------------------------
 SELECT
@@ -685,12 +1134,17 @@ SELECT
 UNION ALL SELECT 'patients',         COUNT(*), 10  FROM patients
 UNION ALL SELECT 'appointments',     COUNT(*), 50  FROM appointments
 UNION ALL SELECT 'clinical_documents', COUNT(*), 20 FROM clinical_documents
+UNION ALL SELECT 'cpt_code_library', COUNT(*), 60  FROM cpt_code_library
+UNION ALL SELECT 'cpt_bundle_rules', COUNT(*), 8   FROM cpt_bundle_rules
 UNION ALL SELECT 'extracted_data',   COUNT(*), 30  FROM extracted_data
 UNION ALL SELECT 'medical_codes',    COUNT(*), 15  FROM medical_codes
 UNION ALL SELECT 'intake_data',      COUNT(*), 10  FROM intake_data
 UNION ALL SELECT 'audit_logs',       COUNT(*), 20  FROM audit_logs
 UNION ALL SELECT 'queue_entries',    COUNT(*), 10  FROM queue_entries
 UNION ALL SELECT 'notification_logs',COUNT(*), 25  FROM notification_logs
+UNION ALL SELECT 'code_modifiers',   COUNT(*), 10  FROM code_modifiers
+UNION ALL SELECT 'bundling_edits',   COUNT(*), 20  FROM bundling_edits
+UNION ALL SELECT 'payer_rules',      COUNT(*), 20  FROM payer_rules
 ORDER BY entity;
 
 -- Status distribution checks (AC-2)

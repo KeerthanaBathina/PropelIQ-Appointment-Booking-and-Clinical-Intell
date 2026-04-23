@@ -87,6 +87,67 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<ClinicalConflict> ClinicalConflicts => Set<ClinicalConflict>();
 
+    /// <summary>
+    /// ICD-10 code reference library used for AI-generated diagnosis code validation (US_047, DR-015, FR-063).
+    /// Each row represents one code entry in a specific quarterly library version.
+    /// Active-code lookups use the composite index on (code_value, is_current).
+    /// </summary>
+    public DbSet<Icd10CodeLibrary> Icd10CodeLibrary => Set<Icd10CodeLibrary>();
+
+    /// <summary>
+    /// CPT procedure code reference library for AI-generated procedure code validation (US_048, AC-4, DR-015, FR-066).
+    /// Quarterly refresh sets <c>is_active = false</c> for expired codes.
+    /// The EF Core migration and seed data are created by task_003_db_cpt_code_library.
+    /// </summary>
+    public DbSet<CptCodeLibrary> CptCodeLibrary => Set<CptCodeLibrary>();
+
+    /// <summary>
+    /// CPT bundle rule reference table defining which individual CPT codes may be consolidated
+    /// into a composite bundle code (US_048 AC-3, task_003_db_cpt_code_library).
+    /// Surfaced to staff reviewers when the AI coding pipeline identifies bundling opportunities.
+    /// </summary>
+    public DbSet<CptBundleRule> CptBundleRules => Set<CptBundleRule>();
+
+    /// <summary>
+    /// Immutable append-only audit trail of every staff action taken on a <c>MedicalCode</c> record
+    /// (US_049, AC-2, AC-4, FR-066, HIPAA).  Rows must never be updated or deleted.
+    /// </summary>
+    public DbSet<CodingAuditLog> CodingAuditLogs => Set<CodingAuditLog>();
+
+    /// <summary>
+    /// Daily snapshot of AI-human coding agreement rate metrics (US_050, AC-1, AC-2, FR-067).
+    /// One row per calendar day, upserted by the agreement-rate calculation job.
+    /// </summary>
+    public DbSet<AgreementRateMetric> AgreementRateMetrics => Set<AgreementRateMetric>();
+
+    /// <summary>
+    /// Immutable records of individual discrepancies between AI-suggested and staff-selected codes
+    /// (US_050, FR-068).  Written whenever staff override an AI suggestion.
+    /// </summary>
+    public DbSet<CodingDiscrepancy> CodingDiscrepancies => Set<CodingDiscrepancy>();
+
+    /// <summary>
+    /// Payer-specific and CMS-default code validation rules used by the payer rule
+    /// validation service (US_051, AC-1, AC-2, task_003_db_payer_rules_schema).
+    /// </summary>
+    public DbSet<PayerRule> PayerRules => Set<PayerRule>();
+
+    /// <summary>
+    /// NCCI procedure-to-procedure bundling edits (US_051, AC-4, task_003_db_payer_rules_schema).
+    /// </summary>
+    public DbSet<BundlingEdit> BundlingEdits => Set<BundlingEdit>();
+
+    /// <summary>
+    /// CPT billing modifier reference data (US_051, AC-4, task_003_db_payer_rules_schema).
+    /// </summary>
+    public DbSet<CodeModifier> CodeModifiers => Set<CodeModifier>();
+
+    /// <summary>
+    /// Payer rule violations detected during validation runs, with full resolution audit trail
+    /// (US_051, AC-2, task_003_db_payer_rules_schema).
+    /// </summary>
+    public DbSet<PayerRuleViolation> PayerRuleViolations => Set<PayerRuleViolation>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

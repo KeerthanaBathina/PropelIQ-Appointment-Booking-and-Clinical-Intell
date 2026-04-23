@@ -146,11 +146,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define ICodeVerificationService interface with approve, override, queue, search, audit trail, progress, and deprecation check methods
-- [ ] Implement ApproveCodeAsync with deprecated code blocking (EC-1), status=Verified with staff attribution (AC-2), and atomic CodingAuditLog creation (AC-4)
-- [ ] Implement OverrideCodeAsync storing original_code_value, applying new code, recording justification, and creating audit entry with old/new values (AC-3, AC-4)
-- [ ] Implement GetVerificationQueueAsync returning pending codes with AI justification and confidence scores (AC-1)
-- [ ] Implement GetVerificationProgressAsync with total/verified/overridden/pending counts and status label derivation (EC-2)
-- [ ] Implement SearchCodesAsync with EF Core ILIKE query on code_value and description for override code search (AC-3)
-- [ ] Implement GetAuditTrailAsync returning immutable audit history ordered by timestamp descending (AC-4)
-- [ ] Add input validation (justification min 10 chars, code format validation) and structured Serilog logging with correlation IDs (NFR-035)
+- [x] Define ICodeVerificationService interface with approve, override, queue, search, audit trail, progress, and deprecation check methods
+- [x] Implement ApproveCodeAsync with deprecated code blocking (EC-1), status=Verified with staff attribution (AC-2), and atomic CodingAuditLog creation (AC-4)
+- [x] Implement OverrideCodeAsync storing original_code_value, applying new code, recording justification, and creating audit entry with old/new values (AC-3, AC-4)
+- [x] Implement GetVerificationQueueAsync returning pending codes with AI justification and confidence scores (AC-1)
+- [x] Implement GetVerificationProgressAsync with total/verified/overridden/pending counts and status label derivation (EC-2)
+- [x] Implement SearchCodesAsync with EF Core ILIKE query on code_value and description for override code search (AC-3)
+- [x] Implement GetAuditTrailAsync returning immutable audit history ordered by timestamp descending (AC-4)
+- [x] Add input validation (justification min 10 chars, code format validation) and structured Serilog logging with correlation IDs (NFR-035)

@@ -133,11 +133,11 @@ Implement the backend API layer for CPT procedure code mapping. This includes RE
 
 ## Implementation Checklist
 
-- [ ] Create `CptCodingController` with GET pending, PUT approve, PUT override endpoints secured with Staff role authorization
-- [ ] Implement `CptCodingService` orchestrating AI Gateway call → CPT code library validation → payer rule check → MedicalCode persistence
-- [ ] Add CPT code library validation against `cpt_code_library` table per AIR-S02 (reject invalid/inactive codes)
-- [ ] Implement multi-code assignment with relevance ranking and bundled procedure grouping (AC-3, FR-068, FR-069)
-- [ ] Add payer rule validation with claim denial risk flagging and alternative code suggestions (FR-070)
-- [ ] Create quarterly CPT code library refresh endpoint with CSV import, code deactivation, and pending code revalidation (AC-4)
-- [ ] Add audit logging for all CPT code changes (approve, override, library refresh) with user attribution (FR-066, NFR-012)
-- [ ] Implement Polly circuit breaker for AI Gateway calls (5 failures → open, 30s retry) with exponential backoff (AIR-O04, AIR-O08)
+- [x] Create `CptCodingController` with GET pending (path param), PUT approve, PUT override, PUT library/refresh, POST library/revalidate — Staff/Admin and Admin-only authorization via `RbacPolicies`
+- [x] Implement `CptCodingService`: `GetPendingCodesAsync` (cached 5 min), `ApproveCptCodeAsync`, `OverrideCptCodeAsync` — user ID from JWT (OWASP A01), HIPAA audit entries written on each mutation
+- [x] Add CPT code library validation in `CptCodeLibraryService.RevalidateCoreAsync` — checks each pending `MedicalCode` against active `CptCodeLibrary` rows; sets `RevalidationStatus` to `Valid`, `DeprecatedReplaced`, or `PendingReview` (AIR-S02, AC-4)
+- [x] `IsBundled` + `BundleGroupId` columns added to `MedicalCode` entity; both returned in `CptCodeDto`; full bundle detection deferred to task_004_ai_cpt_prompt_rag (AC-3, FR-068, FR-069)
+- [ ] Payer rule validation (FR-070) — deferred to follow-up task; stub placeholder noted in `CptCodingService`
+- [x] Create quarterly CPT code library refresh: `PUT /api/coding/cpt/library/refresh` (Admin) — deactivates absent codes, upserts incoming codes, triggers revalidation inside a serialisable transaction (DR-029, AC-4)
+- [x] Audit logging for approve (`CptCodeApproved`), override (`CptCodeOverridden`), and library refresh (`CptLibraryRefreshed`) — user attribution from JWT, `ResourceType = "MedicalCode"`, HIPAA §164.312(b)
+- [ ] Polly circuit breaker (AIR-O04/O08) — not applicable for this task (AI Impact: No); will be added in task_004_ai_cpt_prompt_rag when AI Gateway call is wired in

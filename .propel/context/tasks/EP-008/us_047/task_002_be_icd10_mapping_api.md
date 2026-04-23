@@ -171,11 +171,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create DTOs: `Icd10MappingRequestDto`, `Icd10MappingResponseDto`, `Icd10CodeDto`, `LibraryRefreshResultDto`
-- [ ] Create interfaces: `IIcd10CodingService`, `IIcd10LibraryService`, `IAiCodingGateway`
-- [ ] Implement `Icd10CodingService` with AI Gateway delegation, code validation, ranking, and uncodable handling
-- [ ] Implement `Icd10LibraryService` with library refresh (deprecation tracking) and pending code revalidation
-- [ ] Implement `CodingController` with 4 REST endpoints (generate, pending, refresh, revalidate)
-- [ ] Apply authorization, rate limiting, input validation, structured logging, and audit logging
-- [ ] Register services in `Program.cs` DI container
-- [ ] Verify idempotent behavior on `POST /api/coding/icd10/generate` (NFR-034)
+- [x] Create DTOs: `Icd10MappingRequestDto`, `Icd10MappingResponseDto`, `Icd10CodeDto`, `LibraryRefreshResultDto`
+- [x] Create interfaces: `IIcd10CodingService`, `IIcd10LibraryService`, `IAiCodingGateway`
+- [x] Implement `Icd10CodingService` with AI Gateway delegation, code validation, ranking, and uncodable handling
+- [x] Implement `Icd10LibraryService` with library refresh (deprecation tracking) and pending code revalidation
+- [x] Implement `CodingController` with 4 REST endpoints (generate, pending, refresh, revalidate)
+- [x] Apply authorization, rate limiting, input validation, structured logging, and audit logging
+- [x] Register services in `Program.cs` DI container
+- [x] Verify idempotent behavior on `POST /api/coding/icd10/generate` (NFR-034)

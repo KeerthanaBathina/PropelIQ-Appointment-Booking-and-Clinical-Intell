@@ -1,0 +1,12 @@
+Map the following clinical diagnoses to ICD-10-CM codes.
+
+Analysis ID: {{ analysis_id }}
+
+For each diagnosis, select the most appropriate ICD-10-CM code(s) following the Official Coding Guidelines
+provided in the system context. Return all applicable codes when multiple codes apply, ranked by relevance.
+
+## Diagnoses
+
+{{ diagnoses_json }}
+
+Call `map_icd10_codes` now with your structured response.

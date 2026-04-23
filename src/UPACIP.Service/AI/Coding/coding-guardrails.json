@@ -1,0 +1,44 @@
+{
+  "Version": "1.0",
+  "Description": "Guardrail thresholds for the ICD-10 diagnosis code mapping AI pipeline (US_047, AIR-003, AIR-S01, AIR-S02, AIR-O03).",
+  "TokenBudget": {
+    "MaxInputTokens": 2000,
+    "MaxOutputTokens": 500,
+    "MaxDiagnosisChars": 5000,
+    "MaxRagContextChars": 1500,
+    "MaxDiagnosesPerRequest": 50
+  },
+  "Confidence": {
+    "MinReportableConfidence": 0.01,
+    "UncodableConfidence": 0.00,
+    "FallbackThreshold": 0.80
+  },
+  "Resilience": {
+    "CircuitBreakerFailuresBeforeOpen": 5,
+    "CircuitBreakerBreakDurationSeconds": 30,
+    "RetryCount": 3,
+    "RetryBaseDelaySeconds": 1
+  },
+  "RagRetrieval": {
+    "TopK": 5,
+    "SimilarityThreshold": 0.75,
+    "EmbeddingDimensions": 384,
+    "EmbeddingModel": "text-embedding-3-small"
+  },
+  "Validation": {
+    "Icd10CodePattern": "^[A-Z]\\d{2}(\\.\\d{1,4})?$",
+    "MinJustificationLength": 20,
+    "MaxCodeValueLength": 10
+  },
+  "PiiRedaction": {
+    "RedactSsnPatterns": true,
+    "RedactEmailPatterns": true,
+    "BlockInjectionKeywords": true
+  },
+  "Models": {
+    "PrimaryModel": "gpt-4o-mini",
+    "FallbackModel": "claude-3-5-sonnet-20241022",
+    "PrimaryProvider": "openai",
+    "FallbackProvider": "anthropic"
+  }
+}

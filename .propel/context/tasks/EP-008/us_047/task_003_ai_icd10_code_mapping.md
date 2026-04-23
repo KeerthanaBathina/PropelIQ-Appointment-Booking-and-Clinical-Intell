@@ -196,14 +196,15 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create versioned prompt templates (system + user) in `prompts/medical-coding/icd10-mapping/`
-- [ ] Implement `Icd10RagRetriever` with pgvector cosine similarity query (top-5, threshold >= 0.75)
-- [ ] Implement `AiCodingGateway` with GPT-4o-mini primary, Claude 3.5 Sonnet fallback, Polly circuit breaker and retry
-- [ ] Implement `CodingGuardrailsService` with PII redaction, ICD-10 format validation, code library cross-reference
-- [ ] Implement `Icd10ResponseParser` with JSON parsing, relevance ranking, and uncodable fallback handling
-- [ ] Implement audit logging with PII redaction, token usage, latency, and correlation IDs
-- [ ] Configure guardrails thresholds in `coding-guardrails.json` (confidence threshold, token budgets)
-- [ ] Register all AI services in DI container and verify end-to-end pipeline with test diagnosis
+- [x] Create versioned prompt templates (system + user) in `src/UPACIP.Service/AI/Coding/Prompts/`
+- [x] Implement `Icd10RagRetriever` with pgvector cosine similarity query (top-5, threshold >= 0.75)
+- [x] Implement `AiCodingGateway` with GPT-4o-mini primary, Claude 3.5 Sonnet fallback, Polly circuit breaker and retry
+- [x] Implement `CodingGuardrailsService` with PII redaction, ICD-10 format validation, code library cross-reference
+- [x] Implement `Icd10ResponseParser` with JSON parsing, relevance ranking, and uncodable fallback handling
+- [x] Implement audit logging with PII redaction, token usage, latency, and correlation IDs (`AiAuditLogger` — LogRequest + LogResponse)
+- [x] Configure guardrails thresholds in `coding-guardrails.json` (confidence threshold, token budgets)
+- [x] Register all AI services in DI container and build verified (0 errors)
+- [ ] Live end-to-end test with running environment and real LLM provider (requires deployed runtime)
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-003, AIR-S01, AIR-S02, AIR-S04, AIR-O03, AIR-O04 requirements are met

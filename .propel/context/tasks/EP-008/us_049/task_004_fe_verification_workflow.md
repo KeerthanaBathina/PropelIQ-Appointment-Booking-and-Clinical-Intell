@@ -192,13 +192,13 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Implement MedicalCodingReviewPage with verification progress header and 5 screen states (Default, Loading, Empty, Error, Validation)
-- [ ] Implement VerificationQueueTable with sortable columns, code type filter, approve/override buttons, and row expansion for audit trail (AC-1)
-- [ ] Implement ConfidenceBadge as reusable MUI Chip with color-coded confidence thresholds: green >=80%, amber 60-79%, red <60% (UXR-105)
-- [ ] Implement CodeOverrideModal with debounced code search, deprecated code strikethrough, and justification TextField with min 10 char validation (AC-3)
-- [ ] Implement CodeAuditTrail as MUI Accordion with Timeline showing immutable audit entries per code (AC-4)
-- [ ] Implement DeprecatedCodeAlert with MUI Alert and replacement code suggestion chips that pre-fill override modal (EC-1)
-- [ ] Create React Query hooks (useVerificationQueue, useApproveCode, useOverrideCode, useCodeSearch, useAuditTrail, useVerificationProgress) with cache invalidation on mutations
-- [ ] Implement VerificationProgressBar with MUI LinearProgress showing "X/Y codes verified" and partial/full status chip (EC-2)
+- [x] Implement MedicalCodingReviewPage with verification progress header and 5 screen states (Default, Loading, Empty, Error, Validation)
+- [x] Implement VerificationQueueTable with sortable columns, code type filter, approve/override buttons, and row expansion for audit trail (AC-1)
+- [x] Implement ConfidenceBadge as reusable MUI Chip with color-coded confidence thresholds: green >=80%, amber 60-79%, red <60% (UXR-105)
+- [x] Implement CodeOverrideModal with debounced code search, deprecated code strikethrough, and justification TextField with min 10 char validation (AC-3)
+- [x] Implement CodeAuditTrail as MUI Accordion with Timeline showing immutable audit entries per code (AC-4)
+- [x] Implement DeprecatedCodeAlert with MUI Alert and replacement code suggestion chips that pre-fill override modal (EC-1)
+- [x] Create React Query hooks (useVerificationQueue, useApproveCode, useOverrideCode, useCodeSearch, useAuditTrail, useVerificationProgress) with cache invalidation on mutations
+- [x] Implement VerificationProgressBar with MUI LinearProgress showing "X/Y codes verified" and partial/full status chip (EC-2)
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

@@ -148,12 +148,12 @@ Implement the CPT Procedure Code section of the Medical Coding Review screen (SC
 
 ## Implementation Checklist
 
-- [ ] Create `CptCodeTable` component with MUI Table, sortable columns (Code, Description, AI Suggested, Confidence, Status, Actions)
-- [ ] Implement `ConfidenceBadge` with color-coded indicators: green (≥80%), amber (60-79%), red (<60%) per UXR-105
-- [ ] Add Approve/Override action buttons per CPT code row with conditional rendering based on status (Pending/Approved/Overridden)
-- [ ] Build `OverrideJustificationModal` MUI Dialog with replacement code field, required justification textarea, and HIPAA audit notice
-- [ ] Implement multi-code display with relevance ranking and bundled procedure visual indicators (AC-3)
-- [ ] Add `AiUnavailableBanner` MUI Alert with manual coding fallback message per UXR-605
-- [ ] Wire React Query hooks (`useCptCodes`, `useCptApprove`, `useCptOverride`) and handle all 5 screen states (Default, Loading, Empty, Error, Validation)
+- [x] Create `CptCodeTable` component with MUI Table, sortable columns (Code, Description, AI Suggested, Confidence, Status, Actions)
+- [x] Implement `ConfidenceBadge` with color-coded indicators: green (≥80%), amber (60-79%), red (<60%) per UXR-105 (reused from `@/components/coding/ConfidenceBadge`)
+- [x] Add Approve/Override action buttons per CPT code row with conditional rendering based on status (Pending/Approved/Overridden)
+- [x] Build `OverrideJustificationModal` MUI Dialog with replacement code field, required justification textarea, and HIPAA audit notice
+- [x] Implement multi-code display with relevance ranking and bundled procedure visual indicators (AC-3)
+- [x] Add `AiUnavailableBanner` MUI Alert with manual coding fallback message per UXR-605
+- [x] Wire React Query hooks (`useCptCodes`, `useCptApprove`, `useCptOverride`) and handle all 5 screen states (Default, Loading, Empty, Error, Validation)
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

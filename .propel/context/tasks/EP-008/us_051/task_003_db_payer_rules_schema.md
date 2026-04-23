@@ -122,11 +122,11 @@ Create the database schema, EF Core entity models, migration scripts, and seed d
 - [ ] Data integrity validated — no orphaned records after migration
 
 ## Implementation Checklist
-- [ ] Create `PayerRule` entity with composite index on (payer_id, primary_code, secondary_code)
-- [ ] Create `BundlingEdit` entity with composite index on (column1_code, column2_code)
-- [ ] Create `CodeModifier` entity with unique constraint on modifier_code
-- [ ] Create `PayerRuleViolation` entity with FK constraints to Patient, PayerRule, and User
-- [ ] Create enum types: PayerRuleType, BundlingEditType, PayerValidationStatus, BundlingCheckResult, ViolationResolutionStatus, RuleSeverity
-- [ ] Extend `MedicalCode` entity with payer_validation_status, bundling_check_result, sequence_order columns
-- [ ] Generate EF Core migration with transaction block and rollback support
-- [ ] Create seed data for ~20 CMS default rules, ~20 NCCI bundling edits, and ~10 standard modifiers
+- [x] Create `PayerRule` entity with composite index on (payer_id, primary_code, secondary_code)
+- [x] Create `BundlingEdit` entity with composite index on (column1_code, column2_code)
+- [x] Create `CodeModifier` entity with unique constraint on modifier_code
+- [x] Create `PayerRuleViolation` entity with FK constraints to Patient, PayerRule, and User
+- [x] Create enum types: PayerRuleType, BundlingEditType, PayerValidationStatus, BundlingCheckResult, ViolationResolutionStatus, RuleSeverity
+- [x] Extend `MedicalCode` entity with payer_validation_status, bundling_check_result, sequence_order columns
+- [x] Generate EF Core migration with transaction block and rollback support
+- [x] Create seed data for ~20 CMS default rules, ~20 NCCI bundling edits, and ~10 standard modifiers

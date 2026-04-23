@@ -68,4 +68,27 @@ public enum AuditAction
 
     /// <summary>Staff manually verified or corrected an extracted data entry during AI-unavailable fallback or low-confidence review (US_046 AC-3, FR-093).</summary>
     ManualDataVerified,
+
+    /// <summary>Staff approved an AI-suggested CPT code (US_048 AC-1, FR-066, NFR-012).</summary>
+    CptCodeApproved,
+
+    /// <summary>Staff overrode an AI-suggested CPT code with a replacement and justification (US_048 edge case, HIPAA audit requirement).</summary>
+    CptCodeOverridden,
+
+    /// <summary>Admin applied a quarterly CPT code library update (US_048 AC-4, FR-066).</summary>
+    CptLibraryRefreshed,
+
+    // ── US_049 — Code verification audit trail (AC-2, AC-4, FR-066) ──────────
+
+    /// <summary>Staff approved an AI-suggested medical code (ICD-10 or CPT) — changes status to Verified (US_049 AC-2).</summary>
+    CodeVerified,
+
+    /// <summary>Staff overrode an AI-suggested medical code — records old code, new code, and justification (US_049 AC-4).</summary>
+    CodeOverridden,
+
+    /// <summary>Approval blocked because the target code is deprecated in the library (US_049 edge case EC-1).</summary>
+    DeprecatedCodeBlocked,
+
+    /// <summary>A medical code was re-evaluated against the current code library (US_049 AC-4).</summary>
+    CodeRevalidated,
 }
