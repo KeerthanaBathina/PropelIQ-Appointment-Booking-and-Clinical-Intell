@@ -7,6 +7,7 @@ using UPACIP.Api.Models;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Conflict;
+using ServiceConflictResolutionRequest = UPACIP.Service.Conflict.ConflictResolutionRequest;
 
 namespace UPACIP.Api.Controllers;
 
@@ -313,7 +314,7 @@ public sealed class ConflictController : ControllerBase
         try
         {
             await _conflictService.ResolveConflictAsync(
-                new ConflictResolutionRequest
+                new ServiceConflictResolutionRequest
                 {
                     ConflictId       = conflictId,
                     ResolvedByUserId = userId.Value,
@@ -375,7 +376,7 @@ public sealed class ConflictController : ControllerBase
         try
         {
             await _conflictService.DismissConflictAsync(
-                new ConflictResolutionRequest
+                new ServiceConflictResolutionRequest
                 {
                     ConflictId       = conflictId,
                     ResolvedByUserId = userId.Value,

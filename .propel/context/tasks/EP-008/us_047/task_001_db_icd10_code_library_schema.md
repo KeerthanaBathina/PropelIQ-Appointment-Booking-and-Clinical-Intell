@@ -123,10 +123,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `Icd10CodeLibrary` entity class with all fields, data annotations, and XML doc comments
-- [ ] Add composite index on (`code_value`, `is_current`) via Fluent API in `AppDbContext`
-- [ ] Add unique constraint on (`code_value`, `library_version`) via Fluent API
-- [ ] Extend `MedicalCode` entity with `relevance_rank`, `revalidation_status`, `library_version` nullable columns
-- [ ] Register `DbSet<Icd10CodeLibrary>` in `AppDbContext` and configure relationships
-- [ ] Generate EF Core migration with transactional `Up()` and `Down()` methods (DR-029)
+- [x] Create `Icd10CodeLibrary` entity class with all fields, data annotations, and XML doc comments
+- [x] Add composite index on (`code_value`, `is_current`) via Fluent API in `AppDbContext`
+- [x] Add unique constraint on (`code_value`, `library_version`) via Fluent API
+- [x] Extend `MedicalCode` entity with `relevance_rank`, `revalidation_status`, `library_version` nullable columns
+- [x] Register `DbSet<Icd10CodeLibrary>` in `AppDbContext` and configure relationships
+- [x] Generate EF Core migration with transactional `Up()` and `Down()` methods (DR-029)
 - [ ] Verify migration applies and rolls back cleanly against PostgreSQL 16.x

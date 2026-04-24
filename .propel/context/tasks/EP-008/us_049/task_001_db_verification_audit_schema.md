@@ -138,9 +138,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add verification lifecycle fields to MedicalCode entity (status, verified_by_user_id, verified_at, override_justification, original_code_value, is_deprecated) with FK navigation properties
-- [ ] Create CodeVerificationStatus enum (Pending, Verified, Overridden, Deprecated) and CodingAuditAction enum (Approved, Overridden, DeprecatedBlocked, Revalidated)
-- [ ] Create CodingAuditLog entity with immutable audit columns (old_code_value, new_code_value, justification, user_id, timestamp)
-- [ ] Register CodingAuditLog in PatientDbContext with FK constraints and enum-to-string value conversions
-- [ ] Configure composite indexes: MedicalCode(patient_id, status), CodingAuditLog(medical_code_id), CodingAuditLog(patient_id, timestamp DESC)
-- [ ] Generate and verify EF Core migration script with up/down methods and rollback support
+- [x] Add verification lifecycle fields to MedicalCode entity (status, verified_by_user_id, verified_at, override_justification, original_code_value, is_deprecated) with FK navigation properties
+- [x] Create CodeVerificationStatus enum (Pending, Verified, Overridden, Deprecated) and CodingAuditAction enum (Approved, Overridden, DeprecatedBlocked, Revalidated)
+- [x] Create CodingAuditLog entity with immutable audit columns (old_code_value, new_code_value, justification, user_id, timestamp)
+- [x] Register CodingAuditLog in PatientDbContext with FK constraints and enum-to-string value conversions
+- [x] Configure composite indexes: MedicalCode(patient_id, status), CodingAuditLog(medical_code_id), CodingAuditLog(patient_id, timestamp DESC)
+- [x] Generate and verify EF Core migration script with up/down methods and rollback support

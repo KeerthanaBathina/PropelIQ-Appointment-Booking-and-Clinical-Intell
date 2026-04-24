@@ -111,9 +111,9 @@ Add database schema and EF Core migration to persist daily AI-human agreement ra
 
 ## Implementation Checklist
 
-- [ ] Create `AgreementRateMetric` entity with columns: `metric_id` (UUID PK), `calculation_date` (date, unique), `daily_agreement_rate` (decimal), `rolling_30day_rate` (decimal nullable), `total_codes_verified` (int), `codes_approved_without_override` (int), `codes_overridden` (int), `codes_partially_overridden` (int), `meets_minimum_threshold` (bool — true when total_codes_verified >= 50), `created_at` (timestamp), `updated_at` (timestamp)
-- [ ] Create `CodingDiscrepancy` entity with columns: `discrepancy_id` (UUID PK), `medical_code_id` (FK to MedicalCode), `patient_id` (FK to Patient), `ai_suggested_code` (string), `staff_selected_code` (string), `code_type` (enum: icd10, cpt), `discrepancy_type` (enum: full_override, partial_override, multiple_codes), `override_justification` (text), `detected_at` (timestamp), `created_at` (timestamp)
-- [ ] Add unique index on `AgreementRateMetric.calculation_date` for efficient daily lookup
-- [ ] Add composite index on `CodingDiscrepancy(patient_id, detected_at)` for patient-level queries
-- [ ] Add foreign key constraints: `CodingDiscrepancy.medical_code_id` → `MedicalCode.code_id`, `CodingDiscrepancy.patient_id` → `Patient.patient_id`
-- [ ] Register DbSets in `ApplicationDbContext` and generate EF Core migration with rollback support
+- [x] Create `AgreementRateMetric` entity with columns: `metric_id` (UUID PK), `calculation_date` (date, unique), `daily_agreement_rate` (decimal), `rolling_30day_rate` (decimal nullable), `total_codes_verified` (int), `codes_approved_without_override` (int), `codes_overridden` (int), `codes_partially_overridden` (int), `meets_minimum_threshold` (bool — true when total_codes_verified >= 50), `created_at` (timestamp), `updated_at` (timestamp)
+- [x] Create `CodingDiscrepancy` entity with columns: `discrepancy_id` (UUID PK), `medical_code_id` (FK to MedicalCode), `patient_id` (FK to Patient), `ai_suggested_code` (string), `staff_selected_code` (string), `code_type` (enum: icd10, cpt), `discrepancy_type` (enum: full_override, partial_override, multiple_codes), `override_justification` (text), `detected_at` (timestamp), `created_at` (timestamp)
+- [x] Add unique index on `AgreementRateMetric.calculation_date` for efficient daily lookup
+- [x] Add composite index on `CodingDiscrepancy(patient_id, detected_at)` for patient-level queries
+- [x] Add foreign key constraints: `CodingDiscrepancy.medical_code_id` → `MedicalCode.code_id`, `CodingDiscrepancy.patient_id` → `Patient.patient_id`
+- [x] Register DbSets in `ApplicationDbContext` and generate EF Core migration with rollback support

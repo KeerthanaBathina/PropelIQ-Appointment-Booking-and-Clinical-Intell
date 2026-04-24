@@ -194,13 +194,13 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `useIcd10Codes` React Query hook with 5-min cache TTL and error/loading state handling
-- [ ] Create `Icd10CodeTable` with MUI Table, sortable columns, alternating row stripes, and empty state
-- [ ] Create `Icd10CodeRow` with ConfidenceBadge (color-coded per UXR-105), justification display, and code formatting
-- [ ] Create `UncodableAlert` component with MUI Alert for uncodable diagnoses
-- [ ] Create `DeprecatedCodeWarning` chip for deprecated codes with replacement suggestion
-- [ ] Create `AiUnavailableBanner` with fallback button per UXR-605
-- [ ] Implement all 5 screen states (Default, Loading/Skeleton, Empty, Error, Validation)
-- [ ] Apply responsive breakpoints (375px, 768px, 1440px) and validate against wireframe
+- [x] Create `useIcd10Codes` React Query hook with 5-min cache TTL and error/loading state handling
+- [x] Create `Icd10CodeTable` with MUI Table, sortable columns, alternating row stripes, and empty state
+- [x] Create `Icd10CodeRow` with ConfidenceBadge (color-coded per UXR-105), justification display, and code formatting
+- [x] Create `UncodableAlert` component with MUI Alert for uncodable diagnoses
+- [x] Create `DeprecatedCodeWarning` chip for deprecated codes with replacement suggestion
+- [x] Create `CodingAiUnavailableBanner` with fallback button per UXR-605
+- [x] Implement all 5 screen states (Default, Loading/Skeleton, Empty, Error, Validation)
+- [x] Apply responsive breakpoints (375px, 768px, 1440px) and validate against wireframe
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

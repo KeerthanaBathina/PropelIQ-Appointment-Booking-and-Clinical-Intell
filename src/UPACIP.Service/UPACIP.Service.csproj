@@ -70,6 +70,16 @@
     <Content Include="AI\ConflictDetection\Prompts\conflict-detection.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <!-- AI ICD-10 coding guardrails and prompt templates (US_047, AIR-003, AIR-S01, AIR-S02, AIR-O03). -->
+    <Content Include="AI\Coding\coding-guardrails.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="AI\Coding\Prompts\icd10-mapping-system.v1.0.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="AI\Coding\Prompts\icd10-mapping-user.v1.0.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

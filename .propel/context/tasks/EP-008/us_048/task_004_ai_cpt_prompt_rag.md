@@ -149,14 +149,14 @@ Implement the AI layer for CPT procedure code mapping including prompt template 
 
 ## Implementation Checklist
 
-- [ ] Design versioned CPT coding prompt template (v1.0.0) with system instructions, clinical context injection points, output JSON schema, and ambiguity/bundling handling
-- [ ] Set up pgvector index for CPT coding guidelines: 512-token chunks, 20% overlap, 384-dim embeddings via text-embedding-3-small (AIR-R01, AIR-R04)
-- [ ] Implement RAG retrieval pipeline: top-5 chunks, cosine similarity ≥ 0.75, semantic re-ranking, hybrid search with PostgreSQL FTS (AIR-R02, AIR-R03, AIR-R06)
-- [ ] Implement structured JSON output schema with code validation against CPT code library and hallucination rejection (AIR-Q06, AIR-S02)
-- [ ] Enforce token budget of 2000 input / 500 output tokens per request with RAG chunk truncation when exceeding budget (AIR-O03)
-- [ ] Implement confidence score calibration with <0.80 flagging for mandatory manual verification (AIR-Q07, AIR-Q08, AIR-010)
-- [ ] Add bundled procedure detection in prompt with cross-reference against `cpt_bundle_rules` table and relevance ranking
-- [ ] Implement PII redaction before API calls and audit logging of all prompts/responses with patient_id correlation (AIR-S01, AIR-S04, AIR-S06)
+- [x] Design versioned CPT coding prompt template (v1.0.0) with system instructions, clinical context injection points, output JSON schema, and ambiguity/bundling handling
+- [x] Set up pgvector index for CPT coding guidelines: 512-token chunks, 20% overlap, 384-dim embeddings via text-embedding-3-small (AIR-R01, AIR-R04)
+- [x] Implement RAG retrieval pipeline: top-5 chunks, cosine similarity ≥ 0.75, semantic re-ranking, hybrid search with PostgreSQL FTS (AIR-R02, AIR-R03, AIR-R06)
+- [x] Implement structured JSON output schema with code validation against CPT code library and hallucination rejection (AIR-Q06, AIR-S02)
+- [x] Enforce token budget of 2000 input / 500 output tokens per request with RAG chunk truncation when exceeding budget (AIR-O03)
+- [x] Implement confidence score calibration with <0.80 flagging for mandatory manual verification (AIR-Q07, AIR-Q08, AIR-010)
+- [x] Add bundled procedure detection in prompt with cross-reference against `cpt_bundle_rules` table and relevance ranking
+- [x] Implement PII redaction before API calls and audit logging of all prompts/responses with patient_id correlation (AIR-S01, AIR-S04, AIR-S06)
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-XXX requirements are met (quality, safety, operational)

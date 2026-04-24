@@ -662,6 +662,67 @@ builder.Services.AddSingleton<IAiHealthCheckService, AiHealthCheckService>();
 builder.Services.AddSingleton<IConfidenceThresholdGate, ConfidenceThresholdGate>();
 builder.Services.AddSingleton<AiAuditLogger>();
 
+// ── ICD-10 coding pipeline (US_047, AC-1, AC-3, AC-4, FR-063) ────────────────────────────────
+// AiCodingGateway (task_003): production AI gateway calling OpenAI GPT-4o-mini (primary) and
+//   Anthropic Claude 3.5 Sonnet (fallback) with Polly circuit breaker + exponential retry (AIR-O04).
+// Icd10RagRetriever: Scoped — generates embeddings and queries pgvector CodingGuideline index (AIR-R01).
+// CodingGuardrailsService: Scoped — PII redaction, ICD-10 format validation, library cross-reference (AIR-S01/S02).
+// Icd10ResponseParser: Scoped — parses LLM JSON tool-call response into AiCodeSuggestion objects.
+// Icd10PromptBuilder: Singleton — stateless Liquid template loader; safe to share across requests.
+// IIcd10CodingService: Scoped — reads ExtractedData and writes MedicalCode rows.
+// IIcd10LibraryService: Scoped — manages Icd10CodeLibrary rows and revalidation lifecycle.
+// Icd10CodingWorker: BackgroundService draining the Redis coding queue (NFR-029).
+builder.Services.AddScoped<UPACIP.Service.AI.Coding.Icd10RagRetriever>();
+builder.Services.AddScoped<UPACIP.Service.AI.Coding.CodingGuardrailsService>();
+builder.Services.AddScoped<UPACIP.Service.AI.Coding.Icd10ResponseParser>();
+builder.Services.AddSingleton<UPACIP.Service.AI.Coding.Icd10PromptBuilder>();
+builder.Services.AddScoped<UPACIP.Service.Coding.IAiCodingGateway, UPACIP.Service.AI.Coding.AiCodingGateway>();
+builder.Services.AddScoped<UPACIP.Service.Coding.IIcd10CodingService, UPACIP.Service.Coding.Icd10CodingService>();
+builder.Services.AddScoped<UPACIP.Service.Coding.IIcd10LibraryService, UPACIP.Service.Coding.Icd10LibraryService>();
+builder.Services.AddHostedService<UPACIP.Service.Coding.Icd10CodingWorker>();
+
+// ── CPT coding pipeline (US_048, AC-1, AC-3, AC-4, FR-066) ───────────────────────────────────
+// ICptCodingService: Scoped — manages approve/override actions on AI-suggested CPT MedicalCode rows.
+//   AI generation pipeline (task_004_ai_cpt_prompt_rag) will be registered here once the RAG
+//   retrieval layer and CPT prompt templates are ready.
+// ICptCodeLibraryService: Scoped — manages CptCodeLibrary rows and quarterly revalidation lifecycle.
+builder.Services.AddScoped<UPACIP.Service.Coding.ICptCodingService, UPACIP.Service.Coding.CptCodingService>();
+builder.Services.AddScoped<UPACIP.Service.Coding.ICptCodeLibraryService, UPACIP.Service.Coding.CptCodeLibraryService>();
+
+// CPT AI generation pipeline (task_004_ai_cpt_prompt_rag):
+//   ICptGenerationService: Scoped — orchestrates AI gateway, library validation, bundle detection, persistence.
+//   CptPromptBuilder: Singleton — stateless template loader (matches Icd10PromptBuilder registration pattern).
+//   CptRagRetriever: Scoped — pgvector similarity search (uses scoped IVectorSearchService).
+//   CptResponseParser: Scoped — JSON response parser + guardrails validation.
+//   CptCodingWorker: Singleton BackgroundService — drains upacip:cpt-coding-queue.
+builder.Services.AddScoped<UPACIP.Service.Coding.ICptGenerationService, UPACIP.Service.Coding.CptGenerationService>();
+builder.Services.AddSingleton<UPACIP.Service.AI.Coding.CptPromptBuilder>();
+builder.Services.AddScoped<UPACIP.Service.AI.Coding.CptRagRetriever>();
+builder.Services.AddScoped<UPACIP.Service.AI.Coding.CptResponseParser>();
+builder.Services.AddHostedService<UPACIP.Service.Coding.CptCodingWorker>();
+
+// ── Code verification service (US_049, AC-1 through AC-4, EC-1, EC-2, FR-064) ───────────────
+// ICodeVerificationService: Scoped — approval/override lifecycle, deprecated-code blocking,
+//   immutable CodingAuditLog creation, verification progress tracking, and code library search.
+builder.Services.AddScoped<UPACIP.Service.Coding.ICodeVerificationService, UPACIP.Service.Coding.CodeVerificationService>();
+
+// ── Agreement rate service (US_050, AC-1 through AC-4, FR-067, FR-068, AIR-Q09) ────────────
+// IAgreementRateService: Scoped — daily rate calculation, discrepancy detection, and alert
+//   generation.  Requires ApplicationDbContext → registered as Scoped.
+// AgreementRateCalculationJob: BackgroundService — fires every 24 hours, resolves
+//   IAgreementRateService in a fresh scope per execution (NFR-032 retry with backoff).
+builder.Services.AddScoped<UPACIP.Service.AgreementRate.IAgreementRateService, UPACIP.Service.AgreementRate.AgreementRateService>();
+builder.Services.AddHostedService<UPACIP.Service.AgreementRate.AgreementRateCalculationJob>();
+
+// ── Payer rule validation (US_051, AC-1, AC-2, AC-3, AC-4, FR-066) ─────────────────────────
+// IPayerRuleValidationService: Scoped — validates code combinations against payer-specific
+//   and CMS-default rules, detects denial risks, and validates NCCI bundling edits.
+//   Uses Redis cache (5-minute TTL per NFR-030) for payer rule sets.
+// IMultiCodeAssignmentService: Scoped — assigns multiple codes with individual verification
+//   and billing priority ordering. Writes CodingAuditLog entries for HIPAA compliance.
+builder.Services.AddScoped<UPACIP.Service.Coding.IPayerRuleValidationService, UPACIP.Service.Coding.PayerRuleValidationService>();
+builder.Services.AddScoped<UPACIP.Service.Coding.IMultiCodeAssignmentService, UPACIP.Service.Coding.MultiCodeAssignmentService>();
+
 // ASP.NET Core built-in rate limiting (Microsoft.AspNetCore.RateLimiting — included in .NET 7+).
 // Policy "check-email-limit": 30 req/min per IP — anti-enumeration guard (OWASP A07).
 // The resend-verification endpoint uses application-level Redis rate limiting inside
@@ -699,6 +760,26 @@ builder.Services.AddRateLimiter(options =>
     {
         limiterOptions.Window           = TimeSpan.FromMinutes(1);
         limiterOptions.PermitLimit      = 5;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
+    // ICD-10 generation limiter: 100 requests per hour per user (AIR-S08, US_047).
+    // Token consumption is LLM-bound; a generous but bounded window prevents runaway
+    // batch calls from exhausting the AI provider token budget.
+    options.AddFixedWindowLimiter("icd10-generate-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromHours(1);
+        limiterOptions.PermitLimit      = 100;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
+    // CPT generation limiter: 100 requests per hour (mirrors icd10-generate-limit, AIR-S08, US_048).
+    options.AddFixedWindowLimiter("cpt-generate-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromHours(1);
+        limiterOptions.PermitLimit      = 100;
         limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
         limiterOptions.QueueLimit       = 0;
     });

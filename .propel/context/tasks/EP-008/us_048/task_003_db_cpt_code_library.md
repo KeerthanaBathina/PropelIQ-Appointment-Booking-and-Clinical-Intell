@@ -115,7 +115,7 @@ Create the CPT code library database schema and seed data required for AI-genera
 
 ## Implementation Checklist
 
-- [ ] Create `CptCodeLibrary` entity with code_id, cpt_code, description, category, effective_date, expiration_date, is_active, timestamps; add unique index on cpt_code and composite index on (category, is_active)
-- [ ] Create `CptBundleRule` entity with bundle_id, bundle_cpt_code, component_cpt_code, bundle_description, is_active, created_at; add unique constraint on (bundle_cpt_code, component_cpt_code)
-- [ ] Create EF Core migration `AddCptCodeLibraryAndBundleRules` with transaction block and rollback support (DR-029)
-- [ ] Add seed data script with 50-75 common CPT codes across E&M, Lab, Radiology, Surgery, Medicine categories and 5-10 bundle rules
+- [x] Create `CptCodeLibrary` entity with code_id, cpt_code, description, category, effective_date, expiration_date, is_active, timestamps; add unique index on cpt_code and composite index on (category, is_active)
+- [x] Create `CptBundleRule` entity with bundle_rule_id, bundle_cpt_code, component_cpt_code, bundle_description, is_active, created_at; add unique constraint on (bundle_cpt_code, component_cpt_code)
+- [x] Create EF Core migration `AddCptCodeLibraryAndBundleRules` with Up/Down methods — adds cpt_code_library table, cpt_bundle_rules table, and IsBundled/BundleGroupId columns to medical_codes; Down() performs clean rollback (DR-029)
+- [x] Add seed data script with 62 common CPT codes across E&M, Preventive Medicine, Lab, Radiology, Surgery, and Medicine categories and 10 bundle rules (9 active + 1 inactive); idempotent via ON CONFLICT clauses

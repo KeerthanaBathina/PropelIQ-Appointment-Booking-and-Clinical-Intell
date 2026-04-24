@@ -130,11 +130,11 @@ Implement the backend API layer for payer rule validation and multi-code assignm
 - [ ] Idempotent endpoints for state-changing operations (NFR-034)
 
 ## Implementation Checklist
-- [ ] Create `IPayerRuleValidationService` interface with `ValidateCodeCombinationsAsync`, `DetectClaimDenialRisksAsync`, `ValidateBundlingRulesAsync` methods
-- [ ] Implement `PayerRuleValidationService` with payer rule lookup, CMS default fallback, and corrective action generation
-- [ ] Implement `MultiCodeAssignmentService` with individual code verification and billing priority ordering
-- [ ] Create DTOs: `PayerValidationResultDto`, `ClaimDenialRiskDto`, `CorrectiveActionDto`, `MultiCodeAssignmentDto`, `BundlingRuleResultDto`
-- [ ] Create `PayerRuleValidationController` with 4 endpoints (GET payer-rules, POST multi-assign, POST validate-bundling, POST resolve-conflict)
-- [ ] Integrate payer validation into existing `CodingService` post-code-suggestion pipeline
-- [ ] Add Redis caching for payer rule sets with 5-minute TTL and cache invalidation
-- [ ] Add audit logging for all payer validation, assignment, and conflict resolution events
+- [x] Create `IPayerRuleValidationService` interface with `ValidateCodeCombinationsAsync`, `DetectClaimDenialRisksAsync`, `ValidateBundlingRulesAsync` methods
+- [x] Implement `PayerRuleValidationService` with payer rule lookup, CMS default fallback, and corrective action generation
+- [x] Implement `MultiCodeAssignmentService` with individual code verification and billing priority ordering
+- [x] Create DTOs: `PayerValidationResultDto`, `ClaimDenialRiskDto`, `CorrectiveActionDto`, `MultiCodeAssignmentDto`, `BundlingRuleResultDto`
+- [x] Create `PayerRuleValidationController` with 4 endpoints (GET payer-rules, POST multi-assign, POST validate-bundling, POST resolve-conflict)
+- [x] Integrate payer validation into existing `CodingService` post-code-suggestion pipeline
+- [x] Add Redis caching for payer rule sets with 5-minute TTL and cache invalidation
+- [x] Add audit logging for all payer validation, assignment, and conflict resolution events

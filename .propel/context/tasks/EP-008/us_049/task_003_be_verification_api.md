@@ -153,9 +153,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define request/response DTOs (VerificationQueueDto, OverrideCodeRequestDto, CodeSearchResultDto, CodingAuditEntryDto, VerificationProgressDto, DeprecationCheckDto) with JSON serialization and validation attributes
-- [ ] Implement CodeVerificationController with 7 endpoints (queue, approve, override, audit-trail, search, progress, deprecation-check)
-- [ ] Add request validation: OverrideCodeRequestDto with [Required] on new_code_value and [MinLength(10)] on justification
-- [ ] Map business exceptions to HTTP responses (DeprecatedCodeException → 409 Conflict with replacement codes)
-- [ ] Add role-based authorization (Staff, Admin) to all endpoints
-- [ ] Add Swagger XML documentation comments on all controller actions and DTO properties per NFR-038
+- [x] Define request/response DTOs (VerificationQueueDto, OverrideCodeRequestDto, CodeSearchResultDto, CodingAuditEntryDto, VerificationProgressDto, DeprecationCheckDto) with JSON serialization and validation attributes
+- [x] Implement CodeVerificationController with 7 endpoints (queue, approve, override, audit-trail, search, progress, deprecation-check)
+- [x] Add request validation: OverrideCodeRequestDto with [Required] on new_code_value and [MinLength(10)] on justification
+- [x] Map business exceptions to HTTP responses (DeprecatedCodeException → 409 Conflict with replacement codes)
+- [x] Add role-based authorization (Staff, Admin) to all endpoints
+- [x] Add Swagger XML documentation comments on all controller actions and DTO properties per NFR-038

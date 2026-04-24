@@ -30,6 +30,8 @@ const DocumentUploadPage = lazy(() => import('@/pages/DocumentUploadPage'));
 const PatientProfilePage = lazy(() => import('@/pages/PatientProfilePage'));
 // SCR-013 — Patient Profile 360° (US_043) — consolidated profile
 const PatientProfile360Page = lazy(() => import('@/pages/PatientProfile360Page'));
+// SCR-014 — Medical Coding Review (US_047)
+const MedicalCodingReviewPage = lazy(() => import('@/pages/MedicalCodingReviewPage'));
 
 function RouteLoadingFallback() {
   return (
@@ -150,6 +152,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['Staff']}>
               <PatientProfile360Page />
+            </ProtectedRoute>
+          }
+        />
+        {/* SCR-014 — Medical Coding Review (US_047) */}
+        <Route
+          path="/staff/patients/:patientId/coding"
+          element={
+            <ProtectedRoute allowedRoles={['Staff']}>
+              <MedicalCodingReviewPage />
             </ProtectedRoute>
           }
         />
