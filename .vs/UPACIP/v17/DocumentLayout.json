@@ -1,7 +1,12 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\",
-  "Documents": [],
+  "WorkspaceRootPath": "D:\\PropelDemo\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|d:\\propeldemo\\propeliq-appointment-booking-and-clinical-intell\\src\\upacip.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|solutionrelative:src\\upacip.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
@@ -9,15 +14,20 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": -1,
+          "SelectedChildIndex": 0,
           "Children": [
             {
-              "$type": "Bookmark",
-              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
-            },
-            {
-              "$type": "Bookmark",
-              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "appsettings.Development.json",
+              "DocumentMoniker": "D:\\PropelDemo\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\appsettings.Development.json",
+              "RelativeDocumentMoniker": "src\\UPACIP.Api\\appsettings.Development.json",
+              "ToolTip": "D:\\PropelDemo\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\appsettings.Development.json",
+              "RelativeToolTip": "src\\UPACIP.Api\\appsettings.Development.json",
+              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-04-27T09:54:44.588Z",
+              "EditorCaption": ""
             }
           ]
         }

@@ -44,6 +44,7 @@ public sealed class AIGatewayService : IAIGatewayService
     private readonly AIResponseNormalizationMiddleware   _normalization;
     private readonly AiCostTrackingMiddleware            _costTracking;
     private readonly AiAuditLogger                       _auditLogger;
+    private readonly PiiRedactionMiddleware              _piiRedaction;
     private readonly ILogger<AIGatewayService>           _logger;
 
     public AIGatewayService(
@@ -57,6 +58,7 @@ public sealed class AIGatewayService : IAIGatewayService
         AIResponseNormalizationMiddleware   normalization,
         AiCostTrackingMiddleware            costTracking,
         AiAuditLogger                       auditLogger,
+        PiiRedactionMiddleware              piiRedaction,
         ILogger<AIGatewayService>           logger)
     {
         _options           = options.Value;
@@ -69,6 +71,7 @@ public sealed class AIGatewayService : IAIGatewayService
         _normalization     = normalization;
         _costTracking      = costTracking;
         _auditLogger       = auditLogger;
+        _piiRedaction      = piiRedaction;
         _logger            = logger;
     }
 
@@ -139,6 +142,22 @@ public sealed class AIGatewayService : IAIGatewayService
 
         // ── Step 3b: Effective token limits (used for budget-aware logging) ───
         _ = _options.GetEffectiveBudget(request.RequestType);
+
+        // ── Step 3c: PII redaction (AIR-S01, US_074 AC-3, AC-4) ─────────────
+        // All six PII categories are stripped from the prompt and system message
+        // before any further processing (queue or direct dispatch).
+        var (sanitisedRequest, piiCtx, isBlocked) = _piiRedaction.RedactRequest(request);
+
+        if (isBlocked)
+        {
+            return AIResponse.Failed(
+                request.RequestId,
+                "Request blocked: residual PII detected after redaction pass.",
+                sw.ElapsedMilliseconds);
+        }
+
+        // Use the sanitised request for all downstream pipeline steps.
+        request = sanitisedRequest;
 
         // ── Step 4a: Queue routing for DocumentParsing requests (AC-4) ───────
         // DocumentParsing jobs are offloaded to Redis queue for asynchronous processing
@@ -221,6 +240,10 @@ public sealed class AIGatewayService : IAIGatewayService
         // Fire-and-forget — never blocks or fails the AI response pipeline.
         // Logs AiRequestLog and checks near-real-time budget threshold.
         _costTracking.Track(request, normalized);
+
+        // ── Step 7b: PII redaction audit event (US_074 AC-3, AIR-S01) ─────────
+        // Logs only token counts per category — no PII values are written.
+        _piiRedaction.LogRedactionEvent(piiCtx, request.CorrelationId);
 
         return normalized;
     }

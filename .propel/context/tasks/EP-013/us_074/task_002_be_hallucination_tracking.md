@@ -177,12 +177,12 @@ dotnet ef migrations add AddHallucinationTracking --project src/UPACIP.DataAcces
 
 ## Implementation Checklist
 
-- [ ] Create `SourceSupportStatus` enum with `Supported`, `Unsupported`, `PartiallySupportted`, `Pending` values
-- [ ] Define `HallucinationRecord` entity extending `BaseEntity` with `MedicalCodeId` FK, `VerifiedByUserId`, `SourceSupportStatus`, `VerificationNotes`, `VerifiedAt`, `IsRetroactive`
-- [ ] Define `HallucinationMetric` entity extending `BaseEntity` with `MetricDate` (unique index), `TotalVerified`, `HallucinationCount`, `HallucinationRate`, `TargetRate`
-- [ ] Define `HallucinationAlert` entity with `AlertId`, `GeneratedAt`, `CurrentRate`, `TargetRate`, `Recommendation`, `IsRetroactive`, `IsAcknowledged`, `AcknowledgedByUserId`
-- [ ] Implement `IHallucinationTrackingService` with `RecordVerificationAsync`, `RecordRetroactiveHallucinationAsync`, `CalculateDailyRateAsync`, `RunDailyAggregationAsync`
-- [ ] Implement retroactive hallucination handling: reset `ApprovedByUserId`, create retroactive alert, mark entries for re-verification
-- [ ] Implement `HallucinationAggregationJob` as daily `IHostedService`: aggregate rate, generate critical alert with recommendation when > 5%
-- [ ] Register DbSets, services, and background job in `ApplicationDbContext` and `Program.cs`
-- **[AI Tasks - MANDATORY]** Verify AIR-Q06 (hallucination rate < 5% tracking) requirement is met
+- [x] Create `SourceSupportStatus` enum with `Supported`, `Unsupported`, `PartiallySupported`, `Pending` values
+- [x] Define `HallucinationRecord` entity extending `BaseEntity` with `MedicalCodeId` FK, `VerifiedByUserId`, `SourceSupportStatus`, `VerificationNotes`, `VerifiedAt`, `IsRetroactive`
+- [x] Define `HallucinationMetric` entity extending `BaseEntity` with `MetricDate` (unique index), `TotalVerified`, `HallucinationCount`, `HallucinationRate`, `TargetRate`
+- [x] Define `HallucinationAlert` entity with `AlertId`, `GeneratedAt`, `CurrentRate`, `TargetRate`, `Recommendation`, `IsRetroactive`, `IsAcknowledged`, `AcknowledgedByUserId`
+- [x] Implement `IHallucinationTrackingService` with `RecordVerificationAsync`, `RecordRetroactiveHallucinationAsync`, `CalculateDailyRateAsync`, `RunDailyAggregationAsync`
+- [x] Implement retroactive hallucination handling: reset `ApprovedByUserId`, create retroactive alert, mark entries for re-verification
+- [x] Implement `HallucinationAggregationJob` as daily `IHostedService`: aggregate rate, generate critical alert with recommendation when > 5%
+- [x] Register DbSets, services, and background job in `ApplicationDbContext` and `Program.cs`
+- **[AI Tasks - MANDATORY]** Verify AIR-Q06 (hallucination rate < 5% tracking) requirement is met ✅

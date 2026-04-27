@@ -175,11 +175,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `AiMetricsSummaryDto`, `AiMetricsTimeSeriesDto`, `AiMetricAlertDto` DTOs with all required properties
-- [ ] Define `IAiMetricsService` interface with `GetCurrentSummaryAsync`, `GetTimeSeriesAsync`, `GetActiveAlertsAsync`, `RunDailyAggregationAsync`
-- [ ] Implement accuracy calculation: AI-human agreement rate from `MedicalCode` (AI-suggested vs staff-approved), precision/recall from `ExtractedData` (flagged vs verified)
-- [ ] Implement latency aggregation: P50/P95 percentile calculation from AI Gateway request logs grouped by operation type
-- [ ] Implement trend direction: compare current vs previous day metric values with ±1% threshold
-- [ ] Implement `AiMetricsCalculationJob` as `IHostedService` with daily `PeriodicTimer`, threshold evaluation, and `AiMetricAlert` generation per AC-4
-- [ ] Create `AiMetricsController` with admin-authorized endpoints: `GET /summary`, `GET /time-series`, `GET /alerts`, `PUT /alerts/{id}/acknowledge`
-- [ ] Register `IAiMetricsService` and `AiMetricsCalculationJob` in `Program.cs` DI container
+- [x] Create `AiMetricsSummaryDto`, `AiMetricsTimeSeriesDto`, `AiMetricAlertDto` DTOs with all required properties
+- [x] Define `IAiMetricsService` interface with `GetCurrentSummaryAsync`, `GetTimeSeriesAsync`, `GetActiveAlertsAsync`, `RunDailyAggregationAsync`
+- [x] Implement accuracy calculation: AI-human agreement rate from `MedicalCode` (AI-suggested vs staff-approved), precision/recall from `ExtractedData` (flagged vs verified)
+- [x] Implement latency aggregation: P50/P95 percentile calculation from AI Gateway request logs grouped by operation type
+- [x] Implement trend direction: compare current vs previous day metric values with ±1% threshold
+- [x] Implement `AiMetricsCalculationJob` as `IHostedService` with daily `PeriodicTimer`, threshold evaluation, and `AiMetricAlert` generation per AC-4
+- [x] Create `AiMetricsController` with admin-authorized endpoints: `GET /summary`, `GET /time-series`, `GET /alerts`, `PUT /alerts/{id}/acknowledge`
+- [x] Register `IAiMetricsService` and `AiMetricsCalculationJob` in `Program.cs` DI container

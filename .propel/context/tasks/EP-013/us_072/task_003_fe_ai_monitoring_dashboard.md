@@ -186,13 +186,13 @@ npm run lint
 
 ## Implementation Checklist
 
-- [ ] Define TypeScript interfaces in `types.ts` matching backend DTOs: `AiMetricsSummary`, `LatencyMetric`, `TimeSeriesDataPoint`, `AiMetricAlert`
-- [ ] Create React Query hooks in `useAiMetrics.ts`: `useAiMetricsSummary` (60s staleTime), `useAiMetricsTimeSeries`, `useAiMetricAlerts`, `useAcknowledgeAlert` mutation
-- [ ] Build `AccuracyMetricCard` with gauge, value display, target indicator, trend arrow, color-coding (green/amber/red), and "Insufficient data" state
-- [ ] Build `LatencyMetricsTable` with P50/P95 columns, operation type rows, color-coded status `Chip` components
-- [ ] Build `MetricsTrendChart` with line chart, granularity `ToggleButtonGroup`, date range selector, and target threshold reference line
-- [ ] Build `ActiveAlertsPanel` with alert list, acknowledge button, empty state, and metric details display
-- [ ] Compose `AiMonitoringDashboard` container with responsive MUI `Grid`, loading `Skeleton`, and error `Alert` states
-- [ ] Integrate "AI Monitoring" tab into `AdminDashboard.tsx` with breadcrumb support per UXR-003
+- [x] Define TypeScript interfaces in `types.ts` matching backend DTOs: `AiMetricsSummary`, `LatencyMetric`, `TimeSeriesDataPoint`, `AiMetricAlert`
+- [x] Create React Query hooks in `useAiMetrics.ts`: `useAiMetricsSummary` (60s staleTime), `useAiMetricsTimeSeries`, `useAiMetricAlerts`, `useAcknowledgeAlert` mutation
+- [x] Build `AccuracyMetricCard` with gauge, value display, target indicator, trend arrow, color-coding (green/amber/red), and "Insufficient data" state
+- [x] Build `LatencyMetricsTable` with P50/P95 columns, operation type rows, color-coded status `Chip` components
+- [x] Build `MetricsTrendChart` with line chart, granularity `ToggleButtonGroup`, date range selector, and target threshold reference line
+- [x] Build `ActiveAlertsPanel` with alert list, acknowledge button, empty state, and metric details display
+- [x] Compose `AiMonitoringDashboard` container with responsive MUI `Grid`, loading `Skeleton`, and error `Alert` states
+- [x] Integrate "AI Monitoring" tab into `AdminDashboard.tsx` with breadcrumb support per UXR-003
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

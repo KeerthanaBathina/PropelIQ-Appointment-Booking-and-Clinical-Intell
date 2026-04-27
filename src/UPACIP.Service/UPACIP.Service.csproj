@@ -6,6 +6,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
     <PackageReference Include="QuestPDF" Version="2024.10.2" />
     <PackageReference Include="QRCoder" Version="1.6.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
@@ -78,6 +79,10 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="AI\Coding\Prompts\icd10-mapping-user.v1.0.liquid">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <!-- RAG semantic re-ranking prompt template (US_077 task_002, AC-3, AIR-R03). -->
+    <Content Include="Rag\Prompts\reranking-prompt.liquid">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>

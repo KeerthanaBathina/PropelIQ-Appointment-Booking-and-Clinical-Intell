@@ -184,11 +184,11 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `HybridSearchOptions` with `SemanticWeight`, `KeywordWeight`, `ExactMatchBoostFactor` bound from `appsettings.json` via options pattern
-- [ ] Define `IHybridSearchOrchestrator` interface with `HybridSearchAsync` method supporting category scoping and configurable weighting
-- [ ] Implement category-scoped routing: single category → query one index, null/empty → parallel `Task.WhenAll` across all three indexes
-- [ ] Implement deduplication by chunk `Id` after multi-category aggregation, retaining highest `CombinedScore`
-- [ ] Apply configurable weighted scoring: `FinalScore = (Similarity * SemanticWeight) + (NormalizedFtsRank * KeywordWeight)` with FTS rank normalization
-- [ ] Implement exact match boosting: multiply `FinalScore` by `ExactMatchBoostFactor` for chunks containing exact query text match
-- [ ] Modify `RagRetrievalService.RetrieveContextAsync` to delegate to `IHybridSearchOrchestrator` when `UseHybridSearch == true`
-- [ ] Register `IHybridSearchOrchestrator` and `HybridSearchOptions` in `Program.cs`, add default config to `appsettings.json`
+- [x] Create `HybridSearchOptions` with `SemanticWeight`, `KeywordWeight`, `ExactMatchBoostFactor` bound from `appsettings.json` via options pattern
+- [x] Define `IHybridSearchOrchestrator` interface with `HybridSearchAsync` method supporting category scoping and configurable weighting
+- [x] Implement category-scoped routing: single category → query one index, null/empty → parallel `Task.WhenAll` across all three indexes
+- [x] Implement deduplication by chunk `Id` after multi-category aggregation, retaining highest `CombinedScore`
+- [x] Apply configurable weighted scoring: `FinalScore = (Similarity * SemanticWeight) + (NormalizedFtsRank * KeywordWeight)` with FTS rank normalization
+- [x] Implement exact match boosting: multiply `FinalScore` by `ExactMatchBoostFactor` for chunks containing exact query text match
+- [x] Modify `RagRetrievalService.RetrieveContextAsync` to delegate to `IHybridSearchOrchestrator` when `UseHybridSearch == true`
+- [x] Register `IHybridSearchOrchestrator` and `HybridSearchOptions` in `Program.cs`, add default config to `appsettings.json`

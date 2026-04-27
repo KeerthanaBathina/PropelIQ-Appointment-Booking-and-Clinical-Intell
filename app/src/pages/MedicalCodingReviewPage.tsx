@@ -74,6 +74,7 @@ import AiUnavailableBanner from '@/features/medical-coding/components/AiUnavaila
 import CptCodeTable from '@/features/medical-coding/components/CptCodeTable';
 import CptCodingSummary from '@/features/medical-coding/components/CptCodingSummary';
 import { useCptCodes } from '@/features/medical-coding/hooks/useCptCodes';
+import VerificationQueue from '@/features/medical-coding/verification/VerificationQueue';
 
 // ─── Summary Stats ────────────────────────────────────────────────────────────
 
@@ -454,6 +455,23 @@ export default function MedicalCodingReviewPage() {
             isError={verificationError}
             onRetry={verificationRefetch}
           />
+        </Box>
+
+        <Divider sx={{ mb: 3 }} />
+
+        {/* ── US_075: Human-in-the-Loop Verification Enforcement section ── */}
+        <Box component="section" aria-labelledby="hitl-verification-heading" sx={{ mb: 4 }}>
+          <Typography
+            id="hitl-verification-heading"
+            variant="h6"
+            component="h2"
+            fontWeight={600}
+            sx={{ mb: 2 }}
+          >
+            AI Output Verification — Human Review Required
+          </Typography>
+
+          <VerificationQueue patientId={patientId} />
         </Box>
 
         <Divider sx={{ mb: 3 }} />

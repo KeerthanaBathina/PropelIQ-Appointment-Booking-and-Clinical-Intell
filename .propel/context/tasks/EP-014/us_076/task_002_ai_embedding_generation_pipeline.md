@@ -211,14 +211,14 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `EmbeddingRequest`, `EmbeddingResult`, and `IngestionRequest` model classes in `src/UPACIP.Service/Rag/Embedding/Models/`
-- [ ] Define `IEmbeddingGenerationService` interface with `GenerateEmbeddingAsync`, `GenerateEmbeddingsAsync`, `IngestDocumentAsync`
-- [ ] Implement single embedding generation via AI Gateway calling OpenAI `text-embedding-3-small` (384 dimensions, validate response length)
-- [ ] Implement batch embedding with sub-batching at 100 texts per API call and token usage tracking
-- [ ] Implement Redis embedding cache with `embedding:{sha256}` key pattern and 24-hour TTL
-- [ ] Implement `IngestDocumentAsync` orchestrating chunk → embed → `UpsertEmbeddingAsync` with partial failure handling
-- [ ] Implement `DocumentIngestionWorker` as BackgroundService with Redis queue, retry (max 3), and dead-letter queue
-- [ ] Register `IEmbeddingGenerationService` and `DocumentIngestionWorker` in `Program.cs` DI container
+- [x] Create `EmbeddingRequest`, `EmbeddingResult`, and `IngestionRequest` model classes in `src/UPACIP.Service/Rag/Embedding/Models/`
+- [x] Define `IEmbeddingGenerationService` interface with `GenerateEmbeddingAsync`, `GenerateEmbeddingsAsync`, `IngestDocumentAsync`
+- [x] Implement single embedding generation via AI Gateway calling OpenAI `text-embedding-3-small` (384 dimensions, validate response length)
+- [x] Implement batch embedding with sub-batching at 100 texts per API call and token usage tracking
+- [x] Implement Redis embedding cache with `embedding:{sha256}` key pattern and 24-hour TTL
+- [x] Implement `IngestDocumentAsync` orchestrating chunk → embed → `UpsertEmbeddingAsync` with partial failure handling
+- [x] Implement `DocumentIngestionWorker` as BackgroundService with Redis queue, retry (max 3), and dead-letter queue
+- [x] Register `IEmbeddingGenerationService` and `DocumentIngestionWorker` in `Program.cs` DI container
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-R01, AIR-R04 requirements are met (chunking size, separate indexes)

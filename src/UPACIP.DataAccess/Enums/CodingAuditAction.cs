@@ -24,4 +24,10 @@ public enum CodingAuditAction
     /// A code was re-evaluated against the current library (e.g. after a quarterly refresh, US_049 AC-4).
     /// </summary>
     Revalidated,
+
+    /// <summary>
+    /// Staff rejected the AI-suggested code as incorrect or inapplicable (US_075, AC-1, AIR-S03).
+    /// A rejection reason must be provided.
+    /// </summary>
+    Rejected,
 }

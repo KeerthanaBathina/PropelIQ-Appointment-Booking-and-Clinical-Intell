@@ -247,6 +247,81 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<AiCostDailySummary> AiCostDailySummaries => Set<AiCostDailySummary>();
 
+    // ── AI Performance Metrics (US_072) ──────────────────────────────────────
+
+    /// <summary>
+    /// Daily aggregated AI accuracy metrics (agreement rate, precision, recall) for the
+    /// AI monitoring dashboard (US_072 task_001, AC-1, AC-2).
+    /// Composite unique constraint on (MetricDate, MetricType) prevents duplicate daily rows.
+    /// </summary>
+    public DbSet<AiAccuracyMetric> AiAccuracyMetrics => Set<AiAccuracyMetric>();
+
+    /// <summary>
+    /// Daily aggregated AI latency percentile metrics (P50, P95 per operation type) for the
+    /// AI monitoring dashboard (US_072 task_001, AC-3).
+    /// Composite unique constraint on (MetricDate, OperationType) prevents duplicate daily rows.
+    /// </summary>
+    public DbSet<AiLatencyMetric> AiLatencyMetrics => Set<AiLatencyMetric>();
+
+    /// <summary>
+    /// Configurable alert threshold definitions per AI metric name (US_072 task_001, AC-4).
+    /// Unique constraint on MetricName enables safe upserts and direct lookup.
+    /// </summary>
+    public DbSet<AiMetricThreshold> AiMetricThresholds => Set<AiMetricThreshold>();
+
+    /// <summary>
+    /// Alert records generated when a daily AI metric calculation drops below its configured
+    /// threshold (US_072 task_001, AC-4). Stores metric name, current/target values, and
+    /// trend direction. Acknowledged by an admin user via the dashboard.
+    /// </summary>
+    public DbSet<AiMetricAlert> AiMetricAlerts => Set<AiMetricAlert>();
+
+    // ── Confidence Score Calibration (US_073) ─────────────────────────────────
+
+    /// <summary>
+    /// Per-category Platt-scaling calibration parameters used to transform raw AI confidence
+    /// scores into calibrated probabilities (US_073 task_001, AC-1).
+    /// One active row per <c>DataType</c>; enforced by a unique filtered index on
+    /// (<c>DataType</c>, <c>IsActive</c>) WHERE <c>is_active = true</c>.
+    /// </summary>
+    public DbSet<CalibrationParameter> CalibrationParameters => Set<CalibrationParameter>();
+
+    /// <summary>
+    /// Weekly calibration run results storing predicted vs. actual accuracy per confidence bin
+    /// per clinical data category (US_073 task_001, AC-3).
+    /// One row per (CalibrationRunDate, DataType, BinStart) produced by the weekly calibration job.
+    /// </summary>
+    public DbSet<CalibrationRecord> CalibrationRecords => Set<CalibrationRecord>();
+
+    /// <summary>
+    /// Alert records generated when calibration drift exceeds the 5% threshold between
+    /// predicted and actual accuracy for a clinical data category (US_073 task_001, AC-4).
+    /// Acknowledged by an admin user; append-only — no update paths are exposed.
+    /// </summary>
+    public DbSet<CalibrationDriftAlert> CalibrationDriftAlerts => Set<CalibrationDriftAlert>();
+
+    // ── Hallucination Tracking (US_074 task_002) ──────────────────────────────
+
+    /// <summary>
+    /// Per-justification staff verification records classifying AI-generated medical
+    /// justifications as Supported, Unsupported (hallucination), or PartiallySupported
+    /// (US_074 task_002, AC-1, AIR-Q06).
+    /// </summary>
+    public DbSet<HallucinationRecord> HallucinationRecords => Set<HallucinationRecord>();
+
+    /// <summary>
+    /// Pre-aggregated daily hallucination rate metrics (US_074 task_002, AC-1).
+    /// One row per calendar day; unique index on MetricDate prevents duplicates.
+    /// </summary>
+    public DbSet<HallucinationMetric> HallucinationMetrics => Set<HallucinationMetric>();
+
+    /// <summary>
+    /// Critical alert records generated when the daily hallucination rate exceeds 5%,
+    /// or retroactively when staff discover hallucinations in approved entries (US_074 task_002, AC-2).
+    /// Append-only; acknowledged by an admin user via the dashboard.
+    /// </summary>
+    public DbSet<HallucinationAlert> HallucinationAlerts => Set<HallucinationAlert>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

@@ -177,12 +177,12 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `VerificationStatus` enum with `PendingVerification`, `Verified`, `Modified`, `Rejected` values
-- [ ] Modify `MedicalCode` entity: add `VerificationStatus` (default PendingVerification), `VerifiedAt`, `VerifiedByUserId`, `OriginalAiCodeValue`
-- [ ] Modify `ExtractedData` entity: add `VerificationStatus` (default PendingVerification), block low-confidence records from profile consolidation
-- [ ] Implement `IVerificationEnforcementService` with `ApproveAsync`, `ModifyAndApproveAsync`, `RejectAsync`, `BatchApproveAsync`, `IsVerifiedAsync`
-- [ ] Implement audit logging in all verification actions: staff ID, timestamp, original AI value, final value, justification
-- [ ] Implement `VerificationRequiredFilter` action filter rejecting finalization of unverified records with 400 error
-- [ ] Configure `ApplicationDbContext` with enum-to-string conversion and default values for VerificationStatus
-- [ ] Register `IVerificationEnforcementService` and `VerificationRequiredFilter` in DI container
-- **[AI Tasks - MANDATORY]** Verify AIR-S02 (code library validation) and AIR-S03 (human-in-the-loop) requirements are met
+- [x] Create `VerificationStatus` enum with `PendingVerification`, `Verified`, `Modified`, `Rejected` values
+- [x] Modify `MedicalCode` entity: add `VerificationStatus` (default PendingVerification), `VerifiedAt`, `VerifiedByUserId`, `OriginalAiCodeValue`
+- [x] Modify `ExtractedData` entity: add `VerificationStatus` (default PendingVerification), block low-confidence records from profile consolidation
+- [x] Implement `IVerificationEnforcementService` with `ApproveAsync`, `ModifyAndApproveAsync`, `RejectAsync`, `BatchApproveAsync`, `IsVerifiedAsync`
+- [x] Implement audit logging in all verification actions: staff ID, timestamp, original AI value, final value, justification
+- [x] Implement `VerificationRequiredFilter` action filter rejecting finalization of unverified records with 400 error
+- [x] Configure `ApplicationDbContext` with enum-to-string conversion and default values for VerificationStatus
+- [x] Register `IVerificationEnforcementService` and `VerificationRequiredFilter` in DI container
+- **[AI Tasks - MANDATORY]** Verify AIR-S02 (code library validation) and AIR-S03 (human-in-the-loop) requirements are met ✅

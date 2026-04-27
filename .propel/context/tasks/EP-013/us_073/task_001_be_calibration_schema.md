@@ -163,9 +163,9 @@ dotnet ef migrations add AddCalibrationSchema --project src/UPACIP.DataAccess --
 
 ## Implementation Checklist
 
-- [ ] Create `CalibrationStatus` enum with `Calibrated`, `Uncalibrated`, `CalibrationPending` values
-- [ ] Define `CalibrationParameter` entity extending `BaseEntity` with `DataType`, `Slope`, `Intercept`, `LastCalibratedAt`, `VerificationSampleSize`, `IsActive`, and unique filtered index
-- [ ] Define `CalibrationRecord` entity extending `BaseEntity` with `CalibrationRunDate`, `DataType`, `PredictedAccuracy`, `ActualAccuracy`, `DriftPercentage`, `BinStart`, `BinEnd`, `SampleSize`, `DriftDetected`
-- [ ] Define `CalibrationDriftAlert` entity with `AlertId`, `GeneratedAt`, `DataType`, `PredictedAccuracy`, `ActualAccuracy`, `DriftPercentage`, `IsAcknowledged`, `AcknowledgedByUserId`
-- [ ] Modify `ExtractedData` entity to add `CalibrationStatus` (default: Uncalibrated) and `CalibratedConfidenceScore` (nullable float) properties
-- [ ] Register all new DbSets in `ApplicationDbContext` and configure unique filtered index, enum-to-string conversions, and FK relationships
+- [x] Create `CalibrationStatus` enum with `Calibrated`, `Uncalibrated`, `CalibrationPending` values
+- [x] Define `CalibrationParameter` entity extending `BaseEntity` with `DataType`, `Slope`, `Intercept`, `LastCalibratedAt`, `VerificationSampleSize`, `IsActive`, and unique filtered index
+- [x] Define `CalibrationRecord` entity extending `BaseEntity` with `CalibrationRunDate`, `DataType`, `PredictedAccuracy`, `ActualAccuracy`, `DriftPercentage`, `BinStart`, `BinEnd`, `SampleSize`, `DriftDetected`
+- [x] Define `CalibrationDriftAlert` entity with `AlertId`, `GeneratedAt`, `DataType`, `PredictedAccuracy`, `ActualAccuracy`, `DriftPercentage`, `IsAcknowledged`, `AcknowledgedByUserId`
+- [x] Modify `ExtractedData` entity to add `CalibrationStatus` (default: Uncalibrated) and `CalibratedConfidenceScore` (nullable float) properties
+- [x] Register all new DbSets in `ApplicationDbContext` and configure unique filtered index, enum-to-string conversions, and FK relationships

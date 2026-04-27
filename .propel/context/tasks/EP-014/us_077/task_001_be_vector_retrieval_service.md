@@ -182,11 +182,11 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `RetrievalRequest`, `RetrievedChunk`, and `RetrievalResult` model classes in `src/UPACIP.Service/Rag/Models/`
-- [ ] Define `IRagRetrievalService` interface with `RetrieveContextAsync` and `RetrieveContextForCategoryAsync` methods
-- [ ] Implement multi-category parallel retrieval using `Task.WhenAll` over `IVectorSearchService.SearchSimilarAsync` per category
-- [ ] Implement threshold re-validation, descending sort by similarity, and global top-K selection across aggregated results
-- [ ] Implement no-grounding-available handling: return `IsGrounded = false` with `GroundingStatus = "no-grounding-available"` when chunk list is empty
-- [ ] Integrate Redis caching via `ICacheService` with key `rag:retrieval:{hash}:{categories}` and 5-minute TTL
-- [ ] Add retrieval latency measurement via `Stopwatch` and structured logging with Serilog
-- [ ] Register `IRagRetrievalService` → `RagRetrievalService` as scoped service in `Program.cs` DI container
+- [x] Create `RetrievalRequest`, `RetrievedChunk`, and `RetrievalResult` model classes in `src/UPACIP.Service/Rag/Models/`
+- [x] Define `IRagRetrievalService` interface with `RetrieveContextAsync` and `RetrieveContextForCategoryAsync` methods
+- [x] Implement multi-category parallel retrieval using `Task.WhenAll` over `IVectorSearchService.SearchSimilarAsync` per category
+- [x] Implement threshold re-validation, descending sort by similarity, and global top-K selection across aggregated results
+- [x] Implement no-grounding-available handling: return `IsGrounded = false` with `GroundingStatus = "no-grounding-available"` when chunk list is empty
+- [x] Integrate Redis caching via `ICacheService` with key `rag:retrieval:{hash}:{categories}` and 5-minute TTL
+- [x] Add retrieval latency measurement via `Stopwatch` and structured logging with Serilog
+- [x] Register `IRagRetrievalService` → `RagRetrievalService` as scoped service in `Program.cs` DI container

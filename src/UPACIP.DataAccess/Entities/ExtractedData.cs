@@ -26,6 +26,22 @@ public sealed class ExtractedData : BaseEntity
     public float ConfidenceScore { get; set; }
 
     /// <summary>
+    /// Post-calibration confidence score in the range [0.0, 1.0], computed via
+    /// Platt scaling from the raw <see cref="ConfidenceScore"/> (US_073 AC-1).
+    /// Null when <see cref="CalibrationStatus"/> is <c>Uncalibrated</c> or
+    /// <c>CalibrationPending</c>.  When populated, this value is used for downstream
+    /// flagging logic; the raw <see cref="ConfidenceScore"/> is retained for audit.
+    /// </summary>
+    public float? CalibratedConfidenceScore { get; set; }
+
+    /// <summary>
+    /// Indicates whether this row's confidence score has been transformed by the
+    /// Platt-scaling calibration pipeline (US_073 task_001, AC-1).
+    /// Defaults to <see cref="CalibrationStatus.Uncalibrated"/>.
+    /// </summary>
+    public CalibrationStatus CalibrationStatus { get; set; } = CalibrationStatus.Uncalibrated;
+
+    /// <summary>
     /// Page number within the source document where this data point was found (AC-5 traceability).
     /// Defaults to 1 for single-page documents or when the model does not report a page.
     /// </summary>
