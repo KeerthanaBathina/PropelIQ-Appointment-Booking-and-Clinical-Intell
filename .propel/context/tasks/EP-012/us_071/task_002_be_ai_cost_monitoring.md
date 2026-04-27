@@ -176,10 +176,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `IAiCostAggregationService` with `AggregateDailyCostsAsync(DateOnly targetDate)` and `GetRunningDailyCostAsync(string provider)` methods
-- [ ] Implement `AiCostAggregationService` — query `AiRequestLog`, group by provider/request_type, calculate totals, apply rate card fallback for approximate entries, upsert to `AiCostDailySummary`
-- [ ] Create `IAiCostAlertService` with `CheckBudgetThresholdsAsync(DateOnly targetDate)` and `SendBudgetBreachAlertAsync(provider, threshold, actualCost)` methods
-- [ ] Implement `AiCostAlertService` — compare daily totals against `AiCostBudgetConfig` thresholds, generate structured admin notifications with provider, threshold, actual cost, and percentage exceeded
-- [ ] Implement `AiCostAggregationJob` as `BackgroundService` — configurable schedule (default daily 00:05 UTC), runs aggregation then threshold check, structured Serilog logging with correlation ID
-- [ ] Implement real-time threshold check using Redis-cached running daily cost total (5-min TTL) to support near-real-time alerting after each AI request
-- [ ] Register all services and hosted job in `Program.cs` DI container; add `AiCost` configuration section to `appsettings.json`
+- [X] Create `IAiCostAggregationService` with `AggregateDailyCostsAsync(DateOnly targetDate)` and `GetRunningDailyCostAsync(string provider)` methods
+- [X] Implement `AiCostAggregationService` — query `AiRequestLog`, group by provider/request_type, calculate totals, apply rate card fallback for approximate entries, upsert to `AiCostDailySummary`
+- [X] Create `IAiCostAlertService` with `CheckBudgetThresholdsAsync(DateOnly targetDate)` and `SendBudgetBreachAlertAsync(provider, threshold, actualCost)` methods
+- [X] Implement `AiCostAlertService` — compare daily totals against `AiCostBudgetConfig` thresholds, generate structured admin notifications with provider, threshold, actual cost, and percentage exceeded
+- [X] Implement `AiCostAggregationJob` as `BackgroundService` — configurable schedule (default daily 00:05 UTC), runs aggregation then threshold check, structured Serilog logging with correlation ID
+- [X] Implement real-time threshold check using Redis-cached running daily cost total (5-min TTL) to support near-real-time alerting after each AI request
+- [X] Register all services and hosted job in `Program.cs` DI container; add `AiCost` configuration section to `appsettings.json`

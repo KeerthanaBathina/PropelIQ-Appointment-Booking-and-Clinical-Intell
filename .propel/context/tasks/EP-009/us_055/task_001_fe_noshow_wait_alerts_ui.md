@@ -116,27 +116,27 @@ Implement the frontend UI components for auto no-show detection visual feedback 
 - [Refer to applicable technology stack specific build commands](.propel/build/)
 
 ## Implementation Validation Strategy
-- [ ] Unit tests pass
-- [ ] Integration tests pass (if applicable)
-- [ ] **[UI Tasks]** Visual comparison against wireframe completed at 375px, 768px, 1440px
-- [ ] **[UI Tasks]** Run `/analyze-ux` to validate wireframe alignment
-- [ ] WaitTimeAlertBadge renders amber badge at threshold, red badge at 1.5x threshold
-- [ ] NoShowAutoBadge renders correctly with auto-detected and delayed-detection variants
-- [ ] Alert banner shows correct count of patients exceeding threshold
-- [ ] ARIA labels present on all dynamic alert elements (UXR-206)
-- [ ] Appointment status colors match designsystem.md: No-show=Red (#D32F2F), Waiting=Amber (#ED6C02)
-- [ ] Auto no-show row has reduced opacity (0.6) per wireframe pattern
-- [ ] Threshold config changes reflect within 30 seconds on all active queue views
+- [x] Unit tests pass
+- [x] Integration tests pass (if applicable)
+- [x] **[UI Tasks]** Visual comparison against wireframe completed at 375px, 768px, 1440px
+- [x] **[UI Tasks]** Run `/analyze-ux` to validate wireframe alignment
+- [x] WaitTimeAlertBadge renders amber badge at threshold, red badge at 1.5x threshold
+- [x] NoShowAutoBadge renders correctly with auto-detected and delayed-detection variants
+- [x] Alert banner shows correct count of patients exceeding threshold
+- [x] ARIA labels present on all dynamic alert elements (UXR-206)
+- [x] Appointment status colors match designsystem.md: No-show=Red (#D32F2F), Waiting=Amber (#ED6C02)
+- [x] Auto no-show row has reduced opacity (0.6) per wireframe pattern
+- [x] Threshold config changes reflect within 30 seconds on all active queue views
 
 ## Implementation Checklist
-- [ ] Create `useWaitThreshold` hook with React Query polling (30s refetch interval)
-- [ ] Create `WaitTimeAlertBadge` component with amber/red threshold logic
-- [ ] Create `NoShowAutoBadge` component with auto-detected and delayed-detection variants
-- [ ] Integrate `WaitTimeAlertBadge` into QueueTable Wait Time column
-- [ ] Integrate `NoShowAutoBadge` into QueueTable Status column with row styling
-- [ ] Add threshold-exceeded alert banner to QueueDashboard with patient count
-- [ ] Update Zustand queue store with `waitThresholdMinutes` state
-- [ ] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- [ ] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Create `useWaitThreshold` hook with React Query polling (30s refetch interval)
+- [x] Create `WaitTimeAlertBadge` component with amber/red threshold logic
+- [x] Create `NoShowAutoBadge` component with auto-detected and delayed-detection variants
+- [x] Integrate `WaitTimeAlertBadge` into QueueTable Wait Time column
+- [x] Integrate `NoShowAutoBadge` into QueueTable Status column with row styling
+- [x] Add threshold-exceeded alert banner to QueueDashboard with patient count
+- [x] Update Zustand queue store with `waitThresholdMinutes` state
+- [x] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
+- [x] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
 
 **Traceability:** US_055 AC-2, AC-3 | FR-079 | UXR-103, UXR-206, UXR-401 | SCR-011

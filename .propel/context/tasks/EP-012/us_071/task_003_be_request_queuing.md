@@ -201,10 +201,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `IDocumentParsingQueue` interface with `EnqueueAsync`, `DequeueAsync`, `GetDepthAsync`, `GetOldestAgeAsync`, `RemoveFromProcessingAsync`, `ReenqueueAsync` methods
-- [ ] Implement `RedisDocumentParsingQueue` using Redis Lists (LPUSH/RPOP) with atomic dequeue via MULTI/EXEC and processing set tracking (SADD/SREM)
-- [ ] Implement `DocumentParsingQueueProcessor` as BackgroundService with `SemaphoreSlim` concurrency control (configurable limit, default 3), retry with exponential backoff (base 2s, max 3 per AIR-O08), and manual workflow fallback after max retries
-- [ ] Implement restart recovery logic — on startup, scan processing set and re-enqueue in-flight items to queue front
-- [ ] Create `IQueueMonitorService` and implement `QueueMonitorService` — check queue depth, detect stale items (>5 min), escalate when depth >50 items
-- [ ] Implement `QueueMonitorJob` as BackgroundService — periodic monitoring (default 60s interval) with structured Serilog logging of queue metrics
-- [ ] Register all services and background workers in `Program.cs` DI; add `AiQueue` configuration section to `appsettings.json` with ConcurrencyLimit, MaxRetries, RetryBaseDelaySeconds, MonitorIntervalSeconds, StaleWarningMinutes, EscalationDepthThreshold
+- [X] Create `IDocumentParsingQueue` interface with `EnqueueAsync`, `DequeueAsync`, `GetDepthAsync`, `GetOldestAgeAsync`, `RemoveFromProcessingAsync`, `ReenqueueAsync` methods
+- [X] Implement `RedisDocumentParsingQueue` using Redis Lists (LPUSH/RPOP) with atomic dequeue via MULTI/EXEC and processing set tracking (SADD/SREM)
+- [X] Implement `DocumentParsingQueueProcessor` as BackgroundService with `SemaphoreSlim` concurrency control (configurable limit, default 3), retry with exponential backoff (base 2s, max 3 per AIR-O08), and manual workflow fallback after max retries
+- [X] Implement restart recovery logic — on startup, scan processing set and re-enqueue in-flight items to queue front
+- [X] Create `IQueueMonitorService` and implement `QueueMonitorService` — check queue depth, detect stale items (>5 min), escalate when depth >50 items
+- [X] Implement `QueueMonitorJob` as BackgroundService — periodic monitoring (default 60s interval) with structured Serilog logging of queue metrics
+- [X] Register all services and background workers in `Program.cs` DI; add `AiQueue` configuration section to `appsettings.json` with ConcurrencyLimit, MaxRetries, RetryBaseDelaySeconds, MonitorIntervalSeconds, StaleWarningMinutes, EscalationDepthThreshold

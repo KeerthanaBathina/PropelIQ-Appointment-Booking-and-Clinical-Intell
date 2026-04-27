@@ -39,6 +39,20 @@ export function unregisterSessionInvalidate(): void {
   _invalidateFn = null;
 }
 
+// ─── Session-terminated registration ─────────────────────────────────────────
+// SessionTimeoutProvider registers a callback to handle 440 (SESSION_TERMINATED)
+// responses — fired when the backend indicates the session was superseded by a
+// concurrent login on another device (US_065 AC-2).
+let _sessionTerminatedFn: (() => void) | null = null;
+
+export function registerSessionTerminated(fn: () => void): void {
+  _sessionTerminatedFn = fn;
+}
+
+export function unregisterSessionTerminated(): void {
+  _sessionTerminatedFn = null;
+}
+
 /** Attaches the Bearer token from auth store when available. */
 function buildHeaders(extra?: Record<string, string>): Record<string, string> {
   const token = useAuthStore.getState().accessToken;
@@ -51,7 +65,8 @@ function buildHeaders(extra?: Record<string, string>): Record<string, string> {
 
 /**
  * Handle 401 → trigger session invalidation (or fallback to clear + redirect);
- * 403 → redirect to /access-denied.
+ * 403 → redirect to /access-denied;
+ * 440 → session terminated by concurrent login (US_065 AC-2).
  */
 function handleAuthError(status: number): void {
   if (status === 401) {
@@ -63,6 +78,17 @@ function handleAuthError(status: number): void {
     }
   } else if (status === 403) {
     window.location.replace('/access-denied');
+  } else if (status === 440) {
+    // 440 Login Timeout — session was terminated by a concurrent login on another device.
+    // Store the reason so SessionTerminatedAlert can display it on the login page.
+    sessionStorage.setItem('sessionTerminatedAt', new Date().toISOString());
+    if (_sessionTerminatedFn) {
+      _sessionTerminatedFn();
+    } else {
+      // Fallback when no provider is registered (e.g., before auth is set up).
+      useAuthStore.getState().clearAuth();
+      window.location.replace('/login?reason=session_terminated');
+    }
   }
 }
 

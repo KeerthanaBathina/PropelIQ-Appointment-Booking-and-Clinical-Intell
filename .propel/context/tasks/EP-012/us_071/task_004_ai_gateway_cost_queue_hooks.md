@@ -223,9 +223,9 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `IAiRequestCostLogger` interface with `LogAsync(AiRequestLog)` method and `TokenUsage` model for normalized provider token data
-- [ ] Implement `AiRequestCostLogger` — extract token usage from OpenAI (`usage.prompt_tokens`, `usage.completion_tokens`) and Anthropic (`usage.input_tokens`, `usage.output_tokens`), calculate cost or apply rate card fallback, persist `AiRequestLog` entry
-- [ ] Implement `AiCostTrackingMiddleware` — non-blocking post-response middleware that logs cost data and checks running daily threshold; cost logging failures must not block AI responses (fire-and-forget with Serilog error logging)
-- [ ] Modify AI Gateway document parsing endpoint to route requests through `IDocumentParsingQueue.EnqueueAsync()` instead of direct provider dispatch; return 202 Accepted with correlation_id
-- [ ] Implement provider-specific token extraction adapters for OpenAI and Anthropic response formats with graceful handling of missing cost data
-- [ ] Register `IAiRequestCostLogger`, `AiCostTrackingMiddleware` in DI and insert middleware into AI Gateway pipeline
+- [X] Create `IAiRequestCostLogger` interface with `LogAsync(AiRequestLog)` method and `TokenUsage` model for normalized provider token data
+- [X] Implement `AiRequestCostLogger` — extract token usage from OpenAI (`usage.prompt_tokens`, `usage.completion_tokens`) and Anthropic (`usage.input_tokens`, `usage.output_tokens`), calculate cost or apply rate card fallback, persist `AiRequestLog` entry
+- [X] Implement `AiCostTrackingMiddleware` — non-blocking post-response middleware that logs cost data and checks running daily threshold; cost logging failures must not block AI responses (fire-and-forget with Serilog error logging)
+- [X] Modify AI Gateway document parsing endpoint to route requests through `IDocumentParsingQueue.EnqueueAsync()` instead of direct provider dispatch; return 202 Accepted with correlation_id
+- [X] Implement provider-specific token extraction adapters for OpenAI and Anthropic response formats with graceful handling of missing cost data
+- [X] Register `IAiRequestCostLogger`, `AiCostTrackingMiddleware` in DI and insert middleware into AI Gateway pipeline

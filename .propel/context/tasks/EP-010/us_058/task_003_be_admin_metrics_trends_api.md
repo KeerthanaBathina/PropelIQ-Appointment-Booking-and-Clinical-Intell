@@ -148,11 +148,11 @@ Implement the backend API endpoints for the admin dashboard system metrics and t
 
 ## Implementation Checklist
 
-- [ ] Create `SystemMetricsDto`, `MetricsTrendDto`, and `MetricsTrendRequestDto` DTOs
-- [ ] Implement `ISystemMetricsService` interface with `GetCurrentMetricsAsync` and `GetTrendDataAsync` methods
-- [ ] Implement `SystemMetricsService` aggregating metrics from User, Appointment, MedicalCode entities
-- [ ] Add Redis caching with 5-minute TTL and stale-data fallback on computation failure
-- [ ] Create `AdminMetricsController` with `[Authorize(Roles = "Admin")]` guard and two GET endpoints
-- [ ] Add audit logging for metrics access with correlation ID and admin user attribution
-- [ ] Add input validation for period parameter and standardized error responses
-- [ ] Register `ISystemMetricsService` in DI container in `Program.cs`
+- [x] Create `SystemMetricsDto`, `MetricsTrendDto`, and `MetricsTrendRequestDto` DTOs
+- [x] Implement `ISystemMetricsService` interface with `GetCurrentMetricsAsync` and `GetTrendDataAsync` methods
+- [x] Implement `SystemMetricsService` aggregating metrics from User, Appointment, MedicalCode entities
+- [x] Add Redis caching with 5-minute TTL and stale-data fallback on computation failure
+- [x] Create `AdminMetricsController` with `[Authorize(Roles = "Admin")]` guard and two GET endpoints
+- [x] Add audit logging for metrics access with correlation ID and admin user attribution
+- [x] Add input validation for period parameter and standardized error responses
+- [x] Register `ISystemMetricsService` in DI container in `Program.cs`

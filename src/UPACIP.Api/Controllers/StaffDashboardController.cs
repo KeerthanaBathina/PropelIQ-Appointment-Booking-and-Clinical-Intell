@@ -1,12 +1,14 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Appointments;
+using UPACIP.Service.Dashboard;
 
 namespace UPACIP.Api.Controllers;
 
@@ -37,16 +39,44 @@ public sealed class StaffDashboardController : ControllerBase
 {
     private readonly ApplicationDbContext               _db;
     private readonly NoShowRiskOrchestrator             _riskOrchestrator;
+    private readonly IStaffDashboardService             _dashboardService;
     private readonly ILogger<StaffDashboardController>  _logger;
 
     public StaffDashboardController(
         ApplicationDbContext                db,
         NoShowRiskOrchestrator              riskOrchestrator,
+        IStaffDashboardService              dashboardService,
         ILogger<StaffDashboardController>   logger)
     {
         _db               = db;
         _riskOrchestrator = riskOrchestrator;
+        _dashboardService = dashboardService;
         _logger           = logger;
+    }
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // GET /api/staff/dashboard
+    // ─────────────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns the unified Staff Dashboard payload for SCR-010: aggregated stats,
+    /// today's appointment schedule, and pending work items (US_057 AC-1, AC-2, AC-3).
+    ///
+    /// Results are Redis-cached per user per calendar day with a 5-second TTL (AC-4).
+    /// The frontend polls this endpoint every 5 seconds.
+    /// </summary>
+    [HttpGet("/api/staff/dashboard")]
+    [ProducesResponseType(typeof(StaffDashboardResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> GetDashboard(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized();
+
+        var result = await _dashboardService.GetDashboardAsync(userId, cancellationToken);
+        return Ok(result);
     }
 
     // ─────────────────────────────────────────────────────────────────────────

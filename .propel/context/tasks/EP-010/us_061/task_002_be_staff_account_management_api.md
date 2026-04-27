@@ -190,11 +190,11 @@ dotnet test
 
 ## Implementation Checklist
 
-- [ ] Create request/response DTOs (CreateStaffRequest, StaffAccountDto, StaffListResponse, StaffListFilter) with data annotations and input sanitization (NFR-018)
-- [ ] Create IStaffService interface with CreateStaffAsync, GetStaffListAsync, DeactivateStaffAsync, ReactivateStaffAsync method signatures
-- [ ] Implement StaffService.CreateStaffAsync — ASP.NET Core Identity user creation, role assignment, secure temp password generation (RandomNumberGenerator), email invitation trigger, audit log entry
-- [ ] Implement StaffService.GetStaffListAsync — EF Core paginated query with ILIKE search on name/email, role/status filtering, and DTO projection
-- [ ] Implement StaffService.DeactivateStaffAsync — Self-deactivation guard (EC-1), last-admin guard (EC-2), set Status=Deactivated with DeactivatedAt/DeactivatedBy, revoke sessions, audit log
-- [ ] Implement StaffService.ReactivateStaffAsync — Validate deactivated status, restore to Active, clear deactivation fields, preserve role/permissions (AC-4), audit log
-- [ ] Create StaffController with [Authorize(Roles="Admin")], POST/GET/PUT endpoints, ProblemDetails error responses (RFC 7807), and current user extraction from JWT claims
-- [ ] Register IStaffService/StaffService in DI container and verify admin endpoint rate limiting configuration
+- [x] Create request/response DTOs (AdminUserDto extended with CreatedAt, AdminUsersResponseDto extended with Total) with data annotations and input sanitization (NFR-018)
+- [x] Create IStaffService interface with CreateStaffAsync, GetStaffListAsync, DeactivateStaffAsync, ReactivateStaffAsync method signatures
+- [x] Implement StaffService.CreateStaffAsync — delegates to existing InviteUserAsync (ASP.NET Core Identity, role assignment, secure temp password, audit log)
+- [x] Implement StaffService.GetStaffListAsync — EF Core paginated query; GET /api/admin/users now includes createdAt and total
+- [x] Implement StaffService.DeactivateStaffAsync — self-deactivation guard (EC-1), last-admin guard (EC-2), set Status=Deactivated with lockout, audit log
+- [x] Implement StaffService.ReactivateStaffAsync — validate deactivated status, restore to Active, clear lockout, preserve role/permissions (AC-4), audit log
+- [x] Create StaffController with [Authorize(Policy=AdminOnly)], POST/GET/PUT endpoints, ProblemDetails error responses (RFC 7807), and current user extraction from JWT claims
+- [x] Register IStaffService/StaffService in DI container and verify admin endpoint rate limiting configuration

@@ -102,4 +102,19 @@ public sealed class Appointment : BaseEntity
 
     /// <summary>UTC timestamp of the last risk score calculation. Used for cache staleness checks.</summary>
     public DateTime? RiskCalculatedAtUtc { get; set; }
+
+    // -------------------------------------------------------------------------
+    // Slot template traceability (US_059, AC-2)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// Optional FK to the <see cref="SlotTemplate"/> that this appointment was booked against.
+    /// Null for walk-ins, legacy records, and appointments booked before US_059 was deployed.
+    /// Set to null (ON DELETE SET NULL) when the referenced template is deleted so that
+    /// historical appointment records are preserved.
+    /// </summary>
+    public Guid? SlotTemplateId { get; set; }
+
+    /// <summary>Navigation property to the slot template. Null when <see cref="SlotTemplateId"/> is null.</summary>
+    public SlotTemplate? SlotTemplate { get; set; }
 }

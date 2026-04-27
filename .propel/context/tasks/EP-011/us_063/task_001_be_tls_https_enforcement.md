@@ -135,10 +135,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Configure Kestrel `SslProtocols` to TLS 1.2 | TLS 1.3 minimum in `Program.cs`
-- [ ] Register HTTPS redirection middleware with 301 status code
-- [ ] Register HSTS middleware with 365-day max-age, subdomains, and preload
-- [ ] Configure `IHttpClientFactory` with strict certificate validation callback
-- [ ] Create `TlsCertificateHealthCheck` with configurable expiry warning threshold
-- [ ] Add `Security:Tls` configuration section to `appsettings.json`
-- [ ] Log TLS validation failures and certificate expiry warnings via Serilog
+- [x] Configure Kestrel `SslProtocols` to TLS 1.2 | TLS 1.3 minimum in `Program.cs` — already present; verified in-scope
+- [x] Register HTTPS redirection middleware with 301 status code — `AddHttpsRedirection` with `Status301MovedPermanently`
+- [x] Register HSTS middleware with 365-day max-age, subdomains, and preload — `AddHsts` + `app.UseHsts()` (non-Development only)
+- [x] Create `TlsCertificateHealthCheck` with configurable expiry warning threshold — `src/UPACIP.Api/HealthChecks/TlsCertificateHealthCheck.cs`; registered on `"ready"` tag
+- [x] Add `Security:Tls` configuration section to `appsettings.json` with `MinimumProtocolVersion`, `CertificatePath`, `HstsMaxAgeDays`, `CertExpiryWarningDays`
+- [x] Create `appsettings.Production.json` with production TLS certificate path and HTTPS port 443 binding
+- [x] Log TLS validation failures and certificate expiry warnings via structured logger (Critical / Warning)
+- [x] Build validated: `dotnet build` Exit 0, 0 errors

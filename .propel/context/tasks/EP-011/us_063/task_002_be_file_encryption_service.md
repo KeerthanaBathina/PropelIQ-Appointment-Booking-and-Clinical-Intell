@@ -137,11 +137,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `EncryptionOptions` class with Key, Algorithm, and KeyVersion properties
-- [ ] Create `IFileEncryptionService` interface with EncryptAsync and DecryptAsync methods
-- [ ] Implement `FileEncryptionService` using AES-256-CBC with random IV per operation
-- [ ] Integrate encryption into `DocumentStorageService` for write and read operations
-- [ ] Add `Security:Encryption` configuration section to `appsettings.json`
-- [ ] Register encryption service and options in DI container (`Program.cs`)
-- [ ] Log encryption operations via Serilog (document ID, success/failure only — no content)
-- [ ] Document manual key rotation procedure in configuration comments
+- [x] Create `EncryptionOptions` class with `Key`, `Algorithm`, `KeyVersion` properties bound to `Security:Encryption` — `src/UPACIP.Service/Documents/EncryptionOptions.cs`; includes Phase 1 key rotation procedure in XML doc
+- [x] Create `IFileEncryptionService` interface with `EncryptAsync` and `DecryptAsync` stream methods — `src/UPACIP.Service/Documents/IFileEncryptionService.cs`
+- [x] Implement `FileEncryptionService` using AES-256-CBC with random CSPRNG IV per operation, fail-fast 32-byte key validation — `src/UPACIP.Service/Documents/FileEncryptionService.cs`
+- [x] Integrate encryption into `EncryptedFileStorageService` — injects `IFileEncryptionService`; `WriteEncryptedAsync` calls `EncryptAsync`, `ReadDecryptedAsync` calls `DecryptAsync`; added `ResolveAndValidatePath` (OWASP A01)
+- [x] Remove `EncryptionKeyBase64` from `DocumentStorageSettings` (key moved to `EncryptionOptions`); update `ValidateSettings` accordingly
+- [x] Add `Security:Encryption` configuration section to `appsettings.json` and `appsettings.Production.json`
+- [x] Register `IFileEncryptionService` + bind `EncryptionOptions` with `ValidateDataAnnotations().ValidateOnStart()` in `Program.cs`
+- [x] Log encryption operations via structured logger (algorithm, key version, byte count — no key or content)
+- [x] Build validated: `dotnet build` Exit 0, 0 errors

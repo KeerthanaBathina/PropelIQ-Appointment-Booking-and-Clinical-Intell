@@ -207,14 +207,14 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `OpenAIProviderAdapter` class implementing `IAIProviderAdapter` with constructor injecting `ChatClient`, `IOptions<OpenAIProviderOptions>`, and `ILogger<OpenAIProviderAdapter>`
-- [ ] Configure typed `HttpClient` for OpenAI SDK with base address (`https://api.openai.com/v1`), API key authorization header, and configurable timeout from `OpenAIProviderOptions`
-- [ ] Implement `OpenAIRequestMapper.MapToOptions` mapping `AIRequest` to `ChatCompletionOptions` (model: gpt-4o-mini, system/user messages, `MaxOutputTokenCount` from `TokenBudget`, temperature)
-- [ ] Implement `OpenAIResponseMapper.MapToResponse` mapping `ChatCompletion` to `AIResponse` (content from `Content[0].Text`, `Usage.InputTokenCount`, `Usage.OutputTokenCount`, latency from stopwatch, `ProviderName: "OpenAI"`)
-- [ ] Implement `IsHealthyAsync` health check verifying OpenAI API connectivity via models endpoint and returning boolean result
-- [ ] Configure Polly resilience pipeline with exponential backoff retry (max 3 attempts, 1s base delay, jitter) handling `HttpRequestException`, 429 rate limit, and 5xx server errors
-- [ ] Register `OpenAIProviderAdapter` as primary keyed `IAIProviderAdapter` in DI with `ChatClient` singleton and bind `OpenAIProviderOptions` from `appsettings.json` section `AIGateway:Providers:OpenAI`
-- [ ] Add OpenAI provider configuration section to `appsettings.json` with ApiKey placeholder, Endpoint, Model (`gpt-4o-mini`), ModelVersion (`2024-07-18`), TimeoutSeconds (30), and MaxRetryAttempts (3)
+- [X] Create `OpenAIProviderAdapter` class implementing `IAIProviderAdapter` with constructor injecting `ChatClient`, `IOptions<OpenAIProviderOptions>`, and `ILogger<OpenAIProviderAdapter>`
+- [X] Configure typed `HttpClient` for OpenAI SDK with base address (`https://api.openai.com/v1`), API key authorization header, and configurable timeout from `OpenAIProviderOptions`
+- [X] Implement `OpenAIRequestMapper.MapToOptions` mapping `AIRequest` to `ChatCompletionOptions` (model: gpt-4o-mini, system/user messages, `MaxOutputTokenCount` from `TokenBudget`, temperature)
+- [X] Implement `OpenAIResponseMapper.MapToResponse` mapping `ChatCompletion` to `AIResponse` (content from `Content[0].Text`, `Usage.InputTokenCount`, `Usage.OutputTokenCount`, latency from stopwatch, `ProviderName: "OpenAI"`)
+- [X] Implement `IsHealthyAsync` health check verifying OpenAI API connectivity via models endpoint and returning boolean result
+- [X] Configure Polly resilience pipeline with exponential backoff retry (max 3 attempts, 1s base delay, jitter) handling `HttpRequestException`, 429 rate limit, and 5xx server errors
+- [X] Register `OpenAIProviderAdapter` as primary keyed `IAIProviderAdapter` in DI with `ChatClient` singleton and bind `OpenAIProviderOptions` from `appsettings.json` section `AIGateway:Providers:OpenAI`
+- [X] Add OpenAI provider configuration section to `appsettings.json` with ApiKey placeholder, Endpoint, Model (`gpt-4o-mini`), ModelVersion (`2024-07-18`), TimeoutSeconds (30), and MaxRetryAttempts (3)
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-O01, AIR-O02, AIR-O03 token budget pass-through and AIR-O08 retry requirements are met

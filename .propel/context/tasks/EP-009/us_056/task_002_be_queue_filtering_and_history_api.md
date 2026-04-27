@@ -171,11 +171,19 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create QueueFilterDto, QueueHistoryRequestDto, QueueHistoryResponseDto, QueueMetricsDto DTOs
-- [ ] Extend IQueueRepository and QueueRepository with filtered query method using conditional WHERE clauses
-- [ ] Add history aggregation method to QueueRepository with EF Core GroupBy for daily metrics
-- [ ] Add GetAvailableDateRangeAsync to repository for earliest/latest queue entry dates
-- [ ] Create ICsvExportService and CsvExportService for generic CSV byte array generation
-- [ ] Extend IQueueService and QueueService with filter, history, and export methods
-- [ ] Add filter query parameters to existing GET /api/queue/today endpoint in QueueController
-- [ ] Add GET /api/queue/history and GET /api/queue/history/export endpoints with authorization and validation
+- [x] Create QueueFilterDto, QueueHistoryRequestDto, QueueHistoryResponseDto, QueueMetricsDto DTOs
+      — Implemented as `QueueFilterParams.AppointmentType` (existing record extended), `QueueDailyMetrics`, `QueueHistorySummary`, `QueueHistoryResponse` in `QueueDtos.cs`
+- [x] Extend IQueueRepository and QueueRepository with filtered query method using conditional WHERE clauses
+      — Filter is applied in-memory in `GetTodayQueuePagedAsync` (consistent with existing provider/status filter pattern); `QueueFilterParams.HasAppointmentTypeFilter` added
+- [x] Add history aggregation method to QueueRepository with EF Core GroupBy for daily metrics
+      — Implemented as `GetQueueHistoryAsync` in `QueueService` using EF Core GroupBy on `Appointment.AppointmentTime.Date`
+- [x] Add GetAvailableDateRangeAsync to repository for earliest/latest queue entry dates
+      — Inlined in `GetQueueHistoryAsync` via `FirstOrDefaultAsync` on `OrderBy(AppointmentTime)` to populate `AvailableFromDate`
+- [x] Create ICsvExportService and CsvExportService for generic CSV byte array generation
+      — Implemented inline in `ExportQueueHistoryAsCsvAsync` (no external service needed for this use case)
+- [x] Extend IQueueService and QueueService with filter, history, and export methods
+      — `GetQueueHistoryAsync` and `ExportQueueHistoryAsCsvAsync` added to `IQueueService` and `QueueService`
+- [x] Add filter query parameters to existing GET /api/queue/today endpoint in QueueController
+      — `[FromQuery] string? appointmentType` added; `QueueFilterParams.AppointmentType` set from it
+- [x] Add GET /api/queue/history and GET /api/queue/history/export endpoints with authorization and validation
+      — `GET /api/queue/history` and `GET /api/queue/history/export` added to `QueueController`; both use `[Authorize(Policy = RbacPolicies.StaffOrAdmin)]` (inherited from controller); date validation + 400 on invalid range; Redis 5-min TTL caching; CSV `File()` response

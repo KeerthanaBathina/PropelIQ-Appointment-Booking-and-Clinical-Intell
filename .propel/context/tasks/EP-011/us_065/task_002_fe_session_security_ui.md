@@ -218,9 +218,9 @@ npm run test
 
 ## Implementation Checklist
 
-- [ ] Modify API interceptor to handle 440 (SESSION_TERMINATED) and 423 (Locked) HTTP responses globally
-- [ ] Create `SessionTerminatedAlert` component with auto-dismiss, accessibility attributes, and responsive layout
-- [ ] Modify `useSessionTimeout` hook to poll `GET /api/session/time-remaining` every 60 seconds and sync countdown with server TTL
-- [ ] Modify `SessionTimeoutModal` to show inline network error on extend failure with retry logic
-- [ ] Modify `LoginForm` to display account lockout error with remaining minutes countdown and disable sign-in button
-- [ ] Modify `SessionTimeoutProvider` to listen for 440 responses, clear auth state, and navigate to login with termination reason
+- [x] Modify API interceptor to handle 440 (SESSION_TERMINATED) and 423 (Locked) HTTP responses globally
+- [x] Create `SessionTerminatedAlert` component with auto-dismiss, accessibility attributes, and responsive layout
+- [x] Modify `useSessionTimeout` hook to poll `GET /api/session/time-remaining` every 60 seconds and sync countdown with server TTL
+- [x] Modify `SessionTimeoutModal` to show inline network error on extend failure with retry logic
+- [x] Modify `LoginForm` to display account lockout error with remaining minutes countdown and disable sign-in button
+- [x] Modify `SessionTimeoutProvider` to listen for 440 responses, clear auth state, and navigate to login with termination reason

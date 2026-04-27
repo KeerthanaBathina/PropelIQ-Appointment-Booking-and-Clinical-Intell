@@ -181,9 +181,9 @@ dotnet test --no-build
 
 ## Implementation Checklist
 
-- [ ] Create `PiiRedactionOptions` with `PiiFieldNames` and `PiiPatterns` properties, bound to `appsettings.json`
-- [ ] Create `PiiMaskingPatterns` with `MaskEmail()`, `MaskPhone()`, `MaskSsn()`, `MaskName()`, `MaskDateOfBirth()`, and `MaskGeneric()` methods
-- [ ] Create `PiiRedactionEnricher` implementing `ILogEventEnricher` with config-driven field matching and pattern-based detection
-- [ ] Create `PiiDestructuringPolicy` implementing `IDestructuringPolicy` for structured object PII redaction
-- [ ] Register enricher and destructuring policy in Serilog pipeline in `Program.cs`
-- [ ] Add `PiiRedaction` configuration section to `appsettings.json` with default PII field names and regex patterns
+- [x] Create `PiiRedactionOptions` with `PiiFieldNames` and `PiiPatterns` properties, bound to `appsettings.json`
+- [x] Create `PiiMaskingPatterns` with `MaskEmail()`, `MaskPhone()`, `MaskSsn()`, `MaskName()`, `MaskDateOfBirth()`, and `MaskGeneric()` methods
+- [x] Create `PiiRedactionEnricher` implementing `ILogEventEnricher` with config-driven field matching and pattern-based detection
+- [x] Create `PiiDestructuringPolicy` implementing `IDestructuringPolicy` for structured object PII redaction
+- [x] Register enricher and destructuring policy in Serilog pipeline in `Program.cs`
+- [x] Add `PiiRedaction` configuration section to `appsettings.json` with default PII field names and regex patterns

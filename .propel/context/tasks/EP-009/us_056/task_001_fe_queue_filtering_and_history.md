@@ -176,13 +176,13 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Define TypeScript types for QueueFilterParams, QueueHistoryResponse, QueueMetrics
-- [ ] Create QueueFilterBar component with Provider, Appointment Type, Status MUI Select dropdowns
-- [ ] Create useQueueFilters Zustand hook with filter state and URL param sync
-- [ ] Integrate QueueFilterBar into QueueDashboardPage above queue table
-- [ ] Create QueueHistoryView component with DatePicker range, metric cards, and history table
-- [ ] Create useQueueHistory React Query hook for GET /api/queue/history endpoint
-- [ ] Create QueueHistoryExportButton with CSV blob download for GET /api/queue/history/export
-- [ ] Implement empty states for no filter matches and unavailable history date ranges
+- [x] Define TypeScript types for QueueFilterParams, QueueHistoryResponse, QueueMetrics
+- [x] Create QueueFilterBar component with Provider, Appointment Type, Status MUI Select dropdowns
+- [x] Create useQueueFilters Zustand hook with filter state and URL param sync
+- [x] Integrate QueueFilterBar into QueueDashboardPage above queue table
+- [x] Create QueueHistoryView component with DatePicker range, metric cards, and history table
+- [x] Create useQueueHistory React Query hook for GET /api/queue/history endpoint
+- [x] Create QueueHistoryExportButton with CSV blob download for GET /api/queue/history/export
+- [x] Implement empty states for no filter matches and unavailable history date ranges
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

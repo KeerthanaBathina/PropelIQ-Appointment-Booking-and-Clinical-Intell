@@ -187,8 +187,9 @@ dotnet test
 
 ## Implementation Checklist
 
-- [ ] Create `UserStatus` enum (Active = 0, Deactivated = 1) in `Server/Enums/UserStatus.cs`
-- [ ] Extend `User` entity with Status (UserStatus, default Active), DeactivatedAt (DateTime?), DeactivatedBy (Guid?), LastLoginAt (DateTime?), and CreatedAt (DateTime) properties
-- [ ] Configure Fluent API in AppDbContext: Status column default, DeactivatedBy self-referencing FK, composite index (Status, Role), index on LastLoginAt, index on Email (verify not duplicate)
-- [ ] Generate and verify EF Core migration `AddStaffAccountManagementFields` with UP and DOWN methods
-- [ ] Extend AuditEventType enum with StaffAccountCreated, StaffAccountDeactivated, StaffAccountReactivated event types
+- [x] Create `UserStatus` enum — N/A; `AccountStatus` enum already contains `Active = 1` and `Deactivated = 3` (existing `src/UPACIP.DataAccess/Enums/AccountStatus.cs`)
+- [x] Extend `User` entity with `DeactivatedAt` (DateTimeOffset?) and `DeactivatedBy` (Guid?) properties — `CreatedAt`, `LastLoginAt`, `AccountStatus` were already present
+- [x] Configure Fluent API in `ApplicationUserConfiguration`: `DeactivatedAt`/`DeactivatedBy` properties, self-referencing FK (`DeactivatedBy → asp_net_users.Id ON DELETE SET NULL`), composite index `IX_asp_net_users_AccountStatus`, index `IX_asp_net_users_LastLoginAt`
+- [x] Generate EF Core migration `20260426000004_AddStaffAccountManagementFields` with UP (AddColumn x2, AddForeignKey, CreateIndex x2) and DOWN rollback methods
+- [x] Extend `AuditAction` enum with `StaffAccountCreated`, `StaffAccountDeactivated`, `StaffAccountReactivated` event types (in `src/UPACIP.DataAccess/Enums/AuditAction.cs`)
+- [x] Update `AdminUserService`: `InviteUserAsync` → `AuditAction.StaffAccountCreated`; `DeactivateStaffAsync` → sets `DeactivatedAt`/`DeactivatedBy` + uses `AuditAction.StaffAccountDeactivated`; `ReactivateStaffAsync` → clears `DeactivatedAt`/`DeactivatedBy` + uses `AuditAction.StaffAccountReactivated`

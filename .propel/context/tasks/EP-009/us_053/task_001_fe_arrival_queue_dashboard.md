@@ -181,13 +181,13 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `useQueueData` hook with React Query `useQuery`, 5-second `refetchInterval`, filter/pagination query params, and manual `refetch` function
-- [ ] Create `QueueStatusBadge` component with MUI Chip mapped to appointment-status design tokens (UXR-401 color coding)
-- [ ] Create `WaitTimeTimer` component with 1-second interval update, `MM:SS` format, and 30-min alert styling (error surface background)
-- [ ] Create `QueueFilters` component with Provider and Status MUI Select dropdowns
-- [ ] Create `AverageWaitTimeSummary` component computing mean wait time for waiting patients
-- [ ] Create `ArrivalQueueTable` with sortable columns, patient name links to SCR-013, action buttons, row highlighting for wait > 30 min, and dimmed no-show rows
-- [ ] Create `ArrivalQueuePage` container with breadcrumb, header, filters, alert, table, pagination, skeleton loading (UXR-502), and "Last updated" timestamp with manual refresh
-- [ ] Add route `/staff/queue` and sidebar navigation entry with active state styling
+- [x] Create `useQueueData` hook with React Query `useQuery`, 5-second `refetchInterval`, filter/pagination query params, and manual `refetch` function
+- [x] Create `QueueStatusBadge` component with MUI Chip mapped to appointment-status design tokens (UXR-401 color coding)
+- [x] Create `WaitTimeTimer` component with 1-second interval update, `MM:SS` format, and 30-min alert styling (error surface background)
+- [x] Create `QueueFilters` component with Provider and Status MUI Select dropdowns
+- [x] Create `AverageWaitTimeSummary` component computing mean wait time for waiting patients
+- [x] Create `ArrivalQueueTable` with sortable columns, patient name links to SCR-013, action buttons, row highlighting for wait > 30 min, and dimmed no-show rows
+- [x] Create `ArrivalQueuePage` container with breadcrumb, header, filters, alert, table, pagination, skeleton loading (UXR-502), and "Last updated" timestamp with manual refresh
+- [x] Add route `/staff/queue` and sidebar navigation entry with active state styling
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

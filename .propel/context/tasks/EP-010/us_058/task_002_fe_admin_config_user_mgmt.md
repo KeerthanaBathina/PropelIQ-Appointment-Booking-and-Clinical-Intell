@@ -166,11 +166,11 @@ Implement the configuration and user management panels of the admin dashboard (S
 
 ## Implementation Checklist
 
-- [ ] Build `ConfigTabs` container with 4 tabs (Slot Templates, Notifications, Hours & Holidays, Risk Thresholds)
-- [ ] Implement `SlotTemplatesPanel` with provider selector and weekly availability grid
-- [ ] Implement `NotificationTemplatesPanel` with template table and edit/add actions
-- [ ] Implement `BusinessHoursPanel` with hours table and holiday card management
-- [ ] Implement `RiskThresholdsPanel` with threshold fields and inline validation (UXR-501)
-- [ ] Implement `UserManagementPanel` with user list, status toggle, and deactivation confirmation (UXR-102)
-- [ ] Create React Query hooks and API services for configuration CRUD and user management
-- [ ] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Build `ConfigTabs` container with 4 tabs (Slot Templates, Notifications, Hours & Holidays, Risk Thresholds)
+- [x] Implement `SlotTemplatesPanel` with provider selector and weekly availability grid
+- [x] Implement `NotificationTemplatesPanel` with template table and edit/add actions
+- [x] Implement `BusinessHoursPanel` with hours table and holiday card management
+- [x] Implement `RiskThresholdsPanel` with threshold fields and inline validation (UXR-501)
+- [x] Implement `UserManagementPanel` with user list, status toggle, and deactivation confirmation (UXR-102)
+- [x] Create React Query hooks and API services for configuration CRUD and user management
+- [x] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

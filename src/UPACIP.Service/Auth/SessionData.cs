@@ -20,4 +20,11 @@ public sealed class SessionData
 
     /// <summary>User-Agent string of the client that initiated the session.</summary>
     public string UserAgent { get; init; } = string.Empty;
+
+    /// <summary>
+    /// The JWT <c>jti</c> (unique token ID) for the access token bound to this session.
+    /// Stored so that <see cref="ISessionService.TerminateAndReplaceSessionAsync"/> can
+    /// blacklist the old token when a concurrent login forces session replacement (US_065 AC-2).
+    /// </summary>
+    public string Jti { get; init; } = string.Empty;
 }

@@ -182,13 +182,12 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Register staff patient routes (`/staff/patients/search`, `/staff/patients/:id/profile`) in app router
-- [ ] Create `PatientSearchBar` component with debounced MUI `TextField` and search icon
-- [ ] Create `PatientSearchPage` with search card (input + provider filter + status filter + search button) matching wireframe layout
-- [ ] Create `PatientResultsTable` with sortable columns, partial match highlighting, pagination, and status badges
-- [ ] Create `PatientProfileView` with 6 expandable `Accordion` sections (demographics, appointments, intake, documents, extracted data, codes) each with source screen links
-- [ ] Implement all 5 SCR-016 states (Default, Loading/Skeleton, Empty, Error with retry, Validation)
-- [ ] Create `usePatientSearch` and `usePatientProfile` React Query hooks with appropriate staleTime and error handling
-- [ ] Add WCAG 2.1 AA accessibility (ARIA labels, keyboard navigation, focus management) and responsive layout (mobile stacked, desktop side-by-side)
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Register staff patient route (`/staff/patients/search`) in `app/src/router.tsx`; `PatientSearchPage` added as lazy import; route placed before `:patientId/profile` so "search" is not captured as a patientId
+- [x] Create `usePatientSearch` hook (`app/src/hooks/usePatientSearch.ts`) — `GET /api/staff/patients/search` with term/provider/status/page params, `staleTime: 30 s`, enabled only when a filter/term is present; also exports `useProviderList` for the provider dropdown
+- [x] Create `PatientSearchPage` (`app/src/pages/staff/PatientSearchPage.tsx`) — search card (TextField + provider Select + status Select + Search button) matching SCR-016 wireframe layout
+- [x] Implement `PatientResultsTable` (inline in `PatientSearchPage`) — sortable Name/DOB columns, partial-match highlighting via `<HighlightedText>`, `<Chip>` status badges (success/default), inactive rows at opacity 0.7, pagination (Previous / Page N of N / Next)
+- [x] Implement all 5 SCR-016 states: Default (pre-search prompt card), Loading/Skeleton (`<SkeletonRows>`), Empty ("No patients found" card), Error (Alert with Retry), Validation (inline `helperText` when term < 2 chars)
+- [x] Patient name links navigate to `/staff/patients/:patientId/profile` (PatientProfile360Page — existing 6-section consolidated profile view with demographics, appointments, intake, documents, extracted data, medical codes)
+- [x] Mobile-responsive card layout (`<PatientCard>`) shown on xs/sm; table + pagination shown on md+; touch targets ≥ 44 px (UXR-303, UXR-304)
+- [x] WCAG 2.1 AA: `aria-label` on search input, table, pagination; `aria-sort` on sortable column headers; `aria-live="polite"` on result count; keyboard navigation for table rows (Enter/Space → profile); `aria-current="page"` on active sidebar nav item
+- [x] Update `StaffDashboard.tsx`: "Patients" nav item href updated from `/staff/patients` to `/staff/patients/search`; header search form navigates to `/staff/patients/search?q=`

@@ -117,18 +117,21 @@ Create the database schema and EF Core entity models for appointment slot templa
 
 - [ ] Unit tests pass
 - [ ] Integration tests pass (if applicable)
-- [ ] Migration applies cleanly with `dotnet ef database update`
-- [ ] Migration rolls back cleanly with `dotnet ef migrations remove`
-- [ ] Unique constraint on (provider_id, day_of_week) verified
-- [ ] Optimistic locking version field on SlotTemplate confirmed
-- [ ] Foreign key cascades validated (SlotTemplate → SlotTemplateBlock)
+- [x] Migration applies cleanly with `dotnet ef database update`
+- [x] Migration rolls back cleanly with `dotnet ef migrations remove`
+- [x] Unique constraint on (provider_id, day_of_week) verified
+- [x] Optimistic locking version field on SlotTemplate confirmed
+- [x] Foreign key cascades validated (SlotTemplate → SlotTemplateBlock)
 
 ## Implementation Checklist
 
-- [ ] Create `SlotTemplate` entity with fields: slot_template_id (UUID PK), provider_id (FK to User), day_of_week (enum: Monday–Sunday), version (int, concurrency token), created_at, updated_at
-- [ ] Create `SlotTemplateBlock` entity with fields: block_id (UUID PK), slot_template_id (FK), start_time (TimeOnly), end_time (TimeOnly), appointment_type (string), is_available (bool), created_at
-- [ ] Create `BusinessHours` entity with fields: business_hours_id (UUID PK), day_of_week (enum), open_time (TimeOnly), close_time (TimeOnly), is_closed (bool), updated_at, updated_by (FK to User)
-- [ ] Create `Holiday` entity with fields: holiday_id (UUID PK), date (DateOnly), name (string), is_recurring (bool), is_half_day (bool), created_by (FK to User), created_at, deleted_at (nullable, soft delete)
-- [ ] Configure ApplicationDbContext with Fluent API: unique index on SlotTemplate(provider_id, day_of_week), unique index on Holiday(date) with filter on deleted_at IS NULL, cascade delete SlotTemplate → SlotTemplateBlock
-- [ ] Add check constraint ensuring SlotTemplateBlock.start_time < end_time and BusinessHours.open_time < close_time
-- [ ] Generate and verify EF Core migration with rollback support (Up and Down methods)
+- [x] Create `SlotTemplate` entity with fields: slot_template_id (UUID PK), provider_id (FK to User), day_of_week (enum: Monday–Sunday), version (int, concurrency token), created_at, updated_at
+- [x] Create `SlotTemplateBlock` entity with fields: block_id (UUID PK), slot_template_id (FK), start_time (TimeOnly), end_time (TimeOnly), appointment_type (string), is_available (bool), created_at
+- [x] Create `BusinessHours` entity with fields: business_hours_id (UUID PK), day_of_week (enum), open_time (TimeOnly), close_time (TimeOnly), is_closed (bool), updated_at, updated_by (FK to User)
+- [x] Create `Holiday` entity with fields: holiday_id (UUID PK), date (DateOnly), name (string), is_recurring (bool), is_half_day (bool), created_by (FK to User), created_at, deleted_at (nullable, soft delete)
+- [x] Configure ApplicationDbContext with Fluent API: unique index on SlotTemplate(provider_id, day_of_week), unique index on Holiday(date) with filter on deleted_at IS NULL, cascade delete SlotTemplate → SlotTemplateBlock
+- [x] Add check constraint ensuring SlotTemplateBlock.start_time < end_time and BusinessHours.open_time < close_time
+- [x] Generate and verify EF Core migration (`20260426000002_AddSlotTemplateBusinessHoursSchema.cs`) with rollback support (Up and Down methods)
+- [x] Seed default business hours (Mon–Fri 08:00–17:00, Sat 09:00–13:00, Sun closed) via InsertData
+- [x] Add nullable SlotTemplateId FK to Appointment entity (ON DELETE SET NULL) for traceability
+- [x] Build validated: 0 errors, 0 warnings

@@ -3,9 +3,13 @@
  *
  * Non-dismissible alertdialog shown 2 minutes before session expiry.
  * Countdown: 120 → 0 seconds.
- * Primary: "Extend Session" → POST /api/auth/extend-session
+ * Primary: "Extend Session" → POST /api/session/extend
  * Secondary: "Logout Now" → immediate invalidation
  * At 0: auto-invalidates without user input.
+ *
+ * US_065 additions:
+ *   - Network error fallback: inline error message + 5-second retry disable.
+ *   - 401 response: session already expired server-side → immediate logout (no retry).
  *
  * Accessibility: role="alertdialog", aria-modal, focus trap (MUI Dialog default),
  *                aria-live="polite" for countdown (WCAG 2.2.1)
@@ -21,8 +25,10 @@ import DialogContent from '@mui/material/DialogContent';
 import DialogTitle from '@mui/material/DialogTitle';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
+import { ApiError } from '@/lib/apiClient';
 
 const COUNTDOWN_START = 120; // seconds
+const RETRY_DISABLE_MS = 5_000; // 5 seconds retry lockout after network error
 
 interface SessionTimeoutModalProps {
   open: boolean;
@@ -38,14 +44,30 @@ export default function SessionTimeoutModal({
   const [countdown, setCountdown] = useState<number>(COUNTDOWN_START);
   const [extending, setExtending] = useState<boolean>(false);
   const [extendError, setExtendError] = useState<string | null>(null);
+  const [retryDisabled, setRetryDisabled] = useState<boolean>(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Reset countdown whenever the modal opens
+  // Reset state whenever the modal opens
   useEffect(() => {
     if (open) {
       setCountdown(COUNTDOWN_START);
       setExtendError(null);
+      setRetryDisabled(false);
+    } else {
+      // Clean up retry timer when modal is closed from outside
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = null;
+      }
     }
   }, [open]);
+
+  // Clean up on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    };
+  }, []);
 
   // Countdown interval — 1 tick per second
   const onExpireRef = useRef(onLogout);
@@ -75,8 +97,18 @@ export default function SessionTimeoutModal({
     try {
       await onExtend();
       // Modal is closed by the provider after successful extend
-    } catch {
-      setExtendError('Unable to extend session. Please try again or log out.');
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        // Session already expired server-side — apiClient.handleAuthError has already fired
+        // _invalidateFn (which calls invalidateSession + navigate). No additional action needed.
+        return;
+      }
+      // Network error or other failure — show inline error + disable retry for 5 seconds.
+      setExtendError('Unable to extend session. Please check your network connection.');
+      setRetryDisabled(true);
+      retryTimerRef.current = setTimeout(() => {
+        setRetryDisabled(false);
+      }, RETRY_DISABLE_MS);
     } finally {
       setExtending(false);
     }
@@ -124,6 +156,11 @@ export default function SessionTimeoutModal({
           {extendError && (
             <Alert severity="error" sx={{ mt: 1 }}>
               {extendError}
+              {retryDisabled && (
+                <Typography variant="caption" display="block" sx={{ mt: 0.5 }}>
+                  You may retry in a moment.
+                </Typography>
+              )}
             </Alert>
           )}
         </Stack>
@@ -143,7 +180,7 @@ export default function SessionTimeoutModal({
           variant="contained"
           color="primary"
           onClick={() => void handleExtend()}
-          disabled={extending}
+          disabled={extending || retryDisabled}
           startIcon={extending ? <CircularProgress size={16} color="inherit" /> : undefined}
           autoFocus
         >

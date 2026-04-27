@@ -247,12 +247,12 @@ public class ClaudeProviderAdapter : IAIProviderAdapter
 
 ## Implementation Checklist
 
-- [ ] Implement `IModelVersionRegistry` interface and `ModelVersionRegistry` with thread-safe version tracking (active/previous per provider) using `ReaderWriterLockSlim`
-- [ ] Implement `ExecuteRollback` method with version swap, validation, configuration reload, and `RollbackResponse` generation
-- [ ] Create admin API endpoints (`GET /api/admin/ai-gateway/versions`, `POST /api/admin/ai-gateway/versions/rollback`) with Admin role authorization and request validation
-- [ ] Refactor `OpenAIProviderAdapter` and `ClaudeProviderAdapter` to use `IOptionsMonitor<T>` with `OnChange` callback for hot-reload model version updates
-- [ ] Implement rollback audit logging via structured Serilog events and PostgreSQL `AuditLog` table write
-- [ ] Coordinate rollback with `ProviderStateManager` — reset circuit breaker to `HalfOpen` when rolling back an unavailable provider
+- [X] Implement `IModelVersionRegistry` interface and `ModelVersionRegistry` with thread-safe version tracking (active/previous per provider) using `ReaderWriterLockSlim`
+- [X] Implement `ExecuteRollback` method with version swap, validation, configuration reload, and `RollbackResponse` generation
+- [X] Create admin API endpoints (`GET /api/admin/ai-gateway/versions`, `POST /api/admin/ai-gateway/versions/rollback`) with Admin role authorization and request validation
+- [X] Refactor `OpenAIProviderAdapter` and `ClaudeProviderAdapter` to use `IOptionsMonitor<T>` with `OnChange` callback for hot-reload model version updates
+- [X] Implement rollback audit logging via structured Serilog events and PostgreSQL `AuditLog` table write
+- [X] Coordinate rollback with `ProviderStateManager` — reset circuit breaker to `HalfOpen` when rolling back an unavailable provider
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-O05 requirement is met (rollback within 1 hour)

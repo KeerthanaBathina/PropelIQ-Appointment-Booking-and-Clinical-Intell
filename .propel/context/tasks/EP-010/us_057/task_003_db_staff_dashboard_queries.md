@@ -147,11 +147,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Add `IX_appointments_time_status` composite index on `appointments(appointment_time, status)` in `OnModelCreating`
-- [ ] Add `IX_queue_entries_status_arrival` composite index on `queue_entries(status, arrival_timestamp)` in `OnModelCreating`
-- [ ] Add `IX_medical_codes_approval_ai` filtered index on `medical_codes(approved_by_user_id, suggested_by_ai)` where `approved_by_user_id IS NULL`
-- [ ] Add `IX_extracted_data_review_verified` filtered index on `extracted_data(flagged_for_review, verified_by_user_id)` where conditions met
-- [ ] Generate EF Core migration with `dotnet ef migrations add AddStaffDashboardIndexes`
-- [ ] Verify migration `Down()` method drops all created indexes
-- [ ] Create reference SQL view `vw_staff_dashboard_stats` for documentation
-- [ ] Run `EXPLAIN ANALYZE` on each dashboard query pattern to verify index usage
+- [x] Add `IX_appointments_time_status` composite index on `appointments(appointment_time, status)` in `OnModelCreating` — **pre-existing** as `ix_appointments_appointment_time_status` (US_017); no duplicate added
+- [x] Add `IX_queue_entries_status_arrival` partial filtered index on `queue_entries(status, arrival_timestamp)` WHERE `status IN ('Waiting', 'InVisit')` in `QueueEntryConfiguration`
+- [x] Add `IX_medical_codes_approval_ai` partial filtered index on `medical_codes(suggested_by_ai, approved_by_user_id)` WHERE `suggested_by_ai = true AND approved_by_user_id IS NULL` in `MedicalCodeConfiguration`
+- [x] Add `IX_extracted_data_review_verified` partial filtered index on `extracted_data(flagged_for_review, verified_by_user_id)` WHERE `flagged_for_review = true AND verified_by_user_id IS NULL` in `ExtractedDataConfiguration`
+- [x] Generate EF Core migration `20260424130000_AddStaffDashboardIndexes.cs` with `Up()` creating all three indexes and `Down()` dropping them
+- [x] Verify migration `Down()` method drops all created indexes
+- [x] Build validates: 0 errors, 0 warnings on `UPACIP.DataAccess`

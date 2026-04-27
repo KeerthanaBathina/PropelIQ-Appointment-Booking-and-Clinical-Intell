@@ -115,22 +115,22 @@ Server/
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass
-- [ ] Migration Up() executes successfully against PostgreSQL 16.x
-- [ ] Migration Down() rolls back cleanly (removes columns and table)
-- [ ] QueueEntry table has queue_position (int, NOT NULL, DEFAULT 0) column
-- [ ] QueueEntry table has row_version (int, NOT NULL, DEFAULT 1) column
-- [ ] QueueAuditLog table created with all required columns and FK constraints
-- [ ] Composite index IX_QueueEntry_Priority_Position exists on (priority DESC, queue_position ASC)
-- [ ] Index IX_QueueAuditLog_QueueId_CreatedAt exists on (queue_id, created_at DESC)
-- [ ] EF Core model snapshot updated correctly
-- [ ] Optimistic locking triggers DbUpdateConcurrencyException when row_version mismatches
+- [x] Unit tests pass
+- [x] Migration Up() executes successfully against PostgreSQL 16.x
+- [x] Migration Down() rolls back cleanly (removes columns and table)
+- [x] QueueEntry table has queue_position (int, NOT NULL, DEFAULT 0) column
+- [x] QueueEntry table has row_version (int, NOT NULL, DEFAULT 1) column
+- [x] QueueAuditLog table created with all required columns and FK constraints
+- [x] Composite index IX_QueueEntry_Priority_Position exists on (priority DESC, queue_position ASC)
+- [x] Index IX_QueueAuditLog_QueueId_CreatedAt exists on (queue_id, created_at DESC)
+- [x] EF Core model snapshot updated correctly
+- [x] Optimistic locking triggers DbUpdateConcurrencyException when row_version mismatches
 
 ## Implementation Checklist
 
-- [ ] Add `queue_position` (int, NOT NULL, DEFAULT 0) property to QueueEntry entity with column configuration in AppDbContext
-- [ ] Add `row_version` (int, NOT NULL, DEFAULT 1) property to QueueEntry entity with [ConcurrencyCheck] attribute
-- [ ] Create `QueueAuditLog` entity class with audit_id (UUID PK), action_type (string), queue_id (UUID FK), staff_user_id (UUID FK), original_position, new_position, original_priority, new_priority, created_at
-- [ ] Register DbSet for QueueAuditLog in AppDbContext and configure FK relationships
-- [ ] Configure composite index IX_QueueEntry_Priority_Position in OnModelCreating via HasIndex
-- [ ] Generate and validate EF Core migration with `dotnet ef migrations add AddQueuePositionAndAuditLog` — verify Up() and Down() methods have correct rollback
+- [x] Add `queue_position` (int, NOT NULL, DEFAULT 0) property to QueueEntry entity with column configuration in AppDbContext
+- [x] Add `row_version` (int, NOT NULL, DEFAULT 1) property to QueueEntry entity with [ConcurrencyCheck] attribute
+- [x] Create `QueueAuditLog` entity class with audit_id (UUID PK), action_type (string), queue_id (UUID FK), staff_user_id (UUID FK), original_position, new_position, original_priority, new_priority, created_at
+- [x] Register DbSet for QueueAuditLog in AppDbContext and configure FK relationships
+- [x] Configure composite index IX_QueueEntry_Priority_Position in OnModelCreating via HasIndex
+- [x] Generate and validate EF Core migration with `dotnet ef migrations add AddQueuePositionAndAuditLog` — verify Up() and Down() methods have correct rollback

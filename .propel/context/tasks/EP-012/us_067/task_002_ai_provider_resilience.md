@@ -260,14 +260,14 @@ var pipeline = new ResiliencePipelineBuilder<AIResponse>()
 
 ## Implementation Checklist
 
-- [ ] Implement OpenAI GPT-4o-mini provider adapter (IAIProviderAdapter) with HttpClient configuration, request/response mapping, and error handling (429, 500, 503, timeout)
-- [ ] Implement Anthropic Claude 3.5 Sonnet fallback provider adapter (IAIProviderAdapter) with HttpClient configuration, request/response mapping, and error handling (429, 529, 500)
-- [ ] Configure Polly V8 circuit breaker policy (open after 5 consecutive failures within 30s sampling, half-open retry after 30s break duration per AIR-O04)
-- [ ] Configure Polly V8 retry policy with exponential backoff (max 3 retries, 1s base delay, jitter enabled per AIR-O08)
-- [ ] Implement Polly V8 fallback policy chain routing primary (OpenAI) → fallback (Claude) → structured error response transparently (AC-2)
-- [ ] Implement token budget enforcement per request type at provider adapter level (AIR-O01: 4K/1K parsing, AIR-O02: 500/200 intake, AIR-O03: 2K/500 coding)
-- [ ] Add provider configuration via appsettings.json (API keys, base URLs, model versions, timeout, resilience thresholds) with IOptions<T> binding
-- [ ] Implement provider health tracking and cost-per-request logging (request count, success rate, latency, token usage, estimated cost per AIR-O09)
-- **[AI Tasks - MANDATORY]** Verify AIR-O04 circuit breaker and AIR-O08 retry policies function correctly under failure conditions
-- **[AI Tasks - MANDATORY]** Implement and test guardrails: token budget rejection, structured error on both providers unavailable
-- **[AI Tasks - MANDATORY]** Verify AIR-O01, AIR-O02, AIR-O03 token budget limits enforced at provider level
+- [X] Implement OpenAI GPT-4o-mini provider adapter (IAIProviderAdapter) with HttpClient configuration, request/response mapping, and error handling (429, 500, 503, timeout)
+- [X] Implement Anthropic Claude 3.5 Sonnet fallback provider adapter (IAIProviderAdapter) with HttpClient configuration, request/response mapping, and error handling (429, 529, 500)
+- [X] Configure Polly V8 circuit breaker policy (open after 5 consecutive failures within 30s sampling, half-open retry after 30s break duration per AIR-O04)
+- [X] Configure Polly V8 retry policy with exponential backoff (max 3 retries, 1s base delay, jitter enabled per AIR-O08)
+- [X] Implement Polly V8 fallback policy chain routing primary (OpenAI) → fallback (Claude) → structured error response transparently (AC-2)
+- [X] Implement token budget enforcement per request type at provider adapter level (AIR-O01: 4K/1K parsing, AIR-O02: 500/200 intake, AIR-O03: 2K/500 coding)
+- [X] Add provider configuration via appsettings.json (API keys, base URLs, model versions, timeout, resilience thresholds) with IOptions<T> binding
+- [X] Implement provider health tracking and cost-per-request logging (request count, success rate, latency, token usage, estimated cost per AIR-O09)
+- **[AI Tasks - MANDATORY]** [X] Verify AIR-O04 circuit breaker and AIR-O08 retry policies function correctly under failure conditions
+- **[AI Tasks - MANDATORY]** [X] Implement and test guardrails: token budget rejection, structured error on both providers unavailable
+- **[AI Tasks - MANDATORY]** [X] Verify AIR-O01, AIR-O02, AIR-O03 token budget limits enforced at provider level

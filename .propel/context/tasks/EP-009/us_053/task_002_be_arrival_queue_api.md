@@ -174,11 +174,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `QueueEntryDto`, `QueuePagedResponseDto`, and `QueueFilterParams` DTOs with computed wait time fields, average wait time, and threshold alert count
-- [ ] Create `IQueueService` interface and `QueueService` with today's queue fetch, sort logic (urgent priority first, then appointment time ascending), and filter application
-- [ ] Implement wait time computation from `arrival_timestamp` to `DateTime.UtcNow` with configurable 30-minute threshold detection
-- [ ] Implement average wait time calculation for waiting patients (status=waiting, arrival_timestamp not null)
-- [ ] Implement server-side pagination with `.Skip().Take()` preserving sort order and returning total_count
-- [ ] Create `IQueueCacheService` and `QueueCacheService` with Redis `GET`/`SET` (5-min TTL), granular cache keys, and cache invalidation method
-- [ ] Create `QueueController` with authorized `GET /api/queue/today` endpoint integrating cache-first strategy
-- [ ] Register services in DI, add `QueueSettings` configuration for wait time threshold in `appsettings.json`
+- [x] Create `QueueEntryDto`, `QueuePagedResponseDto`, and `QueueFilterParams` DTOs with computed wait time fields, average wait time, and threshold alert count
+- [x] Create `IQueueService` interface and `QueueService` with today's queue fetch, sort logic (urgent priority first, then appointment time ascending), and filter application
+- [x] Implement wait time computation from `arrival_timestamp` to `DateTime.UtcNow` with configurable 30-minute threshold detection
+- [x] Implement average wait time calculation for waiting patients (status=waiting, arrival_timestamp not null)
+- [x] Implement server-side pagination with `.Skip().Take()` preserving sort order and returning total_count
+- [x] Create `IQueueCacheService` and `QueueCacheService` with Redis `GET`/`SET` (5-min TTL), granular cache keys, and cache invalidation method
+- [x] Create `QueueController` with authorized `GET /api/queue/today` endpoint integrating cache-first strategy
+- [x] Register services in DI, add `QueueSettings` configuration for wait time threshold in `appsettings.json`

@@ -150,24 +150,24 @@ app/
 - [ ] Integration tests pass (if applicable)
 - [ ] **[UI Tasks]** Visual comparison against wireframe completed at 375px, 768px, 1440px
 - [ ] **[UI Tasks]** Run `/analyze-ux` to validate wireframe alignment
-- [ ] Priority badge renders correctly for both urgent (red) and normal (gray) states
-- [ ] Drag-and-drop reorder updates queue positions via API and re-renders sorted list
-- [ ] Up/down arrow controls swap adjacent entries and disable at boundaries
-- [ ] Priority override confirmation dialog appears when moving non-urgent above urgent
-- [ ] Optimistic locking conflict (409) triggers refetch and user notification
-- [ ] Screen reader announces queue position changes via aria-live region
-- [ ] Keyboard navigation works for drag-and-drop (Enter/Space grab, Arrows move, Escape cancel)
+- [x] Priority badge renders correctly for both urgent (red) and normal (gray) states
+- [x] Drag-and-drop reorder updates queue positions via API and re-renders sorted list
+- [x] Up/down arrow controls swap adjacent entries and disable at boundaries
+- [x] Priority override confirmation dialog appears when moving non-urgent above urgent
+- [x] Optimistic locking conflict (409) triggers refetch and user notification
+- [x] Screen reader announces queue position changes via aria-live region
+- [x] Keyboard navigation works for drag-and-drop (Enter/Space grab, Arrows move, Escape cancel)
 - [ ] All 5 screen states render correctly (Default, Loading, Empty, Error, Validation)
 
 ## Implementation Checklist
 
-- [ ] Create `PriorityBadge` component with urgent/normal variants using MUI Chip and design tokens
-- [ ] Update `queueStore.ts` sort logic — urgent tier first sorted by arrival_timestamp, then normal tier sorted by arrival_timestamp, with queue_position override when present
-- [ ] Integrate @dnd-kit/core in `ArrivalQueueTable` for row-level drag-and-drop reorder
-- [ ] Create `QueueReorderControls` with ArrowUpward/ArrowDownward IconButtons and boundary disable logic
-- [ ] Create `PriorityOverrideDialog` MUI Dialog with warning message for non-urgent-above-urgent moves
-- [ ] Create `useQueueReorder` hook with React Query mutation, optimistic update, and 409 conflict handling (refetch + Snackbar)
-- [ ] Create `useQueuePriority` hook with React Query mutation for PUT /queue/{id}/priority
-- [ ] Add ARIA attributes — drag handle labels, aria-live polite region, aria-sort on sortable columns, keyboard reorder support
+- [x] Create `PriorityBadge` component with urgent/normal variants using MUI Chip and design tokens
+- [x] Update `queueStore.ts` sort logic — urgent tier first sorted by arrival_timestamp, then normal tier sorted by arrival_timestamp, with queue_position override when present
+- [x] Integrate @dnd-kit/core in `ArrivalQueueTable` for row-level drag-and-drop reorder
+- [x] Create `QueueReorderControls` with ArrowUpward/ArrowDownward IconButtons and boundary disable logic
+- [x] Create `PriorityOverrideDialog` MUI Dialog with warning message for non-urgent-above-urgent moves
+- [x] Create `useQueueReorder` hook with React Query mutation, optimistic update, and 409 conflict handling (refetch + Snackbar)
+- [x] Create `useQueuePriority` hook with React Query mutation for PUT /queue/{id}/priority
+- [x] Add ARIA attributes — drag handle labels, aria-live polite region, aria-sort on sortable columns, keyboard reorder support
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

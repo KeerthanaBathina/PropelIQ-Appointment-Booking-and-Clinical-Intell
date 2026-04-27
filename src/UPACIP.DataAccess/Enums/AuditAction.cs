@@ -91,4 +91,67 @@ public enum AuditAction
 
     /// <summary>A medical code was re-evaluated against the current code library (US_049 AC-4).</summary>
     CodeRevalidated,
+
+    // ── US_052 — Patient Arrival Status (AC-1, AC-2, AC-3) ──────────────────
+
+    /// <summary>Staff marked a patient as arrived — QueueEntry created with arrival_timestamp (US_052 AC-1).</summary>
+    ArrivalMarked,
+
+    /// <summary>Staff cancelled a queue slot — appointment slot released for walk-ins (US_052 AC-3).</summary>
+    ArrivalCancelled,
+
+    /// <summary>Background service auto-marked a patient as no-show after 15-minute threshold (US_052 AC-2).</summary>
+    NoShowAutoDetected,
+
+    /// <summary>Staff overrode a no-show status to arrived-late with a provided reason (US_052 edge case).</summary>
+    NoShowOverridden,
+
+    // ── US_054 — Priority Queue Management (AC-1, AC-3, AC-4) ───────────────
+
+    /// <summary>Staff changed a queue entry's priority to Urgent or Normal — triggers automatic re-positioning (US_054 AC-1, AC-4).</summary>
+    QueuePriorityChanged,
+
+    /// <summary>Staff manually reordered a queue entry using drag-and-drop or arrow controls (US_054 AC-2, AC-3).</summary>
+    QueueReordered,
+
+    // ── US_055 — Auto No-Show Detection & Wait Threshold Config (AC-3, AC-4) ─
+
+    /// <summary>Admin updated the configurable wait time alert threshold (US_055 AC-3).</summary>
+    WaitThresholdConfigChanged,
+
+    // ── US_061 — Staff Account Management (AC-1, AC-3, AC-4) ─────────────────
+
+    /// <summary>Admin created a new staff or admin account via the user management screen (US_061 AC-1).</summary>
+    StaffAccountCreated,
+
+    /// <summary>Admin deactivated a staff account — account disabled; all historical data preserved (US_061 AC-3, FR-088).</summary>
+    StaffAccountDeactivated,
+
+    /// <summary>Admin reactivated a previously deactivated staff account — previous role and permissions restored (US_061 AC-4).</summary>
+    StaffAccountReactivated,
+
+    // ── US_065 — Session Security Hardening ──────────────────────────────────
+
+    /// <summary>
+    /// An active session on Device A was terminated because the same user authenticated from
+    /// Device B (concurrent session replacement, NFR-015, US_065 AC-2).
+    /// </summary>
+    SessionReplaced,
+
+    // ── US_065 Task 3 — Lockout Recovery Schema ───────────────────────────────
+
+    /// <summary>
+    /// A database administrator manually unlocked an admin account using the emergency
+    /// recovery SQL script (admin-lockout-recovery.sql). HIPAA-auditable event (FR-093).
+    /// Recorded by the recovery script itself rather than the application layer.
+    /// </summary>
+    AdminManualUnlock,
+
+    // ── US_069 TASK_003 — AI Model Version Rollback ───────────────────────────
+
+    /// <summary>
+    /// An admin reverted an AI provider to a previous model version via the rollback endpoint
+    /// (US_069 AC-4, AIR-O05). Audit entry records provider, before/after model versions, reason.
+    /// </summary>
+    AiModelVersionRollback,
 }

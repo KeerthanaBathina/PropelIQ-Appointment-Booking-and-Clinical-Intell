@@ -30,6 +30,7 @@ import Typography from '@mui/material/Typography';
 import Visibility from '@mui/icons-material/Visibility';
 import VisibilityOff from '@mui/icons-material/VisibilityOff';
 import AccountLockoutAlert from '@/components/auth/AccountLockoutAlert';
+import SessionTerminatedAlert from '@/components/auth/SessionTerminatedAlert';
 import MfaTotpStep from '@/components/auth/MfaTotpStep';
 import { useLogin } from '@/hooks/useLogin';
 
@@ -143,6 +144,9 @@ export default function LoginPage() {
                 Sign in to your account
               </Typography>
 
+              {/* Session terminated alert — shown when ?reason=session_terminated (US_065 AC-2) */}
+              <SessionTerminatedAlert />
+
               {/* Session expired banner */}
               <Collapse in={showExpiredAlert}>
                 <Alert
@@ -155,7 +159,7 @@ export default function LoginPage() {
                 </Alert>
               </Collapse>
 
-              {/* Account lockout alert (AC-2) */}
+              {/* Account lockout alert (AC-3) */}
               {lockedUntil && (
                 <AccountLockoutAlert
                   lockedUntil={lockedUntil}
@@ -219,8 +223,9 @@ export default function LoginPage() {
                   variant="contained"
                   fullWidth
                   size="large"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || !!lockedUntil}
                   startIcon={isSubmitting ? <CircularProgress size={18} color="inherit" /> : undefined}
+                  aria-disabled={!!lockedUntil || isSubmitting}
                 >
                   {isSubmitting ? 'Signing in…' : 'Sign In'}
                 </Button>

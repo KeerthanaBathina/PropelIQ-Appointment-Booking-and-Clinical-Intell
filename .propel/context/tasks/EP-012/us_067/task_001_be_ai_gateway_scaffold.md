@@ -179,12 +179,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create AI Gateway vertical slice folder structure (Features/AIGateway/ with Contracts, Middleware, Services, Configuration, Extensions, Providers subfolders)
-- [ ] Define IAIProviderAdapter interface with SendCompletionAsync, IsHealthyAsync, ProviderName, and ModelVersion contracts
-- [ ] Define unified AIRequest/AIResponse DTOs with AIRequestType enum (DocumentParsing, ConversationalIntake, MedicalCoding) and TokenBudget model
-- [ ] Implement AIRequestValidationMiddleware enforcing schema validation and token budget limits per request type (AIR-O01: 4K/1K, AIR-O02: 500/200, AIR-O03: 2K/500)
-- [ ] Implement AIAuthenticationMiddleware for JWT validation on AI Gateway endpoints (Staff/Admin roles only)
-- [ ] Implement AIResponseNormalizationMiddleware mapping provider-specific responses to unified AIResponse DTO
-- [ ] Configure DI registrations in AIGatewayServiceCollectionExtensions and wire into Program.cs
-- [ ] Implement structured logging with Serilog correlation IDs for AI request tracing (CorrelationId, RequestType, ProviderName, TokensUsed, LatencyMs)
-- **[AI Tasks - MANDATORY]** Verify AIR-O01, AIR-O02, AIR-O03 token budget limits are enforced in validation middleware
+- [x] Create AI Gateway vertical slice folder structure (Features/AIGateway/ with Contracts, Middleware, Services, Configuration, Extensions, Providers subfolders)
+- [x] Define IAIProviderAdapter interface with SendCompletionAsync, IsHealthyAsync, ProviderName, and ModelVersion contracts
+- [x] Define unified AIRequest/AIResponse DTOs with AIRequestType enum (DocumentParsing, ConversationalIntake, MedicalCoding) and TokenBudget model
+- [x] Implement AIRequestValidationMiddleware enforcing schema validation and token budget limits per request type (AIR-O01: 4K/1K, AIR-O02: 500/200, AIR-O03: 2K/500)
+- [x] Implement AIAuthenticationMiddleware for JWT validation on AI Gateway endpoints (Staff/Admin roles only)
+- [x] Implement AIResponseNormalizationMiddleware mapping provider-specific responses to unified AIResponse DTO
+- [x] Configure DI registrations in AIGatewayServiceCollectionExtensions and wire into Program.cs
+- [x] Implement structured logging with Serilog correlation IDs for AI request tracing (CorrelationId, RequestType, ProviderName, TokensUsed, LatencyMs)
+- **[AI Tasks - MANDATORY]** [x] Verify AIR-O01, AIR-O02, AIR-O03 token budget limits are enforced in validation middleware

@@ -183,29 +183,29 @@ Server/
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass
-- [ ] Integration tests pass (if applicable)
-- [ ] **[AI Tasks]** Guardrails tested for input sanitization and output validation
-- [ ] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
-- [ ] **[AI Tasks]** Audit logging verified (no PII in logs)
-- [ ] Circuit breaker opens after exactly 5 consecutive primary provider failures
-- [ ] All new requests route to fallback (Claude) when primary circuit is open
-- [ ] Circuit enters half-open state after 30 seconds and allows one test request
-- [ ] Successful half-open test closes circuit and resumes normal routing to primary
-- [ ] Failed half-open test re-opens circuit for another 30-second break
-- [ ] Dual circuit breaker failure returns 503 "AI unavailable" response
-- [ ] Admin notification triggers when entering degraded mode
-- [ ] Circuit breaker state is consistent across multiple server instances via Redis
-- [ ] Structured logging captures all state transitions with correlation IDs
+- [X] Unit tests pass
+- [X] Integration tests pass (if applicable)
+- [X] **[AI Tasks]** Guardrails tested for input sanitization and output validation
+- [X] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
+- [X] **[AI Tasks]** Audit logging verified (no PII in logs)
+- [X] Circuit breaker opens after exactly 5 consecutive primary provider failures
+- [X] All new requests route to fallback (Claude) when primary circuit is open
+- [X] Circuit enters half-open state after 30 seconds and allows one test request
+- [X] Successful half-open test closes circuit and resumes normal routing to primary
+- [X] Failed half-open test re-opens circuit for another 30-second break
+- [X] Dual circuit breaker failure returns 503 "AI unavailable" response
+- [X] Admin notification triggers when entering degraded mode
+- [X] Circuit breaker state is consistent across multiple server instances via Redis
+- [X] Structured logging captures all state transitions with correlation IDs
 
 ## Implementation Checklist
 
-- [ ] Create `CircuitBreakerOptions` configuration class with failure threshold (5), break duration (30s), sampling window, and Redis connection settings; register with `IOptions<T>`
-- [ ] Create `CircuitBreakerState` enum (Closed, Open, HalfOpen, Degraded)
-- [ ] Implement `AiProviderCircuitBreaker` using Polly v8 `ResiliencePipelineBuilder.AddCircuitBreaker()` with `CircuitBreakerStrategyOptions` (FailureRatio=1.0, MinimumThroughput=5, BreakDuration=30s) and `CircuitBreakerStateProvider` for monitoring
-- [ ] Implement `ICircuitBreakerStateStore` and `RedisCircuitBreakerStateStore` for distributed state sharing via Redis atomic operations with TTL
-- [ ] Implement fallback routing in `AiGatewayService`: primary (Closed) → fallback (Open) → degraded (both Open), catching `BrokenCircuitException` for routing decisions
-- [ ] Implement `DegradedModeHandler` returning 503 Service Unavailable with structured error body and triggering admin alert via Serilog critical log
-- [ ] Add `CircuitBreaker` section to `appsettings.json` with configurable thresholds for primary and fallback providers
-- [ ] Add structured Serilog logging for all state transitions (Closed→Open, Open→HalfOpen, HalfOpen→Closed, Degraded) with timestamps, failure counts, and provider identifiers
+- [X] Create `CircuitBreakerOptions` configuration class with failure threshold (5), break duration (30s), sampling window, and Redis connection settings; register with `IOptions<T>` — satisfied by existing `ResilienceOptions` (`CircuitBreakerFailureThreshold=5`, `CircuitBreakerBreakDurationSeconds=30`) in `AIGateway:Resilience` appsettings section
+- [X] Create `CircuitBreakerState` enum (Closed, Open, HalfOpen, Degraded) — `src/UPACIP.Api/Features/AIGateway/Models/CircuitBreakerState.cs`
+- [X] Implement `AiProviderCircuitBreaker` using Polly v8 `ResiliencePipelineBuilder.AddCircuitBreaker()` with `CircuitBreakerStrategyOptions` (FailureRatio=1.0, MinimumThroughput=5, BreakDuration=30s) and `CircuitBreakerStateProvider` for monitoring — satisfied by `AIResiliencePipelineBuilder` + `ProviderStateManager` (US_069 TASK_002)
+- [X] Implement `ICircuitBreakerStateStore` and `RedisCircuitBreakerStateStore` for distributed state sharing via Redis atomic operations with TTL — `src/UPACIP.Api/Features/AIGateway/Resilience/ICircuitBreakerStateStore.cs` + `RedisCircuitBreakerStateStore.cs`
+- [X] Implement fallback routing in `AiGatewayService`: primary (Closed) → fallback (Open) → degraded (both Open), catching `BrokenCircuitException` for routing decisions — `AIProviderFallbackHandler` with cross-instance Redis fast-path check; `DegradedModeHandler` for dual-failure path
+- [X] Implement `DegradedModeHandler` returning 503 Service Unavailable with structured error body and triggering admin alert via Serilog critical log — `src/UPACIP.Api/Features/AIGateway/Services/DegradedModeHandler.cs` (throttled `LogCritical` + `AIResponse.Failed`)
+- [X] Add `CircuitBreaker` section to `appsettings.json` with configurable thresholds for primary and fallback providers — satisfied by existing `AIGateway:Resilience` section; no duplicate config required
+- [X] Add structured Serilog logging for all state transitions (Closed→Open, Open→HalfOpen, HalfOpen→Closed, Degraded) with timestamps, failure counts, and provider identifiers — `CircuitBreakerStateMonitor.OnStateChanged` + `DegradedModeHandler.MaybeEmitAdminAlert`
 - **[AI Tasks - MANDATORY]** Verify AIR-O04 requirement is met (circuit breaker opens after 5 failures, 30s retry)

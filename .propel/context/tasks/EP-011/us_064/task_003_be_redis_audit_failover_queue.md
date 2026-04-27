@@ -189,11 +189,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `AuditLogQueueEntry` DTO with all audit log fields plus `EnqueuedAt` timestamp, using `System.Text.Json` serialization
-- [ ] Create `IAuditQueueService` / `AuditQueueService` with Redis `RPUSH`/`LPOP`/`LLEN` operations and local file fallback on Redis failure
-- [ ] Modify `AuditService.LogAsync()` to inject `IAuditQueueService` and enqueue entries on `NpgsqlException`/`DbUpdateException` (edge case: DB unavailable)
-- [ ] Create `AuditQueueFlushWorker` as `BackgroundService` with configurable batch size, flush interval, and idle interval
-- [ ] Implement Polly `CircuitBreakerAsync` (5 failures, 30s open) wrapping `RetryAsync` (3 retries, exponential backoff) for DB writes in worker (NFR-032)
-- [ ] Implement idempotent flush with `LogId` existence check before insert to prevent duplicate audit entries (NFR-034)
-- [ ] Create `AuditQueueHealthCheck` reporting queue depth via `/health` endpoint with Healthy/Degraded/Unhealthy thresholds (NFR-020)
-- [ ] Register all services, worker, health check, and `AuditQueueSettings` configuration in `Program.cs` with `IOptions<AuditQueueSettings>` binding
+- [x] Create `AuditLogQueueEntry` DTO with all audit log fields plus `EnqueuedAt` timestamp, using `System.Text.Json` serialization
+- [x] Create `IAuditQueueService` / `AuditQueueService` with Redis `RPUSH`/`LPOP`/`LLEN` operations and local file fallback on Redis failure
+- [x] Modify `AuditService.LogAsync()` to inject `IAuditQueueService` and enqueue entries on `NpgsqlException`/`DbUpdateException` (edge case: DB unavailable)
+- [x] Create `AuditQueueFlushWorker` as `BackgroundService` with configurable batch size, flush interval, and idle interval
+- [x] Implement Polly `CircuitBreakerAsync` (5 failures, 30s open) wrapping `RetryAsync` (3 retries, exponential backoff) for DB writes in worker (NFR-032)
+- [x] Implement idempotent flush with `LogId` existence check before insert to prevent duplicate audit entries (NFR-034)
+- [x] Create `AuditQueueHealthCheck` reporting queue depth via `/health` endpoint with Healthy/Degraded/Unhealthy thresholds (NFR-020)
+- [x] Register all services, worker, health check, and `AuditQueueSettings` configuration in `Program.cs` with `IOptions<AuditQueueSettings>` binding

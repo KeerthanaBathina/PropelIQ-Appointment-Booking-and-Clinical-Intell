@@ -210,11 +210,11 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `NotificationTemplateDto.cs` and `RiskConfigDto.cs` with request/response DTOs
-- [ ] Create `TemplateValidator.cs` — FluentValidation rules for subject, body, variable placeholder regex validation
-- [ ] Create `RiskConfigValidator.cs` — FluentValidation rules for threshold range and scoring weight sum
-- [ ] Implement `NotificationTemplateService.cs` — GetAll, GetById, Update with optimistic concurrency and audit logging
-- [ ] Implement `RiskConfigService.cs` — Get, Update with deferred recalculation flag and audit logging
-- [ ] Implement `AdminConfigController.cs` — 5 endpoints (GET list, GET detail, PUT template, GET risk, PUT risk) with Admin authorization
-- [ ] Extend `AuditService.cs` — Add config change logging with previousValues/newValues JSON
-- [ ] Register services and validators in `Program.cs` DI container
+- [x] Create `NotificationTemplateDto.cs` and `RiskConfigDto.cs` with request/response DTOs — added `UpdateNotificationTemplateByIdRequest`, `ScoringParametersDto`, `RiskConfigDto`, `UpdateRiskConfigRequest` to existing `src/UPACIP.Service/Admin/AdminConfigDtos.cs`; extended `NotificationTemplateDto` with `Subject?`, `UpdatedAt?`, `UpdatedBy?` (default null, backward-compatible)
+- [x] Create `TemplateValidator.cs` — FluentValidation rules for subject, body, variable placeholder regex validation — `src/UPACIP.Service/Admin/UpdateNotificationTemplateRequestValidator.cs`; validates Channel, Subject (required for Email), BodyTemplate with `{{token}}` regex against allowed set (`patient_name`, `date`, `time`, `provider`), Status
+- [x] Create `RiskConfigValidator.cs` — FluentValidation rules for threshold range and scoring weight sum — `src/UPACIP.Service/Admin/UpdateRiskConfigRequestValidator.cs`; validates HighRiskThreshold/MediumRiskThreshold 0–100, cross-field medium < high, MinAppointments ≥ 1, scoring weights ≥ 0 and sum to 1.0 (± 0.01 tolerance)
+- [x] Implement `NotificationTemplateService.cs` — GetAll, GetById, Update with optimistic concurrency and audit logging — `src/UPACIP.Service/Admin/NotificationTemplateService.cs` + `INotificationTemplateService.cs`; reads/writes `admin.config.notifications` SystemConfig key (shared with ConfigurationService); Redis cache invalidation; AuditLog via `IAuditLogService.LogAsync`; structured Serilog logging of previousValues/newValues
+- [x] Implement `RiskConfigService.cs` — Get, Update with deferred recalculation flag and audit logging — `src/UPACIP.Service/Admin/RiskConfigService.cs` + `IRiskConfigService.cs`; uses `admin.config.risk` SystemConfig key; falls back to legacy `admin.config.risk_thresholds`; sets `RecalculationPending = true` on update; AuditLog + Serilog structured before/after log
+- [x] Implement `AdminConfigController.cs` — 4 new endpoints added to existing controller: `GET /api/admin/config/notifications/{id}`, `PUT /api/admin/config/notifications/{id}` (with FluentValidation, 422 on unknown `{{token}}`), `GET /api/admin/config/risk`, `PUT /api/admin/config/risk` (with FluentValidation, 422 on weight sum != 1.0)
+- [x] Extend `AuditService.cs` — structured Serilog logging of `previousValues`/`newValues` JSON in `NotificationTemplateService.UpdateByIdAsync` and `RiskConfigService.UpdateAsync`; DB `AuditLog` entry appended via existing `IAuditLogService.LogAsync` with `AuditAction.DataModify` and `resourceType` attribution (AC-4)
+- [x] Register services and validators in `Program.cs` DI container — `INotificationTemplateService`/`NotificationTemplateService` and `IRiskConfigService`/`RiskConfigService` registered as `AddScoped`; validators auto-registered via existing `AddValidatorsFromAssemblyContaining<AppointmentDateValidator>()` call (same UPACIP.Service assembly)

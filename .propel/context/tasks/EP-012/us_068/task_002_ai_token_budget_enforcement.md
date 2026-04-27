@@ -236,14 +236,14 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Implement `ITokenEstimationService` and `TokenEstimationService` using SharpToken `GptEncoding.GetEncodingForModel("gpt-4o-mini")` for `cl100k_base` token counting
-- [ ] Create `TokenBudgetConfiguration` POCO and bind from `appsettings.json` section `AIGateway:TokenBudgets` with per-request-type limits (DocumentParsing: 4K/1K, ConversationalIntake: 500/200, MedicalCoding: 2K/500)
-- [ ] Implement input truncation logic in `TruncateToTokenLimit` that trims text to fit within `MaxInputTokens` while preserving sentence boundaries using regex split
-- [ ] Add `Truncated` (bool) flag and `TruncationInfo` (`TruncationMetadata?`) properties to `AIResponse` DTO, populated when input truncation occurs
-- [ ] Implement `MaxOutputTokens` enforcement by passing `TokenBudget.MaxOutputTokens` to OpenAI API `MaxOutputTokenCount` parameter on every request
-- [ ] Wire `ITokenBudgetEnforcementService` into `AIGatewayService.ProcessRequestAsync` pipeline: count tokens → truncate if over budget → set max_tokens → invoke provider → attach truncation metadata to response
-- [ ] Log all budget enforcement events via Serilog structured logging with fields: CorrelationId, RequestType, OriginalTokenCount, EnforcedBudget, WasTruncated, TruncatedTokenCount
-- [ ] Handle OpenAI rate limit (429) responses: parse `Retry-After` header value and queue excess requests via Redis Queue rather than failing immediately (AIR-O07)
+- [X] Implement `ITokenEstimationService` and `TokenEstimationService` using SharpToken `GptEncoding.GetEncodingForModel("gpt-4o-mini")` for `cl100k_base` token counting
+- [X] Create `TokenBudgetConfiguration` POCO and bind from `appsettings.json` section `AIGateway:TokenBudgets` with per-request-type limits (DocumentParsing: 4K/1K, ConversationalIntake: 500/200, MedicalCoding: 2K/500)
+- [X] Implement input truncation logic in `TruncateToTokenLimit` that trims text to fit within `MaxInputTokens` while preserving sentence boundaries using regex split
+- [X] Add `Truncated` (bool) flag and `TruncationInfo` (`TruncationMetadata?`) properties to `AIResponse` DTO, populated when input truncation occurs
+- [X] Implement `MaxOutputTokens` enforcement by passing `TokenBudget.MaxOutputTokens` to OpenAI API `MaxOutputTokenCount` parameter on every request
+- [X] Wire `ITokenBudgetEnforcementService` into `AIGatewayService.ProcessRequestAsync` pipeline: count tokens → truncate if over budget → set max_tokens → invoke provider → attach truncation metadata to response
+- [X] Log all budget enforcement events via Serilog structured logging with fields: CorrelationId, RequestType, OriginalTokenCount, EnforcedBudget, WasTruncated, TruncatedTokenCount
+- [X] Handle OpenAI rate limit (429) responses: parse `Retry-After` header value and queue excess requests via Redis Queue rather than failing immediately (AIR-O07)
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-O01 (4K/1K), AIR-O02 (500/200), AIR-O03 (2K/500) token budgets are enforced per request type

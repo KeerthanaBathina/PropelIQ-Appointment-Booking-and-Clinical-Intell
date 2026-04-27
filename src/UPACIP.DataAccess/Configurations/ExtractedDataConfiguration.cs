@@ -111,5 +111,14 @@ public sealed class ExtractedDataConfiguration : IEntityTypeConfiguration<Extrac
         // Active-data query index: active (non-archived) rows by document, used by preview and review.
         builder.HasIndex(e => new { e.DocumentId, e.IsArchived })
             .HasDatabaseName("ix_extracted_data_document_id_is_archived");
+
+        // Composite partial filtered index (US_057 AC-1): optimises the pending review query:
+        //   WHERE flagged_for_review = TRUE AND verified_by_user_id IS NULL
+        // Combining both equality conditions in a partial index avoids heap fetches for rows that
+        // are already verified, keeping the index small and highly selective for the dashboard
+        // task list lookups.
+        builder.HasIndex(e => new { e.FlaggedForReview, e.VerifiedByUserId })
+            .HasFilter("flagged_for_review = true AND verified_by_user_id IS NULL")
+            .HasDatabaseName("ix_extracted_data_pending_review");
     }
 }

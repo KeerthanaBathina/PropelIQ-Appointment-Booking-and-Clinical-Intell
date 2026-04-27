@@ -72,6 +72,25 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
             .IsUnique()
             .HasDatabaseName("ix_appointments_patient_id_appointment_time");
 
+        // Composite index (US_056 AC-1): supports provider-first filtered queue queries:
+        //   WHERE provider_id = @providerId AND appointment_time >= @today
+        // Leading provider_id column enables selective lookups by provider; appointment_time
+        // refines within the provider partition. Complements the existing
+        // ix_appointments_appointment_time_status_provider_id index where appointment_time leads.
+        builder.HasIndex(a => new { a.ProviderId, a.AppointmentTime })
+            .HasDatabaseName("ix_appointments_provider_id_appointment_time");
+
+        // Partial (filtered) index (US_055 AC-1): optimises the 60-second no-show detection
+        // background service query:
+        //   WHERE status = 'Scheduled' AND appointment_time < NOW() - INTERVAL '15 minutes'
+        // Covering only the 'Scheduled' subset drastically reduces index size and allows
+        // PostgreSQL to answer the query with an index-only range scan.
+        // HasFilter uses the PostgreSQL column representation ("Scheduled" because Status is
+        // stored as the enum name string via HasConversion<string>()).
+        builder.HasIndex(a => a.AppointmentTime)
+            .HasFilter("\"status\" = 'Scheduled'")
+            .HasDatabaseName("ix_appointments_scheduled_appointment_time");
+
         // FK is configured on PatientConfiguration (one-to-many); only navigation registered here.
         builder.HasOne(a => a.Patient)
             .WithMany(p => p.Appointments)
@@ -122,5 +141,17 @@ public sealed class AppointmentConfiguration : IEntityTypeConfiguration<Appointm
         // for the highest-risk filter (requires_outreach = true) on that same column.
         builder.HasIndex(a => new { a.NoShowRiskScore, a.Status })
             .HasDatabaseName("ix_appointments_no_show_risk_score_status");
+
+        // ── Slot template traceability (US_059 AC-2) ──────────────────────────
+        // Nullable FK — set to null (ON DELETE SET NULL) when the template is removed
+        // so that historical appointment records are preserved without orphan rows.
+        builder.Property(a => a.SlotTemplateId)
+            .IsRequired(false);
+
+        builder.HasOne(a => a.SlotTemplate)
+            .WithMany(t => t.Appointments)
+            .HasForeignKey(a => a.SlotTemplateId)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }

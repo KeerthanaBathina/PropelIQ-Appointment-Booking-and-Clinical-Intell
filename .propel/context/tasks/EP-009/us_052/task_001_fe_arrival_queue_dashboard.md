@@ -45,14 +45,14 @@ Implement the Arrival Queue Dashboard (SCR-011) as a React page component using 
 
 ## Implementation Checklist
 
-- [ ] Create `ArrivalQueueDashboard` page component with MUI `Table` displaying sorted queue (appointment time + priority) with columns: Patient Name, Appointment Time, Arrival Time, Wait Time, Priority, Status, Actions
-- [ ] Implement status action buttons (Mark Arrived, Mark Cancelled) with MUI `Button` components, confirmation `Dialog`, and loading states (`aria-busy` when processing)
-- [ ] Build `WaitTimeTimer` component calculating real-time elapsed time from `arrival_timestamp` to `Date.now()` with color-coded thresholds: `success.main` (<15 min), `warning.main` (15–30 min), `error.main` (>30 min) using `h4` typography
-- [ ] Add status `Badge` components using appointment-status color tokens: waiting=`#2E7D32`, no-show=`#D32F2F`, cancelled=`#757575`, in-visit=`#7B1FA2`, arrived-late=`#ED6C02` with `overline` typography and pill shape
-- [ ] Implement auto-refresh polling at 5-second intervals using React Query `useQuery` with `refetchInterval: 5000` for `GET /queue/today` endpoint (per UXR-103 requirement)
-- [ ] Add no-show override flow: "Override to Arrived-Late" action button on no-show rows, opens `Dialog` with required reason `TextField`, calls `PUT /queue/{queueId}/override` and invalidates query cache
-- [ ] Implement duplicate arrival prevention: disable "Mark Arrived" button when `QueueEntry.status === 'waiting'`; display MUI `Snackbar` with error message from API 409 response ("Patient already marked as arrived at [timestamp]")
-- [ ] Add queue filtering via MUI `Select` (filter by status) and implement all five SCR-011 states: Default (queue table), Loading (skeleton), Empty (illustration + "No patients in queue" message), Error (retry action), Validation (inline form errors)
+- [x] Create `ArrivalQueueDashboard` page component with MUI `Table` displaying sorted queue (appointment time + priority) with columns: Patient Name, Appointment Time, Arrival Time, Wait Time, Priority, Status, Actions
+- [x] Implement status action buttons (Mark Arrived, Mark Cancelled) with MUI `Button` components, confirmation `Dialog`, and loading states (`aria-busy` when processing)
+- [x] Build `WaitTimeTimer` component calculating real-time elapsed time from `arrival_timestamp` to `Date.now()` with color-coded thresholds: `success.main` (<15 min), `warning.main` (15–30 min), `error.main` (>30 min) using `h4` typography
+- [x] Add status `Badge` components using appointment-status color tokens: waiting=`#2E7D32`, no-show=`#D32F2F`, cancelled=`#757575`, in-visit=`#7B1FA2`, arrived-late=`#ED6C02` with `overline` typography and pill shape
+- [x] Implement auto-refresh polling at 5-second intervals using React Query `useQuery` with `refetchInterval: 5000` for `GET /queue/today` endpoint (per UXR-103 requirement)
+- [x] Add no-show override flow: "Override to Arrived-Late" action button on no-show rows, opens `Dialog` with required reason `TextField`, calls `PUT /queue/{queueId}/override` and invalidates query cache
+- [x] Implement duplicate arrival prevention: disable "Mark Arrived" button when `QueueEntry.status === 'waiting'`; display MUI `Snackbar` with error message from API 409 response ("Patient already marked as arrived at [timestamp]")
+- [x] Add queue filtering via MUI `Select` (filter by status) and implement all five SCR-011 states: Default (queue table), Loading (skeleton), Empty (illustration + "No patients in queue" message), Error (retry action), Validation (inline form errors)
 
 ## Effort Estimate
 

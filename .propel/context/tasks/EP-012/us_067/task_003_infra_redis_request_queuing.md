@@ -205,10 +205,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Implement Redis queue producer for enqueuing document parsing requests using StackExchange.Redis ListRightPushAsync with serialized QueueMessage
-- [ ] Define QueueMessage schema DTO (JobId, DocumentId, AIRequest payload, Priority enum, EnqueuedAt, RetryCount, MaxRetries, CorrelationId)
-- [ ] Implement DocumentParsingQueueConsumer BackgroundService with SemaphoreSlim-based configurable concurrency limits (default: 3 workers)
-- [ ] Implement dead-letter queue handling for failed jobs exceeding MaxRetries, pushing to separate Redis key with failure context
-- [ ] Add configurable queue settings via appsettings.json with IOptions<QueueOptions> binding (MaxConcurrentWorkers, MaxQueueDepth, PollingIntervalMs, MaxRetries)
-- [ ] Implement queue depth monitoring with periodic Serilog structured logging (depth, throughput, saturation warnings at 80%)
-- [ ] Implement graceful shutdown in StopAsync with CancellationToken signaling and bounded drain timeout (30s) for in-flight requests
+- [X] Implement Redis queue producer for enqueuing document parsing requests using StackExchange.Redis ListRightPushAsync with serialized QueueMessage
+- [X] Define QueueMessage schema DTO (JobId, DocumentId, AIRequest payload, Priority enum, EnqueuedAt, RetryCount, MaxRetries, CorrelationId)
+- [X] Implement DocumentParsingQueueConsumer BackgroundService with SemaphoreSlim-based configurable concurrency limits (default: 3 workers)
+- [X] Implement dead-letter queue handling for failed jobs exceeding MaxRetries, pushing to separate Redis key with failure context
+- [X] Add configurable queue settings via appsettings.json with IOptions<QueueOptions> binding (MaxConcurrentWorkers, MaxQueueDepth, PollingIntervalMs, MaxRetries)
+- [X] Implement queue depth monitoring with periodic Serilog structured logging (depth, throughput, saturation warnings at 80%)
+- [X] Implement graceful shutdown in StopAsync with CancellationToken signaling and bounded drain timeout (30s) for in-flight requests
