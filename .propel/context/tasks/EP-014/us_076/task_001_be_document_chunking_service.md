@@ -181,11 +181,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `ChunkingRequest`, `DocumentChunk`, and `ChunkingResult` model classes in `src/UPACIP.Service/Rag/Chunking/Models/`
-- [ ] Define `IDocumentChunkingService` interface with `ChunkDocumentAsync` method
-- [ ] Integrate BPE tokenizer (cl100k_base) via `Microsoft.ML.Tokenizers` for accurate token counting and splitting
-- [ ] Implement `TextPreprocessor` with `NormalizeWhitespace`, `ConvertTablesToText`, `ReplaceImages` static methods
-- [ ] Implement sliding window chunking: 512-token window, 410-token step (102 overlap), short-doc (<100 tokens) bypass
-- [ ] Implement chunk boundary alignment to prevent mid-word splits (extend up to 5 tokens)
-- [ ] Add output validation: verify no data loss, overlap consistency, and max-token soft limit (520)
-- [ ] Register `IDocumentChunkingService` as singleton and tokenizer in `Program.cs` DI container
+- [x] Create `ChunkingRequest`, `DocumentChunk`, and `ChunkingResult` model classes in `src/UPACIP.Service/Rag/Chunking/Models/`
+- [x] Define `IDocumentChunkingService` interface with `ChunkDocumentAsync` method
+- [x] Integrate BPE tokenizer (cl100k_base) via `Microsoft.ML.Tokenizers` for accurate token counting and splitting
+- [x] Implement `TextPreprocessor` with `NormalizeWhitespace`, `ConvertTablesToText`, `ReplaceImages` static methods
+- [x] Implement sliding window chunking: 512-token window, 410-token step (102 overlap), short-doc (<100 tokens) bypass
+- [x] Implement chunk boundary alignment to prevent mid-word splits (extend up to 5 tokens)
+- [x] Add output validation: verify no data loss, overlap consistency, and max-token soft limit (520)
+- [x] Register `IDocumentChunkingService` as singleton and tokenizer in `Program.cs` DI container

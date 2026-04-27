@@ -153,3 +153,42 @@ DO $$ BEGIN
         FOR EACH ROW EXECUTE FUNCTION fn_set_updated_at();
     END IF;
 END $$;
+
+-- =============================================================================
+-- US_078 AC-3 — Knowledge-Base Refresh Pipeline additions
+-- =============================================================================
+
+-- ── 9. Add deprecated_at soft-delete column to live embedding tables ──────────
+-- Idempotent: ALTER TABLE … ADD COLUMN IF NOT EXISTS (PostgreSQL 9.6+).
+-- Queries should filter WHERE deprecated_at IS NULL to exclude retired embeddings.
+
+ALTER TABLE medical_terminology_embeddings
+    ADD COLUMN IF NOT EXISTS deprecated_at TIMESTAMPTZ NULL;
+
+ALTER TABLE intake_template_embeddings
+    ADD COLUMN IF NOT EXISTS deprecated_at TIMESTAMPTZ NULL;
+
+ALTER TABLE coding_guideline_embeddings
+    ADD COLUMN IF NOT EXISTS deprecated_at TIMESTAMPTZ NULL;
+
+-- ── 10. Staging tables for atomic swap (mid-refresh query safety) ─────────────
+-- These tables mirror the live schemas exactly.  New embeddings are written here
+-- during a refresh and atomically swapped to the live tables on completion.
+-- Queries always target the live tables; staging is invisible to search queries.
+
+CREATE TABLE IF NOT EXISTS medical_terminology_embeddings_staging
+    (LIKE medical_terminology_embeddings INCLUDING ALL);
+
+CREATE TABLE IF NOT EXISTS intake_template_embeddings_staging
+    (LIKE intake_template_embeddings INCLUDING ALL);
+
+CREATE TABLE IF NOT EXISTS coding_guideline_embeddings_staging
+    (LIKE coding_guideline_embeddings INCLUDING ALL);
+
+-- ── 11. Grants for staging tables ────────────────────────────────────────────
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE
+    ON medical_terminology_embeddings_staging TO upacip_app;
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE
+    ON intake_template_embeddings_staging     TO upacip_app;
+GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE
+    ON coding_guideline_embeddings_staging    TO upacip_app;

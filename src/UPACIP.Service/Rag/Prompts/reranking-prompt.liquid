@@ -1,0 +1,15 @@
+Score each candidate chunk for relevance to the medical query below.
+Respond ONLY with a JSON array — no prose, no markdown fences.
+Each element: {"index": <0-based integer>, "relevance": <float 0.0–1.0>}
+Example: [{"index":0,"relevance":0.92},{"index":1,"relevance":0.41}]
+
+Rules:
+- Score only based on direct relevance to the query.
+- Do not invent or hallucinate information.
+- A score of 1.0 means the chunk directly answers the query.
+- A score of 0.0 means the chunk is entirely unrelated.
+
+Query: {{ query }}
+
+Candidate chunks:
+{{ chunks }}

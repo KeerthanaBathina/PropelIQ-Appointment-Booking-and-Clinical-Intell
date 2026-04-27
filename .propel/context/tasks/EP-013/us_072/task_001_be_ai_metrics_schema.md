@@ -186,11 +186,11 @@ dotnet ef migrations add AddAiMetricsSchema --project src/UPACIP.DataAccess --st
 
 ## Implementation Checklist
 
-- [ ] Create `AiMetricType` enum with `CodingAgreement`, `ExtractionPrecision`, `ExtractionRecall` values
-- [ ] Create `AiOperationType` enum with `Intake`, `DocumentParsing`, `MedicalCoding` values
-- [ ] Create `TrendDirection` enum with `Up`, `Down`, `Stable` values
-- [ ] Define `AiAccuracyMetric` entity extending `BaseEntity` with `MetricDate`, `MetricType`, `Value`, `SampleSize`, `TargetValue`
-- [ ] Define `AiLatencyMetric` entity extending `BaseEntity` with `MetricDate`, `OperationType`, `P50Milliseconds`, `P95Milliseconds`, `TargetP95Milliseconds`, `SampleSize`
-- [ ] Define `AiMetricThreshold` entity extending `BaseEntity` with `MetricName`, `TargetValue`, `WarningValue`, `IsEnabled`
-- [ ] Define `AiMetricAlert` entity with `AlertId`, `GeneratedAt`, `MetricName`, `CurrentValue`, `TargetValue`, `TrendDirection`, `IsAcknowledged`, `AcknowledgedByUserId`
-- [ ] Register all new DbSets in `ApplicationDbContext` and configure composite unique indexes, enum conversions, and FK relationships
+- [x] Create `AiMetricType` enum with `CodingAgreement`, `ExtractionPrecision`, `ExtractionRecall` values
+- [x] Create `AiOperationType` enum with `Intake`, `DocumentParsing`, `MedicalCoding` values
+- [x] Create `TrendDirection` enum with `Up`, `Down`, `Stable` values
+- [x] Define `AiAccuracyMetric` entity extending `BaseEntity` with `MetricDate`, `MetricType`, `Value`, `SampleSize`, `TargetValue`
+- [x] Define `AiLatencyMetric` entity extending `BaseEntity` with `MetricDate`, `OperationType`, `P50Milliseconds`, `P95Milliseconds`, `TargetP95Milliseconds`, `SampleSize`
+- [x] Define `AiMetricThreshold` entity extending `BaseEntity` with `MetricName`, `TargetValue`, `WarningValue`, `IsEnabled`
+- [x] Define `AiMetricAlert` entity with `AlertId`, `GeneratedAt`, `MetricName`, `CurrentValue`, `TargetValue`, `TrendDirection`, `IsAcknowledged`, `AcknowledgedByUserId`
+- [x] Register all new DbSets in `ApplicationDbContext` and configure composite unique indexes, enum conversions, and FK relationships

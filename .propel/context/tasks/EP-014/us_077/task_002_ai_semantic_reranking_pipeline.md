@@ -203,14 +203,14 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `RerankResult`, `RankedChunk`, `GroundingContext`, and `SourceCitation` model classes in `src/UPACIP.Service/Rag/Models/`
-- [ ] Define `ISemanticReranker` interface with `RerankAsync(chunks, queryText)` method
-- [ ] Implement `SemanticReranker` using AI Gateway for LLM-based relevance scoring with JSON response parsing and validation
-- [ ] Create `prompts/rag/reranking-prompt.liquid` template with query + candidate chunks → JSON relevance scores
-- [ ] Apply domain priority weighting (MedicalTerminology=1.0, IntakeTemplate=0.9, CodingGuideline=0.8) as tiebreaker for ambiguous queries
-- [ ] Implement fallback to cosine-similarity ordering when LLM re-ranking fails (set `UsedLlmReranking = false`)
-- [ ] Implement `RagContextBuilder.BuildContextAsync` formatting re-ranked chunks as numbered citation blocks with `[GROUNDING CONTEXT]` wrapper and no-grounding handling
-- [ ] Register `ISemanticReranker` and `IRagContextBuilder` in `Program.cs` DI container
+- [x] Create `RerankResult`, `RankedChunk`, `GroundingContext`, and `SourceCitation` model classes in `src/UPACIP.Service/Rag/Models/`
+- [x] Define `ISemanticReranker` interface with `RerankAsync(chunks, queryText)` method
+- [x] Implement `SemanticReranker` using AI Gateway for LLM-based relevance scoring with JSON response parsing and validation
+- [x] Create `prompts/rag/reranking-prompt.liquid` template with query + candidate chunks → JSON relevance scores
+- [x] Apply domain priority weighting (MedicalTerminology=1.0, IntakeTemplate=0.9, CodingGuideline=0.8) as tiebreaker for ambiguous queries
+- [x] Implement fallback to cosine-similarity ordering when LLM re-ranking fails (set `UsedLlmReranking = false`)
+- [x] Implement `RagContextBuilder.BuildContextAsync` formatting re-ranked chunks as numbered citation blocks with `[GROUNDING CONTEXT]` wrapper and no-grounding handling
+- [x] Register `ISemanticReranker` and `IRagContextBuilder` in `Program.cs` DI container
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-R02, AIR-R03 requirements are met (retrieval quality, re-ranking)

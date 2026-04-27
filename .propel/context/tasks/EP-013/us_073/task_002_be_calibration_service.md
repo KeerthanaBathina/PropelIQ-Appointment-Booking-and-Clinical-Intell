@@ -166,12 +166,12 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `PlattScaler` static utility with `CalibrateScore` (sigmoid transformation) and `FitParameters` (gradient descent fitting) methods
-- [ ] Define `ICalibrationService` interface with `CalibrateScoreAsync`, `FlagLowConfidenceAsync`, `RunWeeklyCalibrationAsync`, `HasSufficientDataAsync`
-- [ ] Implement score calibration: query active `CalibrationParameter` per `DataType`, apply Platt scaling, fall back to uncalibrated with `CalibrationPending` when no parameters exist
-- [ ] Implement low-confidence flagging: set `FlaggedForReview = true` on `ExtractedData` records with calibrated score < 0.80 with structured logging
-- [ ] Implement weekly calibration job: query verified `ExtractedData` per `DataType`, bin by confidence ranges, compute predicted-vs-actual accuracy, fit Platt parameters, persist `CalibrationRecord` entries
-- [ ] Implement drift detection: generate `CalibrationDriftAlert` when weighted average gap > 5% per data type
-- [ ] Handle insufficient data edge case: skip parameter fitting, use raw scores, mark records `CalibrationPending`, log warning with sample count
-- [ ] Register `ICalibrationService` and `CalibrationJob` in `Program.cs` DI container with configurable interval via `appsettings.json`
+- [x] Create `PlattScaler` static utility with `CalibrateScore` (sigmoid transformation) and `FitParameters` (gradient descent fitting) methods
+- [x] Define `ICalibrationService` interface with `CalibrateScoreAsync`, `FlagLowConfidenceAsync`, `RunWeeklyCalibrationAsync`, `HasSufficientDataAsync`
+- [x] Implement score calibration: query active `CalibrationParameter` per `DataType`, apply Platt scaling, fall back to uncalibrated with `CalibrationPending` when no parameters exist
+- [x] Implement low-confidence flagging: set `FlaggedForReview = true` on `ExtractedData` records with calibrated score < 0.80 with structured logging
+- [x] Implement weekly calibration job: query verified `ExtractedData` per `DataType`, bin by confidence ranges, compute predicted-vs-actual accuracy, fit Platt parameters, persist `CalibrationRecord` entries
+- [x] Implement drift detection: generate `CalibrationDriftAlert` when weighted average gap > 5% per data type
+- [x] Handle insufficient data edge case: skip parameter fitting, use raw scores, mark records `CalibrationPending`, log warning with sample count
+- [x] Register `ICalibrationService` and `CalibrationJob` in `Program.cs` DI container with configurable interval via `appsettings.json`
 - **[AI Tasks - MANDATORY]** Verify AIR-Q07 (calibrated 0-1 distribution) and AIR-Q08 (flag <0.80) requirements are met

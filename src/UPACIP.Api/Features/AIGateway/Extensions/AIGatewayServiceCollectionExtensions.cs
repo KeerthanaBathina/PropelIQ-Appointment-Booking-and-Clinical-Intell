@@ -8,6 +8,7 @@ using UPACIP.Api.Features.AIGateway.Queue;
 using UPACIP.Api.Features.AIGateway.Resilience;
 using UPACIP.Api.Features.AIGateway.Services;
 using UPACIP.Api.Features.AIGateway.Versioning;
+using UPACIP.Service.AiSafety;
 using SdkOpenAIAdapter = UPACIP.Api.Features.AIGateway.Providers.OpenAI.OpenAIProviderAdapter;
 
 namespace UPACIP.Api.Features.AIGateway.Extensions;
@@ -176,6 +177,12 @@ public static class AIGatewayServiceCollectionExtensions
         // AiCostTrackingMiddleware: Singleton — fire-and-forget wrapper; uses IServiceScopeFactory.
         services.AddScoped<IAiRequestCostLogger, AiRequestCostLogger>();
         services.AddSingleton<AiCostTrackingMiddleware>();
+
+        // ── PII Redaction Middleware (US_074 task_001, AC-3, AIR-S01) ─────────
+        // Singleton — delegates to IPiiRedactionService (also Singleton); wraps the
+        // gateway-facing redact/log methods and creates a sanitised AIRequest copy.
+        // IPiiRedactionService is registered in Program.cs before AddAIGateway().
+        services.AddSingleton<PiiRedactionMiddleware>();
 
         // ── Core gateway service (Scoped) ─────────────────────────────────────
         services.AddScoped<IAIGatewayService, AIGatewayService>();

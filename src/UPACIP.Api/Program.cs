@@ -821,6 +821,138 @@ builder.Services.AddScoped<UPACIP.Service.Coding.ICodeVerificationService, UPACI
 builder.Services.AddScoped<UPACIP.Service.AgreementRate.IAgreementRateService, UPACIP.Service.AgreementRate.AgreementRateService>();
 builder.Services.AddHostedService<UPACIP.Service.AgreementRate.AgreementRateCalculationJob>();
 
+// ── EP-013 AI Metrics Monitoring (US_072 task_002) ──────────────────────────────────────────
+// IAiMetricsService: Scoped — accuracy aggregation from MedicalCode/ExtractedData, latency
+//   percentile aggregation from AI Gateway logs, and alert generation on threshold breaches.
+// AiMetricsCalculationJob: BackgroundService — fires every 24 h (runs once on startup);
+//   creates a fresh IServiceScope per execution so scoped services are isolated and disposed.
+//   Retry: up to 3 attempts with exponential backoff (5 s, 25 s, 125 s) per NFR-032.
+builder.Services.AddScoped<UPACIP.Service.AiMetrics.IAiMetricsService, UPACIP.Service.AiMetrics.AiMetricsService>();
+builder.Services.AddHostedService<UPACIP.Service.AiMetrics.AiMetricsCalculationJob>();
+
+// ── EP-013 Confidence Score Calibration (US_073 task_002) ───────────────────────────────────
+// ICalibrationService: Scoped — Platt-scaling parameter lookup, score transformation,
+//   low-confidence flagging (<0.80 → FlaggedForReview), per-category calibration, and
+//   drift alert generation. Falls back to CalibrationPending when insufficient data exists.
+// CalibrationJob: BackgroundService — fires every Calibration:IntervalDays days (default: 7);
+//   runs once on startup; resolves a fresh IServiceScope per execution so scoped services
+//   are isolated and disposed. Retry: up to 3 attempts with exponential backoff (5s, 25s, 125s)
+//   per NFR-032.
+builder.Services.AddScoped<UPACIP.Service.Calibration.ICalibrationService, UPACIP.Service.Calibration.CalibrationService>();
+builder.Services.AddHostedService<UPACIP.Service.Calibration.CalibrationJob>();
+
+// ── EP-013 PII Redaction Pipeline (US_074 task_001, AC-3, AIR-S01) ──────────────────────────
+// IPiiRedactionService: Singleton — stateless regex-based detection and placeholder
+//   tokenisation. Scans all six PII categories (SSN, email, phone, DOB, address, name)
+//   before prompt dispatch to external AI providers. Medical term allowlist prevents
+//   false-positive redaction of common eponyms (AC-3).
+// PiiRedactionMiddleware is registered inside AddAIGateway() as it is a gateway pipeline
+//   component. IPiiRedactionService must be registered BEFORE AddAIGateway() is called so
+//   that PiiRedactionMiddleware can resolve it from the container at startup.
+builder.Services.AddSingleton<UPACIP.Service.AiSafety.IPiiRedactionService, UPACIP.Service.AiSafety.PiiRedactionService>();
+
+// ── EP-013 Hallucination Tracking (US_074 task_002, AC-1, AC-2, AIR-Q06) ────────────────────
+// IHallucinationTrackingService: Scoped — records staff verification outcomes (Supported /
+//   Unsupported / PartiallySupported) against AI-generated medical justifications; handles
+//   retroactive hallucination detection (resets ApprovedByUserId, creates retroactive alert);
+//   calculates daily hallucination rate; runs the full aggregation cycle on demand (AC-1, AC-2).
+// HallucinationAggregationJob: BackgroundService — fires every 24 hours (+ on startup);
+//   aggregates the previous day's hallucination rate into HallucinationMetric and generates
+//   a HallucinationAlert with model-review recommendation when rate > 5% (AC-2, AIR-Q06).
+//   Retry: up to 3 attempts with exponential backoff (5s, 25s, 125s) per NFR-032.
+builder.Services.AddScoped<UPACIP.Service.AiSafety.IHallucinationTrackingService, UPACIP.Service.AiSafety.HallucinationTrackingService>();
+builder.Services.AddHostedService<UPACIP.Service.AiSafety.HallucinationAggregationJob>();
+
+// ── EP-013 Verification Enforcement (US_075, AC-1–AC-4, AIR-S02, AIR-S03) ───────────────────
+// IVerificationEnforcementService: Scoped — approve, modify, reject single and batch AI outputs;
+//   records CodingAuditLog entries (old/new values + justification) for MedicalCode operations
+//   and AuditLog entries for ExtractedData operations; blocks low-confidence data from profile
+//   consolidation until verified (AC-1, AC-2, AC-3).
+// VerificationRequiredFilter: Scoped ServiceFilter — rejects HTTP requests attempting to
+//   finalize unverified MedicalCode or ExtractedData records with HTTP 400 "verification_required"
+//   (AC-4). Apply with [ServiceFilter(typeof(VerificationRequiredFilter))] on finalization endpoints.
+// By design: NO auto-approval mechanism — PendingVerification status persists indefinitely
+//   until staff action per AIR-S03 compliance (edge case: no staff available).
+builder.Services.AddScoped<UPACIP.Service.Verification.IVerificationEnforcementService, UPACIP.Service.Verification.VerificationEnforcementService>();
+builder.Services.AddScoped<UPACIP.Api.Filters.VerificationRequiredFilter>();
+
+// ── EP-014 Document Chunking (US_076, AC-1, AIR-R01) ─────────────────────────────────────────
+// TiktokenTokenizer (singleton): cl100k_base BPE encoding compatible with OpenAI
+//   text-embedding-3-small. Thread-safe — shared across all requests.
+//   NOTE: first call to CreateForEncoding downloads the vocabulary from the tiktoken CDN and
+//   caches it in the local NuGet package folder; subsequent restarts use the cached file.
+// IDocumentChunkingService (singleton): deterministic sliding-window chunking —
+//   512-token window, 410-token step (102-token / ~20% overlap per AIR-R01).
+//   Short documents (<100 tokens) are returned as a single chunk (edge case).
+//   Tables are converted to structured text; images replaced with [image-content-excluded].
+//   Output validation: logs warnings on data-loss or chunks exceeding 520-token soft limit.
+builder.Services.AddSingleton<Microsoft.ML.Tokenizers.TiktokenTokenizer>(_ =>
+    Microsoft.ML.Tokenizers.TiktokenTokenizer.CreateForEncoding("cl100k_base"));
+builder.Services.AddSingleton<UPACIP.Service.Rag.Chunking.IDocumentChunkingService,
+    UPACIP.Service.Rag.Chunking.DocumentChunkingService>();
+
+// ── EP-014 Embedding Generation (US_076, AC-2, AC-3, AC-4, AIR-R04, AIR-O06, AIR-O08) ───────
+// IEmbeddingGenerationService (scoped): depends on scoped IVectorSearchService so it must be
+//   scoped. Wraps OpenAI text-embedding-3-small calls through the "openai" named HttpClient
+//   (circuit breaker + base URL pre-configured above). Redis embedding cache uses 24-hour TTL
+//   keyed by SHA-256(text) preventing PII in cache keys (AIR-O06, OWASP A02).
+//   Polly V8 retry: 3 retries, exponential backoff with jitter (AIR-O08).
+// DocumentIngestionWorker (singleton BackgroundService): FIFO Redis queue consumer
+//   (queue:document-ingestion). Creates one DI scope per job. Circuit breaker opens after
+//   5 consecutive job failures; half-open after 30 s (AIR-O04). Job-level retry: up to 3
+//   re-queues before routing to dead-letter queue (queue:document-ingestion:dead).
+builder.Services.AddScoped<UPACIP.Service.Rag.Embedding.IEmbeddingGenerationService,
+    UPACIP.Service.Rag.Embedding.EmbeddingGenerationService>();
+builder.Services.AddHostedService<UPACIP.Service.Rag.Embedding.DocumentIngestionWorker>();
+
+// ── EP-014 RAG Retrieval (US_077, AC-1, AC-2, AIR-R02) ───────────────────────────────────────
+// IHybridSearchOrchestrator (scoped, US_078): parallel hybrid (vector + FTS) search across
+//   one or all embedding category indexes. Deduplicates by chunk Id, applies configurable
+//   weighted scoring (SemanticWeight + KeywordWeight == 1.0 validated at startup), and boosts
+//   exact whole-word query matches by ExactMatchBoostFactor (default 2.0) per US_078 edge case.
+//   Category-scoped: single EmbeddingCategory → queries only that index (AC-4).
+//   Options bound from appsettings.json "HybridSearch" section.
+// IRagRetrievalService (scoped): delegates to IHybridSearchOrchestrator when
+//   RetrievalRequest.UseHybridSearch=true; falls back to direct cosine-similarity otherwise.
+//   Result cache: 5-minute TTL keyed by SHA-256(embedding + categories) via ICacheService
+//   (NFR-030, AIR-O06). Sets IsGrounded=false / GroundingStatus="no-grounding-available" when
+//   no chunks meet the threshold.
+builder.Services.Configure<UPACIP.Service.Rag.Models.HybridSearchOptions>(
+    builder.Configuration.GetSection(UPACIP.Service.Rag.Models.HybridSearchOptions.SectionName));
+builder.Services.AddScoped<UPACIP.Service.Rag.IHybridSearchOrchestrator,
+    UPACIP.Service.Rag.HybridSearchOrchestrator>();
+builder.Services.AddScoped<UPACIP.Service.Rag.IRagRetrievalService,
+    UPACIP.Service.Rag.RagRetrievalService>();
+
+// ── EP-014 Semantic Re-ranking + Context Building (US_077, AC-3, AC-4, AIR-R02, AIR-R03) ─────
+// ISemanticReranker (scoped): LLM-based relevance scoring via "openai" named HttpClient
+//   (primary: GPT-4o-mini, fallback: Anthropic Claude 3.5 Sonnet). Per-instance Polly V7
+//   circuit breaker (3 failures → open 30s, AIR-O04). Token budget: 500 input / 200 output
+//   tokens (AIR-O01). Domain priority weights resolve ambiguous multi-domain queries
+//   (MedicalTerminology > IntakeTemplate > CodingGuideline). On AI Gateway failure, falls
+//   back to cosine-similarity ordering (UsedLlmReranking=false). PII never logged (AIR-S04).
+//   Prompt template: Rag/Prompts/reranking-prompt.liquid (inline fallback).
+// IRagContextBuilder (scoped): stateless formatter — converts RankedChunks into
+//   [GROUNDING CONTEXT]...[/GROUNDING CONTEXT] numbered citation blocks for prompt injection
+//   (AC-4). Produces GroundingStatus="no-grounding-available" when chunks list is empty.
+builder.Services.AddScoped<UPACIP.Service.Rag.ISemanticReranker,
+    UPACIP.Service.Rag.SemanticReranker>();
+builder.Services.AddScoped<UPACIP.Service.Rag.IRagContextBuilder,
+    UPACIP.Service.Rag.RagContextBuilder>();
+
+// ── EP-014 Knowledge-Base Refresh (US_078 AC-3, AIR-R05) ────────────────────────────────────
+// IKnowledgeBaseRefreshService (scoped): admin-triggered quarterly refresh pipeline.
+//   Diffs incoming code entries against live pgvector tables, chunks + embeds new/updated
+//   descriptions via IDocumentChunkingService + IEmbeddingGenerationService, writes to
+//   staging tables, then executes an atomic DDL swap (live→old, staging→live) so in-flight
+//   queries always see a consistent index (US_078 edge case: mid-refresh query safety).
+//   Deprecated codes are soft-marked with deprecated_at timestamp (AC-3).
+//   Index rebuild (REINDEX CONCURRENTLY) runs outside the swap transaction (PG16 constraint).
+//   On any failure, live table is untouched and RefreshResult.Status = Failed (AIR-R05).
+//   PII guard (AIR-S04): only admin user ID, version, and counts are logged — no code text.
+builder.Services.AddScoped<UPACIP.Service.Rag.Refresh.IKnowledgeBaseRefreshService,
+    UPACIP.Service.Rag.Refresh.KnowledgeBaseRefreshService>();
+
 // ── EP-012 AI Cost Monitoring (US_071 TASK_002) ──────────────────────────────────────────────
 // AiCostAggregationService: Scoped — reads AiRequestLog rows for the target day, recalculates
 //   approximate costs from the AiCostBudgetConfig rate card, and upserts AiCostDailySummary

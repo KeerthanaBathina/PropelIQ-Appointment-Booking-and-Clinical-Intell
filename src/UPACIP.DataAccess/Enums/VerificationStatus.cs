@@ -17,4 +17,10 @@ public enum VerificationStatus
 
     /// <summary>Staff manually entered and confirmed this value during AI-unavailable fallback or low-confidence review (US_046 AC-3).</summary>
     ManualVerified,
+
+    /// <summary>
+    /// Staff rejected the AI-extracted value as inaccurate or unsupported.
+    /// Rejected rows are excluded from consolidation and flagged for manual re-entry (US_075, AC-1, AIR-S03).
+    /// </summary>
+    Rejected,
 }

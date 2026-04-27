@@ -162,12 +162,12 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Define regex patterns for 6 PII categories: name (exact + fuzzy), DOB, SSN, phone, email, address
-- [ ] Implement `PiiRedactionContext` with `Dictionary<string, string>` token-to-PII mapping scoped per request, never persisted
-- [ ] Create `MedicalTermAllowlist` loaded from `config/medical-term-allowlist.json` with known medical terms resembling personal names
-- [ ] Implement `IPiiRedactionService` with `RedactPii` (priority-ordered detection), `RestorePii` (token replacement), `ContainsPii` (validation gate)
-- [ ] Implement `PiiRedactionMiddleware` for AI Gateway: outbound redaction with validation gate, inbound re-association via internal `PatientId`
-- [ ] Implement re-association logic: attach `PatientId` from request context, strip PII tokens from AI output, associate results via Guid only
-- [ ] Create `config/medical-term-allowlist.json` with initial set of medical eponyms (Addison, Cushing, Hodgkin, etc.)
-- [ ] Register `IPiiRedactionService` in DI and insert `PiiRedactionMiddleware` into AI Gateway outbound pipeline
-- **[AI Tasks - MANDATORY]** Verify AIR-S01 (PII redaction before external API calls) requirement is met
+- [x] Define regex patterns for 6 PII categories: name (exact + fuzzy), DOB, SSN, phone, email, address
+- [x] Implement `PiiRedactionContext` with `Dictionary<string, string>` token-to-PII mapping scoped per request, never persisted
+- [x] Create `MedicalTermAllowlist` loaded from `config/medical-term-allowlist.json` with known medical terms resembling personal names
+- [x] Implement `IPiiRedactionService` with `RedactPii` (priority-ordered detection), `RestorePii` (token replacement), `ContainsPii` (validation gate)
+- [x] Implement `PiiRedactionMiddleware` for AI Gateway: outbound redaction with validation gate, inbound re-association via internal `PatientId`
+- [x] Implement re-association logic: attach `PatientId` from request context, strip PII tokens from AI output, associate results via Guid only
+- [x] Create `config/medical-term-allowlist.json` with initial set of medical eponyms (Addison, Cushing, Hodgkin, etc.)
+- [x] Register `IPiiRedactionService` in DI and insert `PiiRedactionMiddleware` into AI Gateway outbound pipeline
+- **[AI Tasks - MANDATORY]** Verify AIR-S01 (PII redaction before external API calls) requirement is met ✅

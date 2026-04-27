@@ -28,4 +28,10 @@ public enum CodeVerificationStatus
     /// Staff must re-evaluate and either re-verify with the replacement code or override (EC-1).
     /// </summary>
     Deprecated,
+
+    /// <summary>
+    /// Staff rejected the AI-suggested code as incorrect or inapplicable.
+    /// Rejected codes are excluded from finalization and billing workflows (US_075, AC-1, AIR-S03).
+    /// </summary>
+    Rejected,
 }

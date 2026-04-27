@@ -188,13 +188,13 @@ npm run lint
 
 ## Implementation Checklist
 
-- [ ] Define TypeScript interfaces in `types.ts`: `VerificationItem`, `VerificationRequest`, `BatchVerificationRequest`, `VerificationAuditEntry`, `VerificationStatus` union
-- [ ] Create React Query hooks in `useVerification.ts`: queue fetch, approve/modify/reject mutations, batch approve mutation with query invalidation
-- [ ] Build `VerificationCard` with confidence `Chip` (green/amber/red per UXR-105), status `Badge`, approve/modify/reject `Button` actions
-- [ ] Build `OverrideJustificationDialog` with code search `Autocomplete`, justification `TextField` (required, min 10 chars), confirm/cancel buttons
-- [ ] Build `BatchVerificationToolbar` with select-all, approve-selected, progress indicator, 50+ item confirmation dialog
-- [ ] Build `VerificationAuditTrail` as expandable `Accordion` showing staff name, action, timestamp, original/final values
-- [ ] Compose `VerificationQueue` container with loading/error/empty/AI-unavailable states
-- [ ] Integrate into `MedicalCodingReview.tsx`: disable finalization when pending items exist, handle 400 "verification required" error
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Define TypeScript interfaces in `types.ts`: `VerificationItem`, `VerificationRequest`, `BatchVerificationRequest`, `VerificationAuditEntry`, `VerificationStatus` union
+- [x] Create React Query hooks in `useVerification.ts`: queue fetch, approve/modify/reject mutations, batch approve mutation with query invalidation
+- [x] Build `VerificationCard` with confidence `Chip` (green/amber/red per UXR-105), status `Badge`, approve/modify/reject `Button` actions
+- [x] Build `OverrideJustificationDialog` with code search `Autocomplete`, justification `TextField` (required, min 10 chars), confirm/cancel buttons
+- [x] Build `BatchVerificationToolbar` with select-all, approve-selected, progress indicator, 50+ item confirmation dialog
+- [x] Build `VerificationAuditTrail` as expandable `Accordion` showing staff name, action, timestamp, original/final values
+- [x] Compose `VerificationQueue` container with loading/error/empty/AI-unavailable states
+- [x] Integrate into `MedicalCodingReview.tsx`: disable finalization when pending items exist, handle 400 "verification required" error
+- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation ✅
+- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete ✅

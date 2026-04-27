@@ -32,6 +32,15 @@ public sealed class ExtractedDataConfiguration : IEntityTypeConfiguration<Extrac
         builder.Property(e => e.ConfidenceScore).IsRequired();
         builder.Property(e => e.SourceAttribution).IsRequired().HasMaxLength(200);
 
+        // Calibration columns (US_073 task_001, AC-1).
+        builder.Property(e => e.CalibratedConfidenceScore).IsRequired(false);
+
+        builder.Property(e => e.CalibrationStatus)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValue(CalibrationStatus.Uncalibrated);
+
         // Structured attribution columns (US_040 task_003, AC-5).
         builder.Property(e => e.PageNumber)
             .IsRequired()

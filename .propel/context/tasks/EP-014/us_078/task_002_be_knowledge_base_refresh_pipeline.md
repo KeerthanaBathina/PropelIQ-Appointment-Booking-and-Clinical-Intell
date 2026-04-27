@@ -224,14 +224,14 @@ dotnet ef database update --project src/UPACIP.DataAccess
 
 ## Implementation Checklist
 
-- [ ] Create `CodeLibraryEntry`, `RefreshRequest`, and `RefreshResult` model classes in `src/UPACIP.Service/Rag/Refresh/Models/`
-- [ ] Define `IKnowledgeBaseRefreshService` interface with `RefreshAsync` and `GetRefreshStatusAsync` methods
-- [ ] Implement code library diff: compare incoming entries against existing by `CodeValue` to classify as new/updated/deprecated/unchanged
-- [ ] Implement staging table writes: chunk + embed new/updated codes via `IDocumentChunkingService` and `IEmbeddingGenerationService`, write to staging tables
-- [ ] Implement atomic swap: `ALTER TABLE RENAME` live→old, staging→live, drop old, recreate staging within single transaction
-- [ ] Add staging tables and `deprecated_at` column to `scripts/provision-pgvector.sql`
-- [ ] Create `KnowledgeBaseRefreshController` with admin-only `POST /api/admin/knowledge-base/refresh` and `GET status` endpoints
-- [ ] Register `IKnowledgeBaseRefreshService` in `Program.cs` DI container
+- [x] Create `CodeLibraryEntry`, `RefreshRequest`, and `RefreshResult` model classes in `src/UPACIP.Service/Rag/Refresh/Models/`
+- [x] Define `IKnowledgeBaseRefreshService` interface with `RefreshAsync` and `GetRefreshStatusAsync` methods
+- [x] Implement code library diff: compare incoming entries against existing by `CodeValue` to classify as new/updated/deprecated/unchanged
+- [x] Implement staging table writes: chunk + embed new/updated codes via `IDocumentChunkingService` and `IEmbeddingGenerationService`, write to staging tables
+- [x] Implement atomic swap: `ALTER TABLE RENAME` live→old, staging→live, drop old, recreate staging within single transaction
+- [x] Add staging tables and `deprecated_at` column to `scripts/provision-pgvector.sql`
+- [x] Create `KnowledgeBaseRefreshController` with admin-only `POST /api/admin/knowledge-base/refresh` and `GET status` endpoints
+- [x] Register `IKnowledgeBaseRefreshService` in `Program.cs` DI container
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-R05 requirements are met (quarterly refresh of medical terminology embeddings)

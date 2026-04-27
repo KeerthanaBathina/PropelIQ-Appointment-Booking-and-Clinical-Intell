@@ -17,6 +17,7 @@ import BusinessHoursPanel from './BusinessHoursPanel';
 import NotificationTemplatesPanel from './NotificationTemplatesPanel';
 import RiskThresholdsPanel from './RiskThresholdsPanel';
 import SlotTemplatesPanel from './SlotTemplatesPanel';
+import AiMonitoringDashboard from '@/features/admin/ai-monitoring/AiMonitoringDashboard';
 
 // ─── Tab panel helper ─────────────────────────────────────────────────────────
 
@@ -47,6 +48,7 @@ const TABS = [
   { label: 'Notifications',      panel: <NotificationTemplatesPanel /> },
   { label: 'Hours & Holidays',   panel: <BusinessHoursPanel /> },
   { label: 'Risk Thresholds',    panel: <RiskThresholdsPanel /> },
+  { label: 'AI Monitoring',      panel: <AiMonitoringDashboard /> },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────
