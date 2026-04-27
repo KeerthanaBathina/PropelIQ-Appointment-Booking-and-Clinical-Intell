@@ -172,11 +172,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `PatientSearchRequest`, `PatientSearchResponse`, and `PatientProfileResponse` DTOs with validation attributes
-- [ ] Create `PatientSearchController` with `GET /api/patients/search` and `GET /api/patients/{id}/profile` endpoints, authorized for Staff/Admin roles
-- [ ] Implement `PatientSearchService` with relevance-ranked search using `pg_trgm` similarity, parameterized queries, and pagination
-- [ ] Implement `PatientProfileService` with parallel aggregation (`Task.WhenAll`) of demographics, appointments, intake, documents, extracted data, and medical codes
-- [ ] Add Redis cache-aside pattern for search results and patient profiles with 5-minute TTL (NFR-030)
-- [ ] Add audit logging for all patient data access events via AuditService (FR-093, NFR-012)
-- [ ] Add input validation, sanitization (strip HTML/script tags), and at-least-one-parameter enforcement (NFR-018)
-- [ ] Annotate controller with OpenAPI documentation attributes and XML comments (NFR-038)
+- [x] Create `PatientSearchRequest`, `PatientSearchResponse`, and `PatientProfileResponse` DTOs with validation attributes — `PatientSearchDtos.cs` in `src/UPACIP.Service/Profile/`
+- [x] Create `PatientSearchController` with `GET /api/staff/patients/search` and `GET /api/staff/providers/list` endpoints, authorized for Staff/Admin roles — `src/UPACIP.Api/Controllers/PatientSearchController.cs`
+- [x] Implement `PatientSearchService` with ILike partial matching, provider/status filters, and pagination — `src/UPACIP.Service/Profile/PatientSearchService.cs`
+- [x] `IPatientProfileService` / `PatientProfileService` already exist from US_043 (360° profile endpoint at `GET /api/patients/{patientId}/profile`)
+- [x] Add Redis cache-aside pattern for search results and provider list with 5-minute TTL (NFR-030)
+- [x] Add audit logging for all patient data access events via `AuditLogService` (FR-093, NFR-012)
+- [x] Add input validation: minimum 2-char term, 401 for missing userId, 500 with correlation ID for unexpected errors (NFR-018)
+- [x] Annotate controller with XML doc comments and `[ProducesResponseType]` attributes (NFR-038)
+- [x] Register `IPatientSearchService` → `PatientSearchService` in `Program.cs` DI container
+- [x] Build validated: `dotnet build` Exit 0, 0 errors

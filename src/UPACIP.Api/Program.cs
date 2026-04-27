@@ -1,5 +1,9 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using Serilog;
+using UPACIP.Api.Features.AIGateway.Endpoints;
+using UPACIP.Api.Features.AIGateway.Extensions;
+using UPACIP.Api.Logging;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -44,8 +48,8 @@ using UPACIP.Service.Consolidation;
 using UPACIP.Service.Conflict;
 using UPACIP.Service.Profile;
 using UPACIP.Service.AI;
-using UPACIP.Service.AI.ClinicalExtraction;
-using UPACIP.Service.Validation;
+using UPACIP.Service.Audit;
+using UPACIP.Api.Filters;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,6 +60,18 @@ builder.Host.UseWindowsService(options =>
 {
     options.ServiceName = "UPACIP.Api";
 });
+
+// ── Serilog logging pipeline with PII redaction (US_066 AC-2, NFR-017) ──────────────────────
+// UseSerilog three-parameter overload receives the IServiceProvider *after* all services are
+// registered, so PiiRedactionEnricher and PiiDestructuringPolicy can be resolved from DI.
+// ReadFrom.Configuration picks up the "Serilog" section in appsettings.json for minimum levels.
+// ReadFrom.Services wires any Serilog components registered in the container (EC-2 extensibility).
+builder.Host.UseSerilog((ctx, services, cfg) =>
+    cfg.ReadFrom.Configuration(ctx.Configuration)
+       .ReadFrom.Services(services)
+       .Enrich.FromLogContext()
+       .Enrich.With(services.GetRequiredService<PiiRedactionEnricher>())
+       .Destructure.With(services.GetRequiredService<PiiDestructuringPolicy>()));
 
 // Enforce TLS 1.2 and TLS 1.3 on all Kestrel HTTPS endpoints (AC-3, defense-in-depth).
 // ASP.NET Core 8 defaults to OS-negotiated protocols; this explicit setting overrides
@@ -72,7 +88,12 @@ builder.WebHost.ConfigureKestrel(kestrelOptions =>
 });
 
 // ---------- Services ----------
-builder.Services.AddControllers();
+// ValidateModelAttribute is registered as a global filter so all controllers benefit
+// from structured 400 responses without per-controller attribute decoration (US_066 AC-4).
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<ValidateModelAttribute>();
+});
 builder.Services.AddEndpointsApiExplorer();
 
 // FluentValidation — auto-validates request DTOs before controller actions execute.
@@ -88,6 +109,12 @@ builder.Services
 // (same shape as constraint/exception errors) instead of ValidationProblemDetails.
 builder.Services.Configure<ApiBehaviorOptions>(options =>
 {
+    // Suppress the built-in [ApiController] automatic 400 response so that
+    // ValidateModelAttribute (global filter) takes sole ownership of validation error
+    // responses and returns the structured ValidationErrorResponse shape (US_066 AC-4).
+    options.SuppressModelStateInvalidFilter = true;
+
+    // Retained as fallback for any code path that bypasses the global filter.
     options.InvalidModelStateResponseFactory = context =>
     {
         var correlationId = context.HttpContext.Items[CorrelationIdMiddleware.ItemsKey]?.ToString()
@@ -332,6 +359,10 @@ builder.Services.AddScoped<ISessionService, RedisSessionService>();
 // Concurrent session guard — scoped; depends on ISessionService.
 builder.Services.AddScoped<ConcurrentSessionGuard>();
 
+// Account lockout audit handler — scoped; wraps IAuditLogService with structured lockout metadata
+// logging (US_065 AC-3, NFR-016). Separates lockout audit concerns from AuthController.
+builder.Services.AddScoped<IAccountLockoutAuditHandler, AccountLockoutAuditHandler>();
+
 // NpgsqlDataSource singleton — exposes the same pooled data source used by EF Core
 // to downstream services that execute raw SQL (e.g. pgvector cosine queries).
 // Registered as singleton so the Npgsql Vector type mapping and connection pool
@@ -461,10 +492,60 @@ builder.Services.AddScoped<IMfaService, MfaService>();
 // Audit log service — append-only auth event logging (US_016 AC-5).
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 
+// ── US_066 Task 2 — PII Redaction Logging (AC-2, NFR-017, EC-2) ─────────────────────────────
+// PiiRedactionOptions: strongly-typed config for PII field names and regex patterns.
+// PiiRedactionEnricher: Singleton ILogEventEnricher — masks scalar string properties.
+// PiiDestructuringPolicy: Singleton IDestructuringPolicy — masks PII in {@Object} destructuring.
+// Both are Singleton because:
+//   - They hold a pre-computed HashSet<string> built from config (no per-request state).
+//   - Serilog enrichers/policies are shared across the entire logging pipeline.
+builder.Services
+    .AddOptions<PiiRedactionOptions>()
+    .Bind(builder.Configuration.GetSection(PiiRedactionOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<PiiRedactionEnricher>();
+builder.Services.AddSingleton<PiiDestructuringPolicy>();
+
+// ── EP-011 Audit Log Query API (US_064) ──────────────────────────────────────────────────────// AuditSettings: configured query page limits and retention period (NFR-040, NFR-043).
+// AuditLogQueryService: CQRS read-side — filtered, paginated, AsNoTracking reads (AC-3, TR-013).
+// IClientInfoAccessor: extracts client IP (X-Forwarded-For-aware) and User-Agent (AC-1, NFR-018).
+// AuditLoggingActionFilter: cross-cutting filter that logs state-changing requests (POST/PUT/PATCH/DELETE).
+builder.Services
+    .AddOptions<AuditSettings>()
+    .Bind(builder.Configuration.GetSection(AuditSettings.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddScoped<IAuditLogQueryService, AuditLogQueryService>();
+builder.Services.AddScoped<IClientInfoAccessor, ClientInfoAccessor>();
+builder.Services.AddScoped<AuditLoggingActionFilter>();
+
+// ── EP-011 Audit Failover Queue (US_064 task_003) ────────────────────────────────────────────
+// AuditQueueSettings: configures Redis key, batch size, intervals, and Polly thresholds.
+// AuditQueueService: Singleton — stateless Redis RPUSH/LPOP/LLEN with local-file last-resort.
+// AuditQueueFlushWorker: hosted BackgroundService — drains queue to PostgreSQL with Polly
+//   retry (3x exponential) + circuit breaker (5 failures / 30 s open) (NFR-032).
+builder.Services
+    .AddOptions<AuditQueueSettings>()
+    .Bind(builder.Configuration.GetSection(AuditQueueSettings.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<IAuditQueueService, AuditQueueService>();
+builder.Services.AddHostedService<AuditQueueFlushWorker>();
+
 // ── EP-006 Clinical Document Upload (US_038 task_002) ────────────────────────────────────────
-// DocumentStorageSettings: storage root path and AES-256 key from configuration.
-// EncryptedFileStorageService: Singleton — stateless file I/O, no DbContext dependency.
+// EncryptionOptions: bound from Security:Encryption — holds the AES-256 key used by
+//   FileEncryptionService. Key validation (32-byte Base64) is enforced at startup (US_063 AC-2).
+// FileEncryptionService: Singleton — stateless pure-crypto AES-256-CBC service; owns the key.
+//   Decoupled from file I/O so it can be unit-tested and reused independently.
+// DocumentStorageSettings: storage root path from configuration (key moved to EncryptionOptions).
+// EncryptedFileStorageService: Singleton — stateless file I/O; delegates crypto to IFileEncryptionService.
 // ClinicalDocumentUploadService: Scoped — depends on scoped ApplicationDbContext.
+builder.Services
+    .AddOptions<EncryptionOptions>()
+    .Bind(builder.Configuration.GetSection(EncryptionOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<IFileEncryptionService, FileEncryptionService>();
 builder.Services
     .AddOptions<DocumentStorageSettings>()
     .Bind(builder.Configuration.GetSection(DocumentStorageSettings.SectionName))
@@ -522,6 +603,23 @@ builder.Services.AddScoped<IDocumentReplacementService, DocumentReplacementServi
 
 // DocumentParsingDispatcher: Singleton BackgroundService — FIFO Redis dequeue + Polly retry (EC-2).
 builder.Services.AddHostedService<DocumentParsingDispatcher>();
+
+// ── EP-012 Document Parsing Queue Monitor (US_071 TASK_003) ─────────────────────────────────
+// AiQueueOptions: bound from "AiQueue" config section — monitor interval, stale threshold,
+//   and escalation depth (AC-4). ValidateOnStart enforces sane defaults at startup.
+// IDocumentParsingQueue / RedisDocumentParsingQueue: Singleton — thin Redis abstraction
+//   (LLEN, LINDEX 0) used exclusively by the monitor for read-only health checks; soft-fail
+//   on transient Redis errors so monitoring never impacts normal request handling.
+// IQueueMonitorService / QueueMonitorService: Singleton — checks stale item age (>5 min LogWarning)
+//   and depth escalation (>50 LogCritical) on each monitoring tick (AC-4).
+// QueueMonitorJob: Singleton BackgroundService — drives the monitor via a 60-second PeriodicTimer.
+builder.Services
+    .AddOptions<UPACIP.Service.Documents.AiQueueOptions>()
+    .Bind(builder.Configuration.GetSection(UPACIP.Service.Documents.AiQueueOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<UPACIP.Service.Documents.IDocumentParsingQueue, UPACIP.Service.Documents.RedisDocumentParsingQueue>();
+builder.Services.AddSingleton<UPACIP.Service.Documents.IQueueMonitorService, UPACIP.Service.Documents.QueueMonitorService>();
+builder.Services.AddHostedService<UPACIP.Service.Documents.QueueMonitorJob>();
 
 // Appointment slot service — slot availability queries with Redis cache-aside (US_017 AC-1, AC-4).
 builder.Services.AddScoped<IAppointmentSlotService, AppointmentSlotService>();
@@ -581,6 +679,12 @@ builder.Services.AddScoped<INoShowRiskScoringService, NoShowRiskScoringService>(
 // No-show risk orchestrator — coordinates score calculation, persistence, and downstream
 // integration for booking workflows, staff schedule, and arrival queue (US_026, AC-1, EC-1).
 builder.Services.AddScoped<NoShowRiskOrchestrator>();
+
+// ── US_067 Task 1 — AI Gateway Scaffold (AC-1, AC-3, AIR-O01, AIR-O02, AIR-O03) ──────────────
+// Registers AIGatewayOptions, AIRequestValidationMiddleware, AIAuthenticationMiddleware,
+// AIResponseNormalizationMiddleware, and IAIGatewayService / AIGatewayService.
+// Provider adapters (IAIProviderAdapter) are registered in Task 002.
+builder.Services.AddAIGateway(builder.Configuration);
 
 // ── AI Conversational Intake services (AIR-001, FR-026, US_027) ───────────────────────────
 // AiGatewaySettings bound from configuration; never logged.
@@ -646,6 +750,9 @@ builder.Services.AddScoped<IConflictResolutionService, ConflictResolutionService
 
 // Patient profile aggregation — 360° profile retrieval, version history, source citations, and manual consolidation trigger (US_043, AC-1, AC-2, AC-3, FR-052, FR-056).
 builder.Services.AddScoped<IPatientProfileService, PatientProfileService>();
+
+// Patient search service — staff-only patient search with Redis cache-aside (US_062 AC-1, NFR-030).
+builder.Services.AddScoped<IPatientSearchService, PatientSearchService>();
 
 // ── Manual fallback workflow (US_046, AC-1, AC-2, AC-3, AC-4) ───────────────────────────────
 // ConsolidationConfidenceService: evaluates AI confidence thresholds, returns low-confidence
@@ -714,6 +821,20 @@ builder.Services.AddScoped<UPACIP.Service.Coding.ICodeVerificationService, UPACI
 builder.Services.AddScoped<UPACIP.Service.AgreementRate.IAgreementRateService, UPACIP.Service.AgreementRate.AgreementRateService>();
 builder.Services.AddHostedService<UPACIP.Service.AgreementRate.AgreementRateCalculationJob>();
 
+// ── EP-012 AI Cost Monitoring (US_071 TASK_002) ──────────────────────────────────────────────
+// AiCostAggregationService: Scoped — reads AiRequestLog rows for the target day, recalculates
+//   approximate costs from the AiCostBudgetConfig rate card, and upserts AiCostDailySummary
+//   rows (US_071 AC-1, edge case: approximate cost flagging).
+// AiCostAlertService: Scoped — compares daily totals per provider against DailyBudgetThreshold;
+//   emits LogCritical structured events when AlertEnabled=true and the threshold is exceeded
+//   (US_071 AC-2).
+// AiCostAggregationJob: BackgroundService — fires every 24 h (runs once on startup as well);
+//   creates a fresh IServiceScope per execution so scoped services are isolated and disposed.
+//   Retry: up to 3 attempts with exponential backoff (5 s, 25 s, 125 s) per NFR-032.
+builder.Services.AddScoped<UPACIP.Service.AI.AiCost.IAiCostAggregationService, UPACIP.Service.AI.AiCost.AiCostAggregationService>();
+builder.Services.AddScoped<UPACIP.Service.AI.AiCost.IAiCostAlertService, UPACIP.Service.AI.AiCost.AiCostAlertService>();
+builder.Services.AddHostedService<UPACIP.Service.AI.AiCost.AiCostAggregationJob>();
+
 // ── Payer rule validation (US_051, AC-1, AC-2, AC-3, AC-4, FR-066) ─────────────────────────
 // IPayerRuleValidationService: Scoped — validates code combinations against payer-specific
 //   and CMS-default rules, detects denial risks, and validates NCCI bundling edits.
@@ -722,6 +843,30 @@ builder.Services.AddHostedService<UPACIP.Service.AgreementRate.AgreementRateCalc
 //   and billing priority ordering. Writes CodingAuditLog entries for HIPAA compliance.
 builder.Services.AddScoped<UPACIP.Service.Coding.IPayerRuleValidationService, UPACIP.Service.Coding.PayerRuleValidationService>();
 builder.Services.AddScoped<UPACIP.Service.Coding.IMultiCodeAssignmentService, UPACIP.Service.Coding.MultiCodeAssignmentService>();
+
+// ── Arrival Queue Service (US_052, US_053, AC-1 through AC-4) ───────────────────────────────
+// IQueueService: Scoped — marks arrivals, updates status, overrides no-shows, bulk no-show detection.
+//   Depends on ApplicationDbContext (Scoped), ICacheService (Singleton), IQueueCacheService (Singleton).
+//   Cache key: "queue:today:{date:yyyyMMdd}", TTL 5 min (NFR-030, NFR-004).
+// IQueueCacheService: Singleton — per-filter granular cache keys for the US_053 dashboard.
+//   Uses IConnectionMultiplexer (StackExchange.Redis) for SCAN-based pattern invalidation.
+// NoShowDetectionService: Singleton BackgroundService — polls every 60 seconds to mark no-shows
+//   (AC-2). Creates a fresh DI scope per cycle to resolve IQueueService. Exposes IHealthCheck
+//   that degrades after 3 consecutive failures.
+// QueueSettings: configurable wait time threshold (default 30 min) for alert count.
+builder.Services.Configure<UPACIP.Service.Queue.QueueSettings>(
+    builder.Configuration.GetSection(UPACIP.Service.Queue.QueueSettings.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Caching.IQueueCacheService, UPACIP.Service.Caching.QueueCacheService>();
+builder.Services.AddScoped<UPACIP.Service.Queue.IQueueService, UPACIP.Service.Queue.QueueService>();
+builder.Services.AddHostedService<UPACIP.Service.Queue.NoShowDetectionService>();
+builder.Services.AddScoped<UPACIP.Service.Dashboard.IStaffDashboardService, UPACIP.Service.Dashboard.StaffDashboardService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.ISystemMetricsService,  UPACIP.Service.Admin.SystemMetricsService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.IConfigurationService,  UPACIP.Service.Admin.ConfigurationService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.IAdminUserService,       UPACIP.Service.Admin.AdminUserService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.ISlotTemplateService,            UPACIP.Service.Admin.SlotTemplateService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.IBusinessHoursService,           UPACIP.Service.Admin.BusinessHoursService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.INotificationTemplateService,    UPACIP.Service.Admin.NotificationTemplateService>();
+builder.Services.AddScoped<UPACIP.Service.Admin.IRiskConfigService,              UPACIP.Service.Admin.RiskConfigService>();
 
 // ASP.NET Core built-in rate limiting (Microsoft.AspNetCore.RateLimiting — included in .NET 7+).
 // Policy "check-email-limit": 30 req/min per IP — anti-enumeration guard (OWASP A07).
@@ -784,6 +929,16 @@ builder.Services.AddRateLimiter(options =>
         limiterOptions.QueueLimit       = 0;
     });
 
+    // Session time-remaining limiter: 6 requests per minute per IP (≈1 per 10 s).
+    // Prevents clients from polling /api/session/time-remaining too aggressively (US_065 AC-4).
+    options.AddFixedWindowLimiter("session-time-remaining-limit", limiterOptions =>
+    {
+        limiterOptions.Window           = TimeSpan.FromMinutes(1);
+        limiterOptions.PermitLimit      = 6;
+        limiterOptions.QueueProcessingOrder = System.Threading.RateLimiting.QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit       = 0;
+    });
+
     options.RejectionStatusCode = 429;
 });
 
@@ -806,6 +961,28 @@ builder.Services
     .AddFeatureManagement()
     .UseDisabledFeaturesHandler(new DisabledFeaturesHandler());
 
+// HTTPS redirect — 301 Permanent (AC-4).  ASP.NET Core 8 default is 307 (temporary);
+// a permanent redirect is required so browsers and bots cache the upgrade and stop
+// sending plain HTTP requests (OWASP A02, NFR-010, FR-092).
+// HttpsPort is read from Kestrel:Endpoints:Https or ASPNETCORE_HTTPS_PORT.
+builder.Services.AddHttpsRedirection(options =>
+{
+    options.RedirectStatusCode = StatusCodes.Status301MovedPermanently;
+    options.HttpsPort = builder.Configuration.GetValue<int?>("Kestrel:Endpoints:Https:Port")
+                        ?? 443;
+});
+
+// HSTS — HTTP Strict Transport Security (AC-3, NFR-010).
+// MaxAge 365 days, IncludeSubDomains, Preload — meets browser preload-list requirements.
+// Only applied outside Development so the local dev workflow using HTTP is unaffected.
+builder.Services.AddHsts(options =>
+{
+    var maxAgeDays = builder.Configuration.GetValue<int>("Security:Tls:HstsMaxAgeDays", defaultValue: 365);
+    options.MaxAge           = TimeSpan.FromDays(maxAgeDays);
+    options.IncludeSubDomains = true;
+    options.Preload           = true;
+});
+
 // Health checks — registered here so both DB and Redis connection strings are in scope.
 // /health → liveness: Predicate = _ => false means no dependency probes; always 200 if the
 //           process is alive and can serve requests.
@@ -819,7 +996,17 @@ builder.Services.AddHealthChecks()
         redisConnectionString,
         name: "redis",
         tags: new[] { "ready" },
-        timeout: TimeSpan.FromSeconds(3));
+        timeout: TimeSpan.FromSeconds(3))
+    // TLS certificate expiry monitor — Degraded when < CertExpiryWarningDays remain,
+    // Unhealthy when expired or unreachable (US_063 AC-3, edge case: cert expiry alert).
+    .AddCheck<TlsCertificateHealthCheck>(
+        name: "tls-certificate",
+        tags: new[] { "ready" })
+    // Audit failover queue depth monitor — Degraded when 1-100 entries pending,
+    // Unhealthy when > 100 entries pending (US_064 edge case, NFR-032).
+    .AddCheck<AuditQueueHealthCheck>(
+        name: "audit-queue",
+        tags: new[] { "audit" });
 
 // ---------- Pipeline ----------
 var app = builder.Build();
@@ -864,13 +1051,27 @@ if (app.Environment.IsDevelopment())
 }
 
 // 4–7. Standard ASP.NET Core pipeline order
+// HSTS — inject Strict-Transport-Security header on HTTPS responses (AC-3).
+// Skipped in Development so local HTTP tooling is unaffected.
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
 app.UseHttpsRedirection();
 app.UseCors("ReactFrontend");
 app.UseRateLimiter();        // Rate limiting policies (register-limit, check-email-limit)
 app.UseAuthentication(); // Must precede UseAuthorization to populate HttpContext.User
 app.UseSessionManagement(); // Sliding 15-min TTL reset + expired session 401 (NFR-014, AC-1/AC-2)
+// Input sanitization: XSS + command injection stripping on all JSON bodies and query strings.
+// Placed after authentication so the correlation ID is available for warning logs.
+// Placed before UseAuthorization so policy checks operate on sanitized data (US_066 AC-1, FR-095).
+app.UseInputSanitization();
 app.UseAuthorization();
 app.MapControllers();
+
+// ── AI Gateway admin endpoints — model version management (US_069 TASK_003, AIR-O05) ──
+// Requires AdminOnly authorization policy (set in RequireAuthorization inside MapModelVersionEndpoints).
+app.MapModelVersionEndpoints();
 
 // Liveness — process-level check; no external dependency probes.
 // Returns 200 as long as the application is running and able to accept requests.

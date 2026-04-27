@@ -245,11 +245,11 @@ dotnet test UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Modify `ISessionService` to add `TerminateAndReplaceSessionAsync` and `GetTimeRemainingAsync` signatures
-- [ ] Implement `TerminateAndReplaceSessionAsync` in `RedisSessionService` with atomic Lua script (DEL old → HSET new → EXPIRE → blacklist old jti → SET termination flag)
-- [ ] Implement `GetTimeRemainingAsync` in `RedisSessionService` using Redis TTL command
-- [ ] Modify `ConcurrentSessionGuard` to terminate old session and allow new login instead of rejecting with 409
-- [ ] Create `AccountLockoutAuditHandler` logging lockout and failed login events to AuditLog table via IAuditService
-- [ ] Modify `AuthController.Login` to check lockout (423), integrate lockout audit, use updated concurrent session guard, and reset failed count on success
-- [ ] Add `GET /api/session/time-remaining` to `SessionController` with rate limiting
-- [ ] Modify `SessionManagementMiddleware` to detect `session_terminated:{sessionId}` key and return 440 with termination reason
+- [x] Modify `ISessionService` to add `TerminateAndReplaceSessionAsync` and `GetTimeRemainingAsync` signatures
+- [x] Implement `TerminateAndReplaceSessionAsync` in `RedisSessionService` with atomic Lua script (DEL old → HSET new → EXPIRE → blacklist old jti → SET termination flag)
+- [x] Implement `GetTimeRemainingAsync` in `RedisSessionService` using Redis TTL command
+- [x] Modify `ConcurrentSessionGuard` to terminate old session and allow new login instead of rejecting with 409
+- [x] Create `AccountLockoutAuditHandler` logging lockout and failed login events to AuditLog table via IAuditService
+- [x] Modify `AuthController.Login` to check lockout (423), integrate lockout audit, use updated concurrent session guard, and reset failed count on success
+- [x] Add `GET /api/session/time-remaining` to `SessionController` with rate limiting
+- [x] Modify `SessionManagementMiddleware` to detect `session_terminated:{sessionId}` key and return 440 with termination reason

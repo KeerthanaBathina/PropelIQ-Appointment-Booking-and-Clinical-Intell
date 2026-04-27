@@ -70,6 +70,30 @@ public sealed class ApplicationUserConfiguration : IEntityTypeConfiguration<Appl
             .IsRequired(false)
             .HasMaxLength(45); // IPv6 max = 39 chars; 45 allows for IPv4-mapped IPv6
 
+        // ---------- Staff deactivation columns (US_061 AC-3) ----------
+        builder.Property(u => u.DeactivatedAt)
+            .IsRequired(false);
+
+        builder.Property(u => u.DeactivatedBy)
+            .IsRequired(false);
+
+        // Self-referencing FK: DeactivatedBy → asp_net_users.Id
+        // ON DELETE SET NULL preserves the metadata if the acting admin is later removed (DR-016).
+        builder.HasOne<ApplicationUser>()
+            .WithMany()
+            .HasForeignKey(u => u.DeactivatedBy)
+            .OnDelete(DeleteBehavior.SetNull)
+            .IsRequired(false);
+
+        // ---------- Indexes for staff list endpoint (US_061 AC-2) ----------
+        // Index on AccountStatus enables fast filtering by Active / Deactivated.
+        builder.HasIndex(u => u.AccountStatus)
+            .HasDatabaseName("IX_asp_net_users_AccountStatus");
+
+        // Index on LastLoginAt supports sort-by-last-login on the staff list (NFR-033).
+        builder.HasIndex(u => u.LastLoginAt)
+            .HasDatabaseName("IX_asp_net_users_LastLoginAt");
+
         // ---------- Navigation: User → EmailVerificationTokens ----------
         builder.HasMany(u => u.EmailVerificationTokens)
             .WithOne(t => t.User)

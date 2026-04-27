@@ -148,13 +148,13 @@ Implement the backend services for automatic no-show detection (15-minute timer)
 - [ ] All auto no-show events create immutable AuditLog entries with system attribution
 
 ## Implementation Checklist
-- [ ] Create `NoShowDetectionService` (IHostedService) with 60-second timer and no-show detection logic
-- [ ] Implement outage recovery logic — scan and mark overdue appointments on service startup with "delayed-detection" flag
-- [ ] Modify `QueueService.MarkArrival()` to cancel no-show timer (skip in next detection cycle) on patient arrival
-- [ ] Create `QueueConfigController` with GET/PUT endpoints for wait threshold (admin-only)
-- [ ] Implement Redis caching (60s TTL) for threshold config with invalidation on update
-- [ ] Extend `QueueEntryDto` with alert fields (isAutoNoShow, isDelayedDetection, exceedsWaitThreshold, waitAlertLevel)
-- [ ] Add wait threshold alert computation in `QueueService.GetTodayQueue()` response
-- [ ] Create audit log entries for auto no-show events with system attribution and detection metadata
+- [x] Create `NoShowDetectionService` (IHostedService) with 60-second timer and no-show detection logic
+- [x] Implement outage recovery logic — scan and mark overdue appointments on service startup with "delayed-detection" flag
+- [x] Modify `QueueService.MarkArrival()` to cancel no-show timer (skip in next detection cycle) on patient arrival
+- [x] Create `QueueConfigController` with GET/PUT endpoints for wait threshold (admin-only)
+- [x] Implement Redis caching (60s TTL) for threshold config with invalidation on update
+- [x] Extend `QueueEntryDto` with alert fields (isAutoNoShow, isDelayedDetection, exceedsWaitThreshold, waitAlertLevel)
+- [x] Add wait threshold alert computation in `QueueService.GetTodayQueue()` response
+- [x] Create audit log entries for auto no-show events with system attribution and detection metadata
 
 **Traceability:** US_055 AC-1, AC-2, AC-3, AC-4 | FR-076, FR-079 | NFR-012, NFR-032 | UC-008

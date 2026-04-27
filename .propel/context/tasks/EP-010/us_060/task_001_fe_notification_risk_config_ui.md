@@ -198,17 +198,17 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `notificationConfig.ts` TypeScript interfaces (`NotificationTemplate`, `RiskConfig`, `TemplateVariable`, `ScoringParameter`)
-- [ ] Create `useNotificationTemplates.ts` React Query hooks — list, get, update with optimistic updates
-- [ ] Create `useRiskConfig.ts` React Query hooks — get, update with optimistic updates
-- [ ] Implement `VariablePlaceholderToolbar.tsx` — MUI Chip buttons for `{{patient_name}}`, `{{date}}`, `{{time}}`, `{{provider}}` with cursor insertion
-- [ ] Implement `NotificationTemplateEditor.tsx` — Template selector, channel toggle, subject/body fields, inline validation (200ms), variable toolbar
-- [ ] Implement `TemplatePreview.tsx` — Live preview with sample variable substitution
-- [ ] Implement `RiskConfigPanel.tsx` — Threshold slider (0–100), scoring parameter weight inputs, inline validation (200ms)
-- [ ] Implement `RiskScorePreview.tsx` — Before/after risk score display with batch recalculation info banner
-- [ ] Integrate Notifications and Risk Configuration tabs into AdminDashboard.tsx tab panel
-- [ ] Implement Loading state with MUI Skeleton placeholders for all form fields
-- [ ] Implement Empty state (no templates configured, setup prompt)
-- [ ] Implement Error state (MUI Alert with retry action)
-- [ ] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- [ ] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Create `notificationConfig.ts` TypeScript interfaces (`NotificationTemplate`, `RiskConfig`, `TemplateVariable`, `ScoringParameter`) — Added to existing `app/src/types/adminConfig.ts`: `TemplateVariable`, `TEMPLATE_VARIABLES`, `ALLOWED_PLACEHOLDER_NAMES`, extended `NotificationTemplate` with `subject/updatedAt/updatedBy`, added `UpdateNotificationTemplateRequest`
+- [x] Create `useNotificationTemplates.ts` React Query hooks — list, get, update with optimistic updates — `useUpdateNotificationTemplateById` added to `app/src/hooks/useAdminConfig.ts`; `useNotificationTemplates` already existed
+- [x] Create `useRiskConfig.ts` React Query hooks — get, update with optimistic updates — `useRiskThresholds` + `useUpdateRiskThresholds` already in `app/src/hooks/useAdminConfig.ts` from US_058
+- [x] Implement `VariablePlaceholderToolbar.tsx` — MUI Chip buttons for `{{patient_name}}`, `{{date}}`, `{{time}}`, `{{provider}}` with cursor insertion — inline in `app/src/components/admin/NotificationTemplatesPanel.tsx`
+- [x] Implement `NotificationTemplateEditor.tsx` — Template selector, channel toggle, subject/body fields, inline validation (200ms), variable toolbar — `EditForm` component inline in `NotificationTemplatesPanel.tsx`; validation: subject required for Email, body required, unknown `{{var}}` listed in error
+- [x] Implement `TemplatePreview.tsx` — Live preview with sample variable substitution — `TemplatePreview` inline in `NotificationTemplatesPanel.tsx`; substitutes sample values live
+- [x] Implement `RiskConfigPanel.tsx` — Threshold slider (0–100), scoring parameter weight inputs, inline validation (200ms) — `app/src/components/admin/RiskThresholdsPanel.tsx` upgraded; MUI Slider step=5, marks at 0/25/50/75/100; weight inputs with sum-to-1.0 validation
+- [x] Implement `RiskScorePreview.tsx` — Before/after risk score display with batch recalculation info banner — `RiskScorePreview` inline in `RiskThresholdsPanel.tsx`; 3 sample patients, live bucket recalculation, MUI Alert (info)
+- [x] Integrate Notifications and Risk Configuration tabs into AdminDashboard.tsx tab panel — `ConfigTabs.tsx` already wires `NotificationTemplatesPanel` and `RiskThresholdsPanel`; no change needed
+- [x] Implement Loading state with MUI Skeleton placeholders for all form fields — both panels have Skeleton loading states
+- [x] Implement Empty state (no templates configured, setup prompt) — `NotificationTemplatesPanel` has empty state with "+ Add Template"
+- [x] Implement Error state (MUI Alert with retry action) — `NotificationTemplatesPanel` has Error state with Retry button
+- [x] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation — Referenced SCR-015 wireframe; used same design tokens and tab panel structure
+- [x] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete — Matches SCR-015 layout: table + inline edit, MUI Slider, weight inputs, sample preview panel

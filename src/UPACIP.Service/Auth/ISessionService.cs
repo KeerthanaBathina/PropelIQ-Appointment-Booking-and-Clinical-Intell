@@ -16,6 +16,7 @@ public interface ISessionService
     Task CreateSessionAsync(
         string userId,
         string sessionId,
+        string jti,
         string ipAddress,
         string userAgent,
         CancellationToken cancellationToken = default);
@@ -43,4 +44,34 @@ public interface ISessionService
     /// in Redis. Used by <c>ConcurrentSessionGuard</c> to reject second-device logins (AC-3, FR-007).
     /// </summary>
     Task<bool> IsSessionActiveAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Terminates the existing session for <paramref name="userId"/> (if any) and stores a
+    /// short-lived (<c>session_terminated:{oldJti}</c>) notification flag in Redis so that the
+    /// old device receives a 440 response on its next authenticated request (US_065 AC-2).
+    ///
+    /// Returns a <see cref="SessionTerminationResult"/> describing the terminated session.
+    /// When no active session exists, <see cref="SessionTerminationResult.WasTerminated"/> is
+    /// <c>false</c> and all other fields are null.
+    ///
+    /// Does NOT create the replacement session — call <see cref="CreateSessionAsync"/> afterward.
+    /// </summary>
+    Task<SessionTerminationResult> TerminateAndReplaceSessionAsync(
+        string userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns the remaining session TTL in seconds for <paramref name="userId"/>, or
+    /// <c>null</c> when no active session key exists.
+    /// Used by <c>GET /api/session/time-remaining</c> to drive the frontend countdown modal (AC-4).
+    /// </summary>
+    Task<int?> GetTimeRemainingAsync(string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Atomically reads and deletes the <c>session_terminated:{jti}</c> flag from Redis.
+    /// Returns the termination-reason JSON payload when the flag exists, <c>null</c> otherwise.
+    /// The one-time read ensures Device A only receives the 440 SESSION_TERMINATED response once
+    /// (subsequent requests after re-authentication are not affected).
+    /// </summary>
+    Task<string?> CheckAndClearTerminationFlagAsync(string jti, CancellationToken cancellationToken = default);
 }

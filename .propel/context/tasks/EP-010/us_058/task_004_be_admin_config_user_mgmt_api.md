@@ -181,11 +181,11 @@ Implement the backend API endpoints for admin configuration management and user 
 
 ## Implementation Checklist
 
-- [ ] Create configuration DTOs (`SlotTemplateDto`, `NotificationTemplateDto`, `BusinessHoursDto`, `RiskThresholdDto`)
-- [ ] Create user management DTOs (`AdminUserDto`, `CreateUserDto`)
-- [ ] Implement `ConfigurationService` with CRUD methods and business rule validation per UC-009
-- [ ] Implement `AdminUserService` with user listing, creation, deactivation, and activation
-- [ ] Create `AdminConfigController` with admin-guarded GET/PUT configuration endpoints
-- [ ] Create `AdminUserController` with admin-guarded GET/POST/PUT user management endpoints
-- [ ] Add audit logging for all configuration changes and user management actions (NFR-012)
-- [ ] Register services in DI container in `Program.cs`
+- [x] Create configuration DTOs (`SlotTemplateDto`, `NotificationTemplateDto`, `BusinessHoursDto`, `RiskThresholdDto`)
+- [x] Create user management DTOs (`AdminUserDto`, `CreateUserDto`)
+- [x] Implement `ConfigurationService` with CRUD methods and business rule validation per UC-009
+- [x] Implement `AdminUserService` with user listing, creation, deactivation, and activation
+- [x] Create `AdminConfigController` with admin-guarded GET/PUT configuration endpoints
+- [x] Create `AdminUserController` with admin-guarded GET/POST/PUT user management endpoints
+- [x] Add audit logging for all configuration changes and user management actions (NFR-012)
+- [x] Register services in DI container in `Program.cs`

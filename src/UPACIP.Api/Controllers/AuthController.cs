@@ -37,6 +37,7 @@ public sealed class AuthController : ControllerBase
     private readonly ConcurrentSessionGuard         _sessionGuard;
     private readonly IMfaService                    _mfaService;
     private readonly IAuditLogService               _auditLogService;
+    private readonly IAccountLockoutAuditHandler    _lockoutAuditHandler;
     private readonly ILogger<AuthController>        _logger;
 
     public AuthController(
@@ -48,6 +49,7 @@ public sealed class AuthController : ControllerBase
         ConcurrentSessionGuard         sessionGuard,
         IMfaService                    mfaService,
         IAuditLogService               auditLogService,
+        IAccountLockoutAuditHandler    lockoutAuditHandler,
         ILogger<AuthController>        logger)
     {
         _userManager         = userManager;
@@ -58,6 +60,7 @@ public sealed class AuthController : ControllerBase
         _sessionGuard        = sessionGuard;
         _mfaService          = mfaService;
         _auditLogService     = auditLogService;
+        _lockoutAuditHandler = lockoutAuditHandler;
         _logger              = logger;
     }
 
@@ -100,9 +103,8 @@ public sealed class AuthController : ControllerBase
         {
             var freshUser   = await _userManager.FindByIdAsync(user.Id.ToString());
             var lockedUntil = freshUser?.LockoutEnd?.UtcDateTime;
-            _logger.LogWarning("Account locked for user {UserId} after failed attempt.", user.Id);
-            await _auditLogService.LogAsync(AuditAction.AccountLocked, user.Id, "User",
-                ipAddress, userAgent, cancellationToken: cancellationToken);
+            await _lockoutAuditHandler.LogLockoutAsync(
+                user.Id, ipAddress, userAgent, lockedUntil, cancellationToken);
             return StatusCode(423, new { message = "Account locked. Please try again later.", lockedUntil });
         }
 
@@ -110,9 +112,10 @@ public sealed class AuthController : ControllerBase
         {
             var freshUser         = await _userManager.FindByIdAsync(user.Id.ToString());
             var maxAttempts       = _userManager.Options.Lockout.MaxFailedAccessAttempts;
-            var remainingAttempts = Math.Max(0, maxAttempts - (freshUser?.AccessFailedCount ?? 0));
-            await _auditLogService.LogAsync(AuditAction.FailedLogin, user.Id, "User",
-                ipAddress, userAgent, cancellationToken: cancellationToken);
+            var failedCount       = freshUser?.AccessFailedCount ?? 0;
+            var remainingAttempts = Math.Max(0, maxAttempts - failedCount);
+            await _lockoutAuditHandler.LogFailedAttemptAsync(
+                user.Id, ipAddress, userAgent, failedCount, cancellationToken);
             return Unauthorized(new { message = "Invalid credentials.", remainingAttempts });
         }
 
@@ -499,12 +502,7 @@ public sealed class AuthController : ControllerBase
     private async Task<IActionResult> IssueFullTokensAsync(
         ApplicationUser user, string ipAddress, string userAgent, CancellationToken cancellationToken)
     {
-        var concurrentCheck = await _sessionGuard.CheckAsync(
-            user.Id.ToString(), ipAddress, cancellationToken);
-        if (concurrentCheck == ConcurrentSessionResult.Blocked)
-            return Conflict(new { message = "Another active session exists. Please logout first." });
-
-        // Capture previous login info BEFORE overwriting (AC-4 — return previous to client).
+        // ── Capture previous login info BEFORE overwriting (AC-4 — return previous to client) ─
         LastLoginInfo? lastLogin = user.LastLoginAt.HasValue
             ? new LastLoginInfo(
                 user.LastLoginAt.Value.UtcDateTime.ToString("O"),
@@ -515,13 +513,50 @@ public sealed class AuthController : ControllerBase
         user.LastLoginIp = ipAddress;
         await _userManager.UpdateAsync(user);
 
-        var roles        = await _userManager.GetRolesAsync(user);
-        var accessToken  = _tokenService.GenerateAccessToken(user, roles);
+        // Reset the failed-attempt counter on every successful authentication so a subsequent
+        // partial-failure sequence starts from zero (AC-3, NFR-016 intent).
+        await _userManager.ResetAccessFailedCountAsync(user);
+
+        var roles       = await _userManager.GetRolesAsync(user);
+        var accessToken = _tokenService.GenerateAccessToken(user, roles);
+
+        // Decode the jti from the just-issued JWT so it can be stored in the session (US_065 AC-2).
+        // JwtSecurityTokenHandler.ReadJwtToken does NOT validate the signature — used only for
+        // claim extraction on a token we just generated ourselves (trusted, not user-supplied).
+        var jti = new JwtSecurityTokenHandler()
+            .ReadJwtToken(accessToken)
+            .Id;
+
+        // ── Concurrent session enforcement (US_065 AC-2: terminate-old, allow-new) ────────────
+        var termination = await _sessionGuard.HandleConcurrentSessionAsync(
+            user.Id.ToString(), ipAddress, cancellationToken);
+
+        if (termination.WasTerminated)
+        {
+            // Blacklist the old JWT jti so Device A tokens are immediately rejected at the
+            // authentication layer (defence-in-depth on top of session key deletion).
+            if (!string.IsNullOrEmpty(termination.OldJti))
+            {
+                await _tokenService.BlacklistJtiAsync(
+                    termination.OldJti,
+                    TimeSpan.FromMinutes(_jwtSettings.AccessTokenExpiryMinutes),
+                    cancellationToken);
+            }
+
+            await _auditLogService.LogAsync(AuditAction.SessionReplaced, user.Id, "User",
+                ipAddress, userAgent, cancellationToken: cancellationToken);
+
+            _logger.LogWarning(
+                "Concurrent session replaced for user {UserId}. " +
+                "Old session {OldSessionId} terminated. New login from {NewIp}.",
+                user.Id, termination.OldSessionId, ipAddress);
+        }
+
         var refreshToken = _tokenService.GenerateRefreshToken();
         AppendRefreshTokenCookie(refreshToken);
 
         var sessionId = Guid.NewGuid().ToString();
-        await _sessionGuard.CreateAsync(user.Id.ToString(), sessionId, ipAddress, userAgent, cancellationToken);
+        await _sessionGuard.CreateAsync(user.Id.ToString(), sessionId, jti, ipAddress, userAgent, cancellationToken);
         await _auditLogService.LogAsync(AuditAction.Login, user.Id, "User",
             ipAddress, userAgent, cancellationToken: cancellationToken);
 

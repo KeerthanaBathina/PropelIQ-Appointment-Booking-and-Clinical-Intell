@@ -168,10 +168,10 @@ dotnet test --no-build
 
 ## Implementation Checklist
 
-- [ ] Install `Ganss.Xss` (HtmlSanitizer) v8.x NuGet package
-- [ ] Create `SanitizationExtensions` with `SanitizeForXss()`, `SanitizeForCommandInjection()`, and `IsCleanInput()` methods
-- [ ] Create `InputSanitizationMiddleware` with request body and query string sanitization
-- [ ] Create `ValidationErrorResponse` DTO with `CorrelationId` and `Errors` list
-- [ ] Create `ValidateModelAttribute` action filter returning structured 400 responses
-- [ ] Register middleware, suppress default model state filter, and add global filter in `Program.cs`
-- [ ] Verify EF Core parameterized query usage and configure Roslyn analyzer rule for `FromSqlRaw` warning
+- [x] Install `Ganss.Xss` (HtmlSanitizer) v8.x NuGet package
+- [x] Create `SanitizationExtensions` with `SanitizeForXss()`, `SanitizeForCommandInjection()`, and `IsCleanInput()` methods
+- [x] Create `InputSanitizationMiddleware` with request body and query string sanitization
+- [x] Create `ValidationErrorResponse` DTO with `CorrelationId` and `Errors` list
+- [x] Create `ValidateModelAttribute` action filter returning structured 400 responses
+- [x] Register middleware, suppress default model state filter, and add global filter in `Program.cs`
+- [x] Verify EF Core parameterized query usage and configure Roslyn analyzer rule for `FromSqlRaw` warning

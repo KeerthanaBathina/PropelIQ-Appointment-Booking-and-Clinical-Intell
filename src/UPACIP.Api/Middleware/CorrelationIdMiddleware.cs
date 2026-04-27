@@ -1,3 +1,5 @@
+using Serilog.Context;
+
 namespace UPACIP.Api.Middleware;
 
 /// <summary>
@@ -29,7 +31,13 @@ public sealed class CorrelationIdMiddleware
             return Task.CompletedTask;
         });
 
-        await _next(context);
+        // Push the correlation ID into Serilog's LogContext so every log entry
+        // emitted during this request automatically carries the CorrelationId
+        // property — enabling distributed tracing via Seq (TR-028, US_066 AC-3).
+        using (LogContext.PushProperty("CorrelationId", correlationId))
+        {
+            await _next(context);
+        }
     }
 }
 

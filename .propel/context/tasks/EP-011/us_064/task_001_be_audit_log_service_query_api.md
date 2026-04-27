@@ -172,11 +172,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `IAuditService` / `AuditService` with append-only `LogAsync` method writing to `audit_logs` via EF Core (FR-093, NFR-012, AC-1)
-- [ ] Create `AuditLogQueryRequest`, `AuditLogQueryResponse`, and `AuditLogEntryDto` DTOs with validation attributes and cursor pagination fields
-- [ ] Create `IAuditLogQueryService` / `AuditLogQueryService` with `IQueryable` filter composition, cursor-based keyset pagination, and `AsNoTracking` (AC-3, TR-013)
-- [ ] Create `AuditLogController` with Admin-only `GET /api/audit-logs`, 405 enforcement on mutations, and violation attempt logging (AC-2, AC-3)
-- [ ] Create `IClientInfoAccessor` / `ClientInfoAccessor` with `X-Forwarded-For` parsing and header injection prevention (AC-1, NFR-018)
-- [ ] Create `AuditLoggingActionFilter` for cross-cutting automatic audit logging on state-changing HTTP methods
-- [ ] Register all services, filter, and `AuditSettings` configuration in `Program.cs` with `IOptions<AuditSettings>` binding (NFR-040, NFR-043)
-- [ ] Implement graceful error handling in `AuditService` — catch DB failures, log error, delegate to Redis queue (task_003), never break calling operation
+- [x] Create `IAuditService` / `AuditService` with append-only `LogAsync` method writing to `audit_logs` via EF Core (FR-093, NFR-012, AC-1) — **already existed** at `src/UPACIP.Service/Auth/IAuditLogService.cs` + `AuditLogService.cs`; registered in `Program.cs`
+- [x] Create `AuditLogQueryRequest`, `AuditLogQueryResponse`, and `AuditLogEntryDto` DTOs with validation attributes and cursor pagination fields — `src/UPACIP.Service/Audit/AuditLogQueryRequest.cs`, `AuditLogQueryResponse.cs`, `AuditLogEntryDto.cs`
+- [x] Create `IAuditLogQueryService` / `AuditLogQueryService` with `IQueryable` filter composition, cursor-based keyset pagination, and `AsNoTracking` (AC-3, TR-013) — `src/UPACIP.Service/Audit/IAuditLogQueryService.cs`, `AuditLogQueryService.cs`
+- [x] Create `AuditLogController` with Admin-only `GET /api/audit-logs`, 405 enforcement on mutations via `IActionFilter`, and violation attempt logging (AC-2, AC-3) — `src/UPACIP.Api/Controllers/AuditLogController.cs`
+- [x] Create `IClientInfoAccessor` / `ClientInfoAccessor` with `X-Forwarded-For` parsing and header injection prevention (AC-1, NFR-018) — `src/UPACIP.Service/Audit/IClientInfoAccessor.cs`, `src/UPACIP.Api/Middleware/ClientInfoAccessor.cs`
+- [x] Create `AuditLoggingActionFilter` for cross-cutting automatic audit logging on state-changing HTTP methods — `src/UPACIP.Api/Filters/AuditLoggingActionFilter.cs`
+- [x] Register all services, filter, and `AuditSettings` configuration in `Program.cs` with `IOptions<AuditSettings>` binding (NFR-040, NFR-043); add `AuditSettings` section to `appsettings.json`
+- [x] Implement graceful error handling in `AuditService` — catch DB failures, log error, never break calling operation (existing fail-open pattern preserved)
+- [x] Build validated: `dotnet build` Exit 0, 0 errors

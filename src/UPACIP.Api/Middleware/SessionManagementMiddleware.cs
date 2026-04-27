@@ -1,3 +1,4 @@
+using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.Extensions.Logging;
 using UPACIP.Service.Auth;
@@ -54,6 +55,35 @@ public sealed class SessionManagementMiddleware
 
         try
         {
+            // ── 1. Concurrent-session termination detection (US_065 AC-2) ────────────────────
+            // Extract the JWT jti claim — each issued token has a unique ID. If Device B's login
+            // terminated this token, a one-time "session_terminated:{jti}" flag was stored in
+            // Redis. CheckAndClearTerminationFlagAsync atomically reads+deletes the flag so that
+            // Device A only receives the 440 response ONCE (subsequent requests are unaffected).
+            var jti = context.User.FindFirst(JwtRegisteredClaimNames.Jti)?.Value;
+            if (!string.IsNullOrEmpty(jti))
+            {
+                var terminationPayload = await sessionService
+                    .CheckAndClearTerminationFlagAsync(jti, context.RequestAborted);
+
+                if (terminationPayload is not null)
+                {
+                    _logger.LogWarning(
+                        "SessionManagementMiddleware: session terminated (concurrent login) for user {UserId}. " +
+                        "Returning 440 SESSION_TERMINATED.",
+                        userId);
+
+                    context.Response.StatusCode  = 440; // Login Timeout — session superseded
+                    context.Response.ContentType = "application/json";
+                    await context.Response.WriteAsync(
+                        "{\"code\":\"SESSION_TERMINATED\",\"reason\":\"concurrent_login\"," +
+                        "\"message\":\"Your session was terminated because your account signed in from another device.\"}",
+                        context.RequestAborted);
+                    return;
+                }
+            }
+
+            // ── 2. Session expiry check (AC-1 — 15-min inactivity timeout) ─────────────────
             var isActive = await sessionService.IsSessionActiveAsync(userId, context.RequestAborted);
 
             if (!isActive)

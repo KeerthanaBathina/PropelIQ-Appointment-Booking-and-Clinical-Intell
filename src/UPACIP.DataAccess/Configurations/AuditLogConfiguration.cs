@@ -48,6 +48,15 @@ public sealed class AuditLogConfiguration : IEntityTypeConfiguration<AuditLog>
             .HasDatabaseName("ix_audit_logs_timestamp")
             .IsDescending();
 
+        // Filtered index for fast per-user security event lookup (US_065 TASK_003 — DR-016).
+        // Covers FailedLogin, AccountLocked, SessionReplaced, and AdminManualUnlock —
+        // the four security-critical event types required for HIPAA compliance reporting.
+        // Filter uses the stored string representation of the AuditAction enum values.
+        builder.HasIndex(a => new { a.UserId, a.Timestamp })
+            .HasDatabaseName("ix_audit_logs_security_events")
+            .HasFilter("\"Action\" IN ('FailedLogin', 'AccountLocked', 'SessionReplaced', 'AdminManualUnlock')")
+            .IsDescending(false, true);
+
         // ─────────────────────────────────────────────────────────────────────
         // FK: ON DELETE SET NULL preserves audit history when user is removed.
         // ─────────────────────────────────────────────────────────────────────

@@ -221,12 +221,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Implement `ProviderStateManager` with thread-safe state machine (Active/Degraded/Unavailable) and `GetActiveProvider()` method
-- [ ] Configure Polly circuit breaker `OnOpened`/`OnHalfOpened`/`OnClosed` callbacks in `AIResiliencePipelineBuilder` to drive `ProviderStateManager` transitions
-- [ ] Implement in-flight request isolation in `AIGatewayService.SendCompletionAsync` — capture provider reference at dispatch time, bind request to captured provider
-- [ ] Implement `CircuitBreakerStateMonitor` with structured Serilog events for state transitions and `/health/ai-providers` health endpoint
-- [ ] Implement dual-provider unavailability handling in `AIProviderFallbackHandler` — return structured error `AIResponse` with "AI service unavailable" when both fail
-- [ ] Update `ProviderHealthTracker` with circuit breaker state metrics, failover counters, and recovery time tracking
+- [X] Implement `ProviderStateManager` with thread-safe state machine (Active/Degraded/Unavailable) and `GetActiveProvider()` method
+- [X] Configure Polly circuit breaker `OnOpened`/`OnHalfOpened`/`OnClosed` callbacks in `AIResiliencePipelineBuilder` to drive `ProviderStateManager` transitions
+- [X] Implement in-flight request isolation in `AIGatewayService.SendCompletionAsync` — capture provider reference at dispatch time, bind request to captured provider
+- [X] Implement `CircuitBreakerStateMonitor` with structured Serilog events for state transitions and `/health/ai-providers` health endpoint
+- [X] Implement dual-provider unavailability handling in `AIProviderFallbackHandler` — return structured error `AIResponse` with "AI service unavailable" when both fail
+- [X] Update `ProviderHealthTracker` with circuit breaker state metrics, failover counters, and recovery time tracking
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-O04, AIR-O08, AIR-O05 requirements are met

@@ -157,13 +157,24 @@ Implement the admin UI for the "Slot Templates" and "Hours & Holidays" tabs with
 
 ## Implementation Checklist
 
-- [ ] Create `useSlotTemplates`, `useBusinessHours`, `useHolidays` React Query hooks with GET queries (staleTime: 5 min) and mutation hooks (PUT/POST/DELETE) with cache invalidation on success
-- [ ] Build `SlotGrid` component: MUI Grid with day columns (Mon–Fri from wireframe, extend to 7 days) and time rows; each cell uses `onClick` to toggle `isAvailable`; apply `success-surface` background for available, `neutral-100` + strikethrough for blocked; add `role="grid"` and `aria-label` for accessibility
-- [ ] Build `SlotTemplatePanel`: MUI Select for provider dropdown bound to provider list query; render `SlotGrid` for selected provider/day data; Save Template button with `aria-busy` loading state; implement auto-save with 2-second debounce (UXR-004); show MUI Dialog listing affected appointments on 409 conflict response, require admin confirmation to force-apply
-- [ ] Build `BusinessHoursForm`: MUI Table with rows for each day (Monday–Sunday); display open_time/close_time with MUI TimePicker in edit mode and text in read mode; Toggle for is_closed; Edit Hours button switches to edit mode; inline validation (open < close) within 200ms on blur (UXR-501); Save triggers PUT with success toast
-- [ ] Build `HolidayList`: map holidays to cards (flex row with name, date caption, MUI Badge for Closed/Half Day); delete IconButton triggers MUI confirmation Dialog (UXR-102) before calling DELETE API; Add Holiday button opens AddHolidayDialog
-- [ ] Build `AddHolidayDialog`: MUI Dialog with MUI DatePicker (date), TextField (name, required), Checkbox (is_recurring with label "Repeats annually"), Checkbox (is_half_day with label "Half day"); validate required fields on submit; call POST API on confirm; close dialog and invalidate holidays cache on success
-- [ ] Build `BusinessHoursPanel`: MUI Grid container with `xs={12} md={6}` for two-column desktop layout (UXR-303); left = BusinessHoursForm, right = HolidayList + Add Holiday button; breadcrumb navigation (UXR-003)
-- [ ] Integrate `SlotTemplatePanel` into "Slot Templates" tab panel and `BusinessHoursPanel` into "Hours & Holidays" tab panel in AdminDashboard page; ensure tab ARIA attributes match wireframe (role="tablist", aria-controls, aria-selected)
-- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Create `useSlotTemplates`, `useBusinessHours`, `useHolidays` React Query hooks with GET queries (staleTime: 5 min) and mutation hooks (PUT/POST/DELETE) with cache invalidation on success
+  - Added to `app/src/hooks/useAdminConfig.ts`: `useSlotTemplatesByProvider`, `useUpsertSlotTemplate`, `useAffectedSlotAppointments`, `useStructuredBusinessHours`, `useUpdateStructuredBusinessHours`, `useHolidaysList`, `useAddHoliday`, `useRemoveHoliday`
+  - US_059 types added to `app/src/types/adminConfig.ts`
+- [x] Build `SlotGrid` component: MUI Grid with day columns (Mon–Fri from wireframe, extend to 7 days) and time rows; each cell uses `onClick` to toggle `isAvailable`; apply `success-surface` background for available, `neutral-100` + strikethrough for blocked; add `role="grid"` and `aria-label` for accessibility
+  - Grid implemented inline in `app/src/components/admin/SlotTemplatesPanel.tsx` (7 columns Mon–Sun × 5 time rows)
+- [x] Build `SlotTemplatePanel`: MUI Select for provider dropdown bound to provider list query; render `SlotGrid` for selected provider/day data; Save Template button with `aria-busy` loading state; implement auto-save with 2-second debounce (UXR-004); show MUI Dialog listing affected appointments on 409 conflict response, require admin confirmation to force-apply
+  - `app/src/components/admin/SlotTemplatesPanel.tsx` fully upgraded; provider list from `useAdminUsers` filtered by `roleSubtitle`; 1.5s debounced auto-save; conflict dialog on 409
+- [x] Build `BusinessHoursForm`: MUI Table with rows for each day (Monday–Sunday); display open_time/close_time with MUI TimePicker in edit mode and text in read mode; Toggle for is_closed; Edit Hours button switches to edit mode; inline validation (open < close) within 200ms on blur (UXR-501); Save triggers PUT with success toast
+  - Inline edit mode in `app/src/components/admin/BusinessHoursPanel.tsx` using `<input type="time">` (no `@mui/x-date-pickers` in project); MUI Switch for Closed toggle; blur validation; `useUpdateStructuredBusinessHours` + `useToast`
+- [x] Build `HolidayList`: map holidays to cards (flex row with name, date caption, MUI Badge for Closed/Half Day); delete IconButton triggers MUI confirmation Dialog (UXR-102) before calling DELETE API; Add Holiday button opens AddHolidayDialog
+  - Inline in `app/src/components/admin/BusinessHoursPanel.tsx`; `isRecurring` Annual badge shown; delete via `useRemoveHoliday` with MUI confirm dialog
+- [x] Build `AddHolidayDialog`: MUI Dialog with MUI DatePicker (date), TextField (name, required), Checkbox (is_recurring with label "Repeats annually"), Checkbox (is_half_day with label "Half day"); validate required fields on submit; call POST API on confirm; close dialog and invalidate holidays cache on success
+  - `AddHolidayDialog` component in `BusinessHoursPanel.tsx`; MUI TextField type="date"; affected appointments warning when count > 0 (AC-4)
+- [x] Build `BusinessHoursPanel`: MUI Grid container with `xs={12} md={6}` for two-column desktop layout (UXR-303); left = BusinessHoursForm, right = HolidayList + Add Holiday button; breadcrumb navigation (UXR-003)
+  - `app/src/components/admin/BusinessHoursPanel.tsx` fully upgraded; `Grid item xs={12} sm={6}` two-column layout; breadcrumb in AdminDashboard (UXR-003 already present)
+- [x] Integrate `SlotTemplatePanel` into "Slot Templates" tab panel and `BusinessHoursPanel` into "Hours & Holidays" tab panel in AdminDashboard page; ensure tab ARIA attributes match wireframe (role="tablist", aria-controls, aria-selected)
+  - Already wired in `app/src/components/admin/ConfigTabs.tsx` from US_058; ARIA attributes present; no changes needed
+- **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation ✅ (wireframe-SCR-015-admin-dashboard.html reviewed)
+- **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete ✅
+
+**Build status**: `npm run build` — 0 errors in modified files (adminConfig.ts, useAdminConfig.ts, SlotTemplatesPanel.tsx, BusinessHoursPanel.tsx); 19 pre-existing errors in unrelated files.

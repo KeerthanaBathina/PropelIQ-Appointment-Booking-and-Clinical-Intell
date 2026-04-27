@@ -179,14 +179,14 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Define `StaffDashboardDto`, `ScheduleAppointmentDto`, `PendingTaskDto` DTOs
-- [ ] Create `IStaffDashboardService` interface with `GetDashboardAsync` method
-- [ ] Implement `StaffDashboardService` with Redis cache-first pattern (5-second TTL)
-- [ ] Implement today's schedule EF Core query with Patient join and no-show risk score
-- [ ] Implement queue summary count query (waiting + in_visit QueueEntry records)
-- [ ] Implement pending tasks aggregation: unverified codes, flagged conflicts, document reviews
-- [ ] Implement completed-today count from appointments
-- [ ] Create `StaffDashboardController` with `[Authorize(Roles = "Staff")]` and `GET` endpoint
-- [ ] Register `IStaffDashboardService` in DI (Program.cs)
-- [ ] Add `[ProducesResponseType]` attributes for OpenAPI documentation
-- [ ] Implement structured error handling with ProblemDetails and correlation ID logging
+- [x] Define `StaffDashboardDto`, `ScheduleAppointmentDto`, `PendingTaskDto` DTOs
+- [x] Create `IStaffDashboardService` interface with `GetDashboardAsync` method
+- [x] Implement `StaffDashboardService` with Redis cache-first pattern (5-second TTL)
+- [x] Implement today's schedule EF Core query with Patient join and no-show risk score
+- [x] Implement queue summary count query (waiting + in_visit QueueEntry records)
+- [x] Implement pending tasks aggregation: unverified codes, flagged conflicts, document reviews
+- [x] Implement completed-today count from appointments
+- [x] Create `StaffDashboardController` with `[Authorize(Policy = RbacPolicies.StaffOrAdmin)]` and `GET /api/staff/dashboard` endpoint
+- [x] Register `IStaffDashboardService` in DI (Program.cs)
+- [x] Add `[ProducesResponseType]` attributes for OpenAPI documentation
+- [x] Implement structured error handling with ProblemDetails and correlation ID logging

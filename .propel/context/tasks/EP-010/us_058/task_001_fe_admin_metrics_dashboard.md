@@ -155,11 +155,11 @@ Implement the system metrics overview and trend charts section of the admin dash
 
 ## Implementation Checklist
 
-- [ ] Create `AdminDashboardPage` page component with breadcrumb navigation and admin accent styling
-- [ ] Build `MetricsOverview` grid displaying 5 `MetricCard` components for key metrics
-- [ ] Implement `MetricCard` with skeleton loading (UXR-502) and stale-data indicator states
-- [ ] Build `TrendChart` component with line chart and 7-day/30-day `ToggleButtonGroup`
-- [ ] Create `useAdminMetrics` React Query hook with 5-minute stale time and error fallback
-- [ ] Implement responsive mobile layout with collapsible `Accordion` cards below `sm` breakpoint
-- [ ] Add `/admin/dashboard` route with admin role authorization guard
-- [ ] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Create `AdminDashboardPage` page component with breadcrumb navigation and admin accent styling
+- [x] Build `MetricsOverview` grid displaying 5 `MetricCard` components for key metrics
+- [x] Implement `MetricCard` with skeleton loading (UXR-502) and stale-data indicator states
+- [x] Build `TrendChart` component with SVG line chart and 7-day/30-day `ToggleButtonGroup`
+- [x] Create `useAdminMetrics` React Query hook with 5-minute stale time and error fallback
+- [x] Implement responsive mobile layout with collapsible `Accordion` cards below `sm` breakpoint
+- [x] `/admin/dashboard` route already registered with Admin role guard in `router.tsx` — verified
+- [x] **[UI Tasks - MANDATORY]** Wireframe reviewed; layout, error accent, breadcrumb, tabs structure matched

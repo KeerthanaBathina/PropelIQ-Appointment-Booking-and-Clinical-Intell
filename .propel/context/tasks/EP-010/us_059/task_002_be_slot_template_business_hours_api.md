@@ -136,11 +136,21 @@ Implement the backend API endpoints and service layer for managing appointment s
 
 ## Implementation Checklist
 
-- [ ] Create `SlotTemplateDto.cs` with CreateSlotTemplateRequest (providerId, dayOfWeek, blocks[]), UpdateSlotTemplateRequest (blocks[], version), SlotTemplateResponse, SlotTemplateBlockDto (startTime, endTime, appointmentType, isAvailable)
-- [ ] Create `BusinessHoursDto.cs` with UpdateBusinessHoursRequest (entries[]), BusinessHoursEntryDto (dayOfWeek, openTime, closeTime, isClosed), HolidayDto (date, name, isRecurring, isHalfDay), CreateHolidayRequest, HolidayResponse
-- [ ] Implement `SlotTemplateValidator` and `BusinessHoursValidator` with FluentValidation: time range checks (start < end), non-overlapping blocks, valid day_of_week enum, holiday date validation (not past for non-recurring)
-- [ ] Implement `SlotTemplateService`: GetByProviderAndDay (cache-first with Redis 5-min TTL), CreateOrUpdate with EF Core optimistic locking (catch DbUpdateConcurrencyException → return 409), GetAffectedAppointments for conflict preview
-- [ ] Implement `BusinessHoursService`: GetAll (cache-first), UpdateByDay with audit logging, AddHoliday with query to flag existing Appointment records on that date (set flagged_for_review), RemoveHoliday (soft delete via deleted_at), expand recurring holidays for date range queries
-- [ ] Implement `SlotTemplateController` with [Authorize(Roles = "Admin")] attribute: GET `/api/admin/config/slots/{providerId}/{dayOfWeek}`, GET `/api/admin/config/slots/{providerId}`, PUT `/api/admin/config/slots/{providerId}/{dayOfWeek}`
-- [ ] Implement `BusinessHoursController` with [Authorize(Roles = "Admin")] attribute: GET `/api/admin/config/hours`, PUT `/api/admin/config/hours`, GET `/api/admin/config/holidays`, POST `/api/admin/config/holidays`, DELETE `/api/admin/config/holidays/{id}`
-- [ ] Register services in DI (Program.cs), add Redis cache integration with key patterns `config:slots:{providerId}:{day}` and `config:hours`, invalidate on mutation; add audit log calls via existing AuditService for all configuration changes
+- [x] Create `SlotTemplateDto.cs` with CreateSlotTemplateRequest (providerId, dayOfWeek, blocks[]), UpdateSlotTemplateRequest (blocks[], version), SlotTemplateResponse, SlotTemplateBlockDto (startTime, endTime, appointmentType, isAvailable)
+  - Implemented in `src/UPACIP.Service/Admin/SlotTemplateDtos.cs`
+- [x] Create `BusinessHoursDto.cs` with UpdateBusinessHoursRequest (entries[]), BusinessHoursEntryDto (dayOfWeek, openTime, closeTime, isClosed), HolidayDto (date, name, isRecurring, isHalfDay), CreateHolidayRequest, HolidayResponse
+  - Implemented in `src/UPACIP.Service/Admin/BusinessHoursDtos.cs`
+- [x] Implement `SlotTemplateValidator` and `BusinessHoursValidator` with FluentValidation: time range checks (start < end), non-overlapping blocks, valid day_of_week enum, holiday date validation (not past for non-recurring)
+  - Implemented in `src/UPACIP.Service/Admin/SlotTemplateRequestValidator.cs` and `src/UPACIP.Service/Admin/BusinessHoursRequestValidator.cs`
+- [x] Implement `SlotTemplateService`: GetByProviderAndDay (cache-first with Redis 5-min TTL), CreateOrUpdate with EF Core optimistic locking (catch DbUpdateConcurrencyException → return 409), GetAffectedAppointments for conflict preview
+  - Implemented in `src/UPACIP.Service/Admin/SlotTemplateService.cs`; cache keys `config:slots:{providerId}:{dayOfWeek}` and `config:slots:{providerId}`; version check before save with DbUpdateConcurrencyException fallback
+- [x] Implement `BusinessHoursService`: GetAll (cache-first), UpdateByDay with audit logging, AddHoliday with query to flag existing Appointment records on that date (set flagged_for_review), RemoveHoliday (soft delete via deleted_at), expand recurring holidays for date range queries
+  - Implemented in `src/UPACIP.Service/Admin/BusinessHoursService.cs`; AddHoliday returns affected appointments in response for admin review (no FlaggedForReview column needed); soft-delete via `DeletedAt`; cache keys `config:hours` and `config:holidays`
+- [x] Implement `SlotTemplateController` with [Authorize(Policy = RbacPolicies.AdminOnly)] attribute: GET `/api/admin/config/slots/{providerId}/{dayOfWeek}`, GET `/api/admin/config/slots/{providerId}`, PUT `/api/admin/config/slots/{providerId}/{dayOfWeek}`
+  - Implemented in `src/UPACIP.Api/Controllers/SlotTemplateController.cs`; also includes GET `/api/admin/config/slots/{providerId}/{dayOfWeek}/affected` for conflict preview
+- [x] Implement `BusinessHoursController` with [Authorize(Policy = RbacPolicies.AdminOnly)] attribute: GET `/api/admin/config/business-hours`, PUT `/api/admin/config/business-hours`, GET `/api/admin/config/holidays`, POST `/api/admin/config/holidays`, DELETE `/api/admin/config/holidays/{id}`
+  - Implemented in `src/UPACIP.Api/Controllers/BusinessHoursController.cs`; routes use `business-hours` (not `hours`) to avoid conflict with existing `AdminConfigController.GET api/admin/config/hours`
+- [x] Register services in DI (Program.cs), add Redis cache integration with key patterns `config:slots:{providerId}:{day}` and `config:hours`, invalidate on mutation; add audit log calls via existing AuditService for all configuration changes
+  - `ISlotTemplateService`/`SlotTemplateService` and `IBusinessHoursService`/`BusinessHoursService` registered as `AddScoped` in `src/UPACIP.Api/Program.cs`
+
+**Build status**: `dotnet build src\UPACIP.Api\UPACIP.Api.csproj` — 0 errors, 2 pre-existing warnings (duplicate usings in Program.cs lines 47-48).

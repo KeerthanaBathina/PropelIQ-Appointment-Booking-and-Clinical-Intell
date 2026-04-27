@@ -409,7 +409,8 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentTime")
-                        .HasDatabaseName("ix_appointments_appointment_time");
+                        .HasDatabaseName("ix_appointments_scheduled_appointment_time")
+                        .HasFilter("\"status\" = 'Scheduled'");
 
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_appointments_patient_id");
@@ -476,6 +477,11 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.HasIndex("UserId", "Timestamp")
                         .HasDatabaseName("ix_audit_logs_user_id_timestamp");
+
+                    b.HasIndex("UserId", "Timestamp")
+                        .HasDatabaseName("ix_audit_logs_security_events")
+                        .HasFilter("\"Action\" IN ('FailedLogin', 'AccountLocked', 'SessionReplaced', 'AdminManualUnlock')")
+                        .IsDescending(false, true);
 
                     b.ToTable("audit_logs", (string)null);
                 });
@@ -2242,6 +2248,53 @@ namespace UPACIP.DataAccess.Migrations
                         });
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueAuditLog", b =>
+                {
+                    b.Property<Guid>("AuditId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ActionType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("NewPosition")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("NewPriority")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<int>("OriginalPosition")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("OriginalPriority")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.Property<Guid>("QueueId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("StaffUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("AuditId");
+
+                    b.HasIndex("StaffUserId");
+
+                    b.HasIndex("QueueId", "Timestamp")
+                        .IsDescending(false, true)
+                        .HasDatabaseName("IX_QueueAuditLog_QueueId_CreatedAt");
+
+                    b.ToTable("queue_audit_logs", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2254,13 +2307,38 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime>("ArrivalTimestamp")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsAutoNoShow")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsDelayedDetection")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<Guid?>("OverriddenByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("OverrideReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("text");
 
                     b.Property<string>("Priority")
                         .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
+
+                    b.Property<int>("QueuePosition")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -2270,6 +2348,12 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
                     b.Property<int>("WaitTimeMinutes")
                         .HasColumnType("integer");
 
@@ -2278,6 +2362,13 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("AppointmentId")
                         .IsUnique()
                         .HasDatabaseName("ix_queue_entries_appointment_id");
+
+                    b.HasIndex("Priority", "QueuePosition")
+                        .IsDescending(true, false)
+                        .HasDatabaseName("IX_QueueEntry_Priority_Position");
+
+                    b.HasIndex("Status", "CreatedAt")
+                        .HasDatabaseName("IX_queue_entries_status_created_at");
 
                     b.ToTable("queue_entries", (string)null);
                 });
@@ -2348,6 +2439,61 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("ix_reminder_batch_checkpoints_type_status_updated");
 
                     b.ToTable("reminder_batch_checkpoints", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SystemConfig", b =>
+                {
+                    b.Property<Guid>("ConfigId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("ConfigKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ConfigValue")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("ConfigId");
+
+                    b.HasIndex("ConfigKey")
+                        .IsUnique()
+                        .HasDatabaseName("ix_system_configs_config_key");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("system_configs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            ConfigId = new Guid("d4e5f6a7-b8c9-0d1e-2f3a-4b5c6d7e8f90"),
+                            ConfigKey = "queue.wait_threshold_minutes",
+                            ConfigValue = "30",
+                            CreatedAt = new DateTime(2026, 4, 24, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Description = "Wait time threshold in minutes for staff alerts (default: 30). Valid range: 5–120. Updated via PUT /api/queue/config/threshold.",
+                            UpdatedAt = new DateTime(2026, 4, 24, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.UserSession", b =>
@@ -3188,6 +3334,24 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Provider");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueAuditLog", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.QueueEntry", "QueueEntry")
+                        .WithMany()
+                        .HasForeignKey("QueueId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "StaffUser")
+                        .WithMany()
+                        .HasForeignKey("StaffUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("QueueEntry");
+
+                    b.Navigation("StaffUser");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueEntry", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.Appointment", "Appointment")
@@ -3197,6 +3361,16 @@ namespace UPACIP.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SystemConfig", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UpdatedByUser");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.UserSession", b =>

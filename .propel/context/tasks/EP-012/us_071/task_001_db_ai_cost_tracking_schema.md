@@ -129,18 +129,18 @@ Server/
 
 ## Implementation Validation Strategy
 
-- [ ] Unit tests pass
-- [ ] Integration tests pass (if applicable)
-- [ ] Migration applies cleanly to fresh database
-- [ ] Migration rolls back without errors
-- [ ] Seed data inserts successfully
-- [ ] All foreign key and unique constraints enforced at DB level
+- [X] Unit tests pass
+- [X] Integration tests pass (if applicable)
+- [X] Migration applies cleanly to fresh database
+- [X] Migration rolls back without errors
+- [X] Seed data inserts successfully
+- [X] All foreign key and unique constraints enforced at DB level
 
 ## Implementation Checklist
 
-- [ ] Create `AiRequestLog` entity with UUID PK, provider enum, request_type enum, input_tokens (int), output_tokens (int), estimated_cost (decimal), cost_source enum (Actual/Approximate), correlation_id (Guid), created_at (timestamp with timezone)
-- [ ] Create `AiCostBudgetConfig` entity with provider (unique), daily_budget_threshold (decimal), alert_enabled (bool), cost_per_1k_input_tokens (decimal), cost_per_1k_output_tokens (decimal), updated_at (timestamp)
-- [ ] Create `AiCostDailySummary` entity with summary_date (date), provider enum, request_type enum, total_input_tokens (long), total_output_tokens (long), total_estimated_cost (decimal), request_count (int), created_at (timestamp) — unique composite index on (summary_date, provider, request_type)
-- [ ] Register all three DbSets in `ApplicationDbContext` with Fluent API configuration (indexes, enum conversions, precision for decimal fields)
-- [ ] Generate EF Core migration `AddAiCostTrackingTables` with rollback support (Down method)
-- [ ] Add seed data for default provider rate cards (GPT-4o-mini, Claude 3.5 Sonnet) with initial daily budget thresholds
+- [X] Create `AiRequestLog` entity with UUID PK, provider enum, request_type enum, input_tokens (int), output_tokens (int), estimated_cost (decimal), cost_source enum (Actual/Approximate), correlation_id (Guid), created_at (timestamp with timezone) — `src/UPACIP.DataAccess/Entities/AiRequestLog.cs`
+- [X] Create `AiCostBudgetConfig` entity with provider (unique), daily_budget_threshold (decimal), alert_enabled (bool), cost_per_1k_input_tokens (decimal), cost_per_1k_output_tokens (decimal), updated_at (timestamp) — `src/UPACIP.DataAccess/Entities/AiCostBudgetConfig.cs` (extends BaseEntity)
+- [X] Create `AiCostDailySummary` entity with summary_date (date), provider enum, request_type enum, total_input_tokens (long), total_output_tokens (long), total_estimated_cost (decimal), request_count (int), created_at (timestamp) — unique composite index on (summary_date, provider, request_type) — `src/UPACIP.DataAccess/Entities/AiCostDailySummary.cs`
+- [X] Register all three DbSets in `ApplicationDbContext` with Fluent API configuration (indexes, enum conversions, precision for decimal fields) — `AiRequestLogConfiguration.cs`, `AiCostBudgetConfigConfiguration.cs`, `AiCostDailySummaryConfiguration.cs`; DbSets added to `src/UPACIP.DataAccess/ApplicationDbContext.cs`
+- [X] Generate EF Core migration `AddAiCostTrackingTables` with rollback support (Down method) — `src/UPACIP.DataAccess/Migrations/20260427000003_AddAiCostTrackingTables.cs`
+- [X] Add seed data for default provider rate cards (GPT-4o-mini, Claude 3.5 Sonnet) with initial daily budget thresholds — embedded via `HasData()` in `AiCostBudgetConfigConfiguration` and replicated in migration `InsertData` block

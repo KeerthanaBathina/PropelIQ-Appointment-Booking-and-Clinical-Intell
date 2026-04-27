@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using UPACIP.Api.Authorization;
 using UPACIP.DataAccess.Entities;
 using UPACIP.Service.Auth;
@@ -107,6 +108,51 @@ public sealed class SessionController : ControllerBase
     }
 
     // ────────────────────────────────────────────────────────────────────────────
+    // GET /api/session/time-remaining
+    // ────────────────────────────────────────────────────────────────────────────
+    /// <summary>
+    /// Returns the remaining seconds on the caller's Redis session TTL (AC-4).
+    /// Used by the frontend countdown modal to decide when to display the "Extend Session"
+    /// warning (displayed when &lt; 120 seconds remain — <c>warningThresholdSeconds</c>).
+    ///
+    /// Returns 200 with <c>{ remainingSeconds, warningThresholdSeconds: 120 }</c>.
+    /// Returns 401 when the Redis session has already expired — client must re-login.
+    /// Rate-limited to 6 requests per minute per IP (≈1 per 10 seconds) to prevent polling abuse.
+    /// </summary>
+    [HttpGet("time-remaining")]
+    [EnableRateLimiting("session-time-remaining-limit")]
+    public async Task<IActionResult> TimeRemaining(CancellationToken cancellationToken)
+    {
+        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { message = SessionExpiredMessage });
+
+        int? remaining;
+        try
+        {
+            remaining = await _sessionService.GetTimeRemainingAsync(userId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "SessionController.TimeRemaining: Redis unavailable for user {UserId}.",
+                userId);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { message = "Session service temporarily unavailable. Please try again." });
+        }
+
+        if (remaining is null || remaining <= 0)
+        {
+            _logger.LogInformation(
+                "TimeRemaining: session expired for user {UserId}.", userId);
+            return Unauthorized(new { message = SessionExpiredMessage });
+        }
+
+        return Ok(new TimeRemainingResponse(remaining.Value, WarningThresholdSeconds: 120));
+    }
+
+    // ────────────────────────────────────────────────────────────────────────────
     // GET /api/session/status
     // ────────────────────────────────────────────────────────────────────────────
     /// <summary>
@@ -154,3 +200,8 @@ public sealed record ExtendSessionResponse(
     string AccessToken,
     DateTime ExpiresAt,
     string TokenType = "Bearer");
+
+/// <summary>Response body for <c>GET /api/session/time-remaining</c> (AC-4).</summary>
+public sealed record TimeRemainingResponse(
+    int RemainingSeconds,
+    int WarningThresholdSeconds);

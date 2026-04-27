@@ -131,12 +131,12 @@ Add database schema changes to support configurable wait time threshold and auto
 - [ ] All column defaults are correct (bool = false, timestamps = NOW())
 
 ## Implementation Checklist
-- [ ] Create `SystemConfig` entity model with config_key, config_value, and audit fields
-- [ ] Add `is_auto_noshow` and `is_delayed_detection` columns to QueueEntry entity
-- [ ] Configure composite index on Appointment (status, appointment_time) for no-show detection
-- [ ] Configure unique index on SystemConfig (config_key)
-- [ ] Generate EF Core migration `AddNoShowDetectionSchema`
-- [ ] Create seed data script for default threshold config (30 minutes)
-- [ ] Verify migration rollback (Down method) drops all created artifacts cleanly
+- [x] Create `SystemConfig` entity model with config_key, config_value, and audit fields
+- [x] Add `is_auto_noshow` and `is_delayed_detection` columns to QueueEntry entity
+- [x] Configure composite index on Appointment (status, appointment_time) for no-show detection
+- [x] Configure unique index on SystemConfig (config_key)
+- [x] Generate EF Core migration `AddSystemConfigTable`
+- [x] Create seed data script for default threshold config (30 minutes)
+- [x] Verify migration rollback (Down method) drops all created artifacts cleanly
 
 **Traceability:** US_055 AC-1, AC-3, AC-4 | FR-076, FR-079 | DR-008, DR-009 | UC-008

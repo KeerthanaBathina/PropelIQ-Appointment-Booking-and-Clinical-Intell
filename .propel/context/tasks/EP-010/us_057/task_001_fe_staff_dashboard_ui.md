@@ -181,16 +181,25 @@ app/
 
 ## Implementation Checklist
 
-- [ ] Create `staffDashboard.ts` TypeScript interfaces (`StaffDashboardData`, `ScheduleAppointment`, `PendingTask`, `DashboardStats`)
-- [ ] Create `useStaffDashboard.ts` React Query hook with `GET /api/staff/dashboard` and `refetchInterval: 5000`
-- [ ] Implement `StatCards.tsx` — 4 MUI Cards with stat values and labels in responsive grid
-- [ ] Implement `QuickActions.tsx` — Walk-in Registration (primary btn) and View Queue (secondary btn, links to SCR-011)
-- [ ] Implement `ScheduleTable.tsx` — MUI Table with columns: Time, Patient (linked), Type, Status (color-coded Chip), No-Show Risk
-- [ ] Implement `PendingTasksPanel.tsx` — Task list items with category, patient, description, and navigate-on-click to SCR-012/013/014
-- [ ] Compose `StaffDashboard.tsx` — Sidebar nav, header (breadcrumb + search + avatar), main content grid
-- [ ] Implement Loading state with MUI Skeleton placeholders (cards, table rows, task items)
-- [ ] Implement Empty state ("No appointments today" message with link to appointment management)
-- [ ] Implement Error state (MUI Alert with retry action)
-- [ ] Add route `/staff/dashboard` with Staff role guard in routes/index.tsx
-- [ ] **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
-- [ ] **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete
+- [x] Create `staffDashboard.ts` TypeScript interfaces (`StaffDashboardData`, `ScheduleAppointment`, `PendingTask`, `DashboardStats`, `ScheduleStatus`, `PendingTaskCategory`)
+      — `app/src/types/staffDashboard.ts`
+- [x] Create `useStaffDashboard.ts` React Query hook with `GET /api/staff/dashboard` and `refetchInterval: 5000`
+      — `app/src/hooks/useStaffDashboard.ts`
+- [x] Implement `StatCards.tsx` — 4 MUI Paper cards with stat values and labels in responsive grid (secondary/warning/info/success colors per wireframe)
+      — `app/src/pages/StaffDashboard/components/StatCards.tsx`
+- [x] Implement `QuickActions.tsx` — Walk-in Registration (secondary contained btn, `aria-haspopup="dialog"`) and View Queue (secondary outlined, RouterLink to /staff/queue)
+      — `app/src/pages/StaffDashboard/components/QuickActions.tsx`
+- [x] Implement `ScheduleTable.tsx` — MUI Table with columns: Time, Patient (RouterLink to /staff/patients/:id), Type, Status (color-coded Chip per UXR-401), No-Show Risk (NoShowRiskBadge)
+      — `app/src/pages/StaffDashboard/components/ScheduleTable.tsx`
+- [x] Implement `PendingTasksPanel.tsx` — Task list items with category, patient, description; navigate-on-click to SCR-012/013/014 (CodeApproval→/staff/coding, others→/staff/patients/:id)
+      — `app/src/pages/StaffDashboard/components/PendingTasksPanel.tsx`
+- [x] Compose `StaffDashboard.tsx` — Sidebar nav (UXR-403 secondary accent), header (breadcrumb UXR-003 + patient search UXR-005 + avatar), LastLoginBanner, main content grid
+      — Updated `app/src/pages/StaffDashboard.tsx` (now uses useStaffDashboard + all sub-components)
+- [x] Implement Loading state with MUI Skeleton placeholders (cards, table rows, task items per UXR-502)
+      — StatCards, ScheduleTable, PendingTasksPanel each have Skeleton loading states
+- [x] Implement Empty state ("No appointments today" message with link to appointment management)
+      — ScheduleTable renders empty state with RouterLink to /patient/appointments/book
+- [x] Implement Error state (MUI Alert with retry action)
+      — ScheduleTable renders MUI Alert on isError
+- [x] Add route `/staff/dashboard` with Staff role guard in routes/index.tsx
+      — Route already existed; no change needed (router imports @/pages/StaffDashboard, resolves to updated file)

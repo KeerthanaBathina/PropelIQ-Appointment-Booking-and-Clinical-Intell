@@ -2,15 +2,16 @@ namespace UPACIP.Service.Documents;
 
 /// <summary>
 /// Strongly-typed binding for the DocumentStorage section in appsettings.json.
-/// Encryption key is never logged (OWASP A02 — Cryptographic Failures).
 ///
 /// Required appsettings.json section:
 /// <code>
 /// "DocumentStorage": {
-///   "StoragePath": "C:\\UploadedDocuments",
-///   "EncryptionKeyBase64": "&lt;base64-encoded 32-byte AES-256 key&gt;"
+///   "StoragePath": "C:\\UploadedDocuments"
 /// }
 /// </code>
+///
+/// Note: the AES-256 encryption key is configured separately under
+/// <c>Security:Encryption:Key</c> via <see cref="EncryptionOptions"/>.
 /// </summary>
 public sealed class DocumentStorageSettings
 {
@@ -21,10 +22,4 @@ public sealed class DocumentStorageSettings
     /// Per-patient subdirectories are created automatically beneath this root.
     /// </summary>
     public string StoragePath { get; init; } = string.Empty;
-
-    /// <summary>
-    /// Base64-encoded 256-bit (32-byte) AES key used for all file encryption operations.
-    /// Never hardcode; load from environment variable or secrets manager.
-    /// </summary>
-    public string EncryptionKeyBase64 { get; init; } = string.Empty;
 }

@@ -118,5 +118,13 @@ public sealed class MedicalCodeConfiguration : IEntityTypeConfiguration<MedicalC
         builder.Property(m => m.SequenceOrder)
             .IsRequired()
             .HasDefaultValue(0);
+
+        // Partial filtered index (US_057 AC-1): covers the pending AI-code approval query:
+        //   WHERE suggested_by_ai = TRUE AND approved_by_user_id IS NULL
+        // Restricting the index to only the pending-approval subset (< 10 % of rows in steady
+        // state) keeps the index size minimal and enables fast lookups for the dashboard task list.
+        builder.HasIndex(m => new { m.SuggestedByAi, m.ApprovedByUserId })
+            .HasFilter("suggested_by_ai = true AND approved_by_user_id IS NULL")
+            .HasDatabaseName("ix_medical_codes_ai_pending_approval");
     }
 }

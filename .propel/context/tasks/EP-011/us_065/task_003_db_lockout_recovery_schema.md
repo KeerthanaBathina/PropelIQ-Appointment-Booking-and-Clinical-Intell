@@ -182,8 +182,8 @@ psql -h localhost -p 5432 -U upacip_app -d upacip -f scripts/admin-lockout-recov
 
 ## Implementation Checklist
 
-- [ ] Extend `AuditLog` action enum/constants with `account_lockout`, `login_failed`, `session_replaced`, `admin_manual_unlock` values
-- [ ] Add composite index `IX_AuditLog_Action_Timestamp` on `(action, timestamp DESC)` via EF Core Fluent API
-- [ ] Add filtered index `IX_AuditLog_SecurityEvents` on `(user_id, timestamp DESC)` filtered to security event actions
-- [ ] Generate and apply EF Core migration `AddSecurityAuditSchema` with rollback support
-- [ ] Create `scripts/admin-lockout-recovery.sql` with parameterized admin-only unlock, audit logging, transaction wrapping, and documentation header
+- [x] Extend `AuditLog` action enum/constants with `account_lockout`, `login_failed`, `session_replaced`, `admin_manual_unlock` values
+- [x] Add composite index `IX_AuditLog_Action_Timestamp` on `(action, timestamp DESC)` via EF Core Fluent API
+- [x] Add filtered index `IX_AuditLog_SecurityEvents` on `(user_id, timestamp DESC)` filtered to security event actions
+- [x] Generate and apply EF Core migration `AddSecurityAuditSchema` with rollback support
+- [x] Create `scripts/admin-lockout-recovery.sql` with parameterized admin-only unlock, audit logging, transaction wrapping, and documentation header

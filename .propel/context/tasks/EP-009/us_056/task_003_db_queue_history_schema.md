@@ -143,9 +143,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create QueueDailySummary entity model with summary columns and unique composite constraint
-- [ ] Register QueueDailySummary in AppDbContext with table mapping and index configuration
-- [ ] Create EF Core migration with composite indexes on QueueEntry (status, priority, created_at)
-- [ ] Add provider + appointment_time index on Appointment table in migration
-- [ ] Create queue_daily_summary table DDL in migration with rollback in Down() method
-- [ ] Verify migration applies and rolls back cleanly on PostgreSQL 16
+- [x] Create QueueDailySummary entity model with summary columns and unique composite constraint
+      — `src/UPACIP.DataAccess/Entities/QueueDailySummary.cs` — inherits BaseEntity; properties: SummaryDate (DateOnly), ProviderId (Guid?), AppointmentType (string?), AvgWaitTimeMinutes (decimal?), NoShowCount, CompletedCount, TotalPatients; FK nav to ApplicationUser (Provider)
+- [x] Register QueueDailySummary in AppDbContext with table mapping and index configuration
+      — `QueueDailySummaryConfiguration.cs` in Configurations/ (auto-discovered); table `queue_daily_summary`; unique index on (SummaryDate, ProviderId, AppointmentType); date range index; FK ON DELETE SET NULL; DbSet `QueueDailySummaries` added to ApplicationDbContext
+- [x] Create EF Core migration with composite indexes on QueueEntry (status, priority, created_at)
+      — Migration `20260424120000_AddQueueFilteringIndexesAndHistorySummary.cs`; index `ix_queue_entries_status_priority_created_at` added; `QueueEntryConfiguration` updated with `HasIndex` for the new composite
+- [x] Add provider + appointment_time index on Appointment table in migration
+      — Index `ix_appointments_provider_id_appointment_time` on (ProviderId, AppointmentTime); `AppointmentConfiguration` updated with `HasIndex`
+- [x] Create queue_daily_summary table DDL in migration with rollback in Down() method
+      — Table created in `Up()` with all columns, PK, FK to asp_net_users (ON DELETE SET NULL), unique composite index; `Down()` drops table and both new indexes cleanly

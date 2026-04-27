@@ -239,13 +239,13 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Implement `ClaudeRequestBuilder` with Anthropic-specific request mapping (system as top-level param, content blocks, `anthropic-version` header, `x-api-key` auth)
-- [ ] Implement `ClaudeResponseMapper` with content block concatenation, token usage mapping, stop_reason handling, and unified `AIResponse` output
-- [ ] Complete `ClaudeProviderAdapter.SendCompletionAsync` wiring request builder, response mapper, HttpClient, and error handling (429/529/500/401)
-- [ ] Implement `ClaudeProviderAdapter.IsHealthyAsync` with Anthropic API availability check
-- [ ] Enforce identical token budgets per request type (DocumentParsing 4K/1K, Intake 500/200, Coding 2K/500) with fail-fast validation before API call
-- [ ] Add structured Serilog logging for fallback activation events, request/response audit (PII-redacted), cost tracking, and latency metrics
-- [ ] Register `ClaudeRequestBuilder` and `ClaudeResponseMapper` in DI container and bind updated `ClaudeProviderOptions`
+- [X] Implement `ClaudeRequestBuilder` with Anthropic-specific request mapping (system as top-level param, content blocks, `anthropic-version` header, `x-api-key` auth)
+- [X] Implement `ClaudeResponseMapper` with content block concatenation, token usage mapping, stop_reason handling, and unified `AIResponse` output
+- [X] Complete `ClaudeProviderAdapter.SendCompletionAsync` wiring request builder, response mapper, HttpClient, and error handling (429/529/500/401)
+- [X] Implement `ClaudeProviderAdapter.IsHealthyAsync` with Anthropic API availability check
+- [X] Enforce identical token budgets per request type (DocumentParsing 4K/1K, Intake 500/200, Coding 2K/500) with fail-fast validation before API call
+- [X] Add structured Serilog logging for fallback activation events, request/response audit (PII-redacted), cost tracking, and latency metrics
+- [X] Register `ClaudeRequestBuilder` and `ClaudeResponseMapper` in DI container and bind updated `ClaudeProviderOptions`
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-O01, AIR-O02, AIR-O03, AIR-O05 requirements are met

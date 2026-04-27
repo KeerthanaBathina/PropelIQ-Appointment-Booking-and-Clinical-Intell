@@ -4,18 +4,14 @@ namespace UPACIP.Service.Auth;
 
 /// <summary>
 /// Manages the single-active-session policy and session lifecycle operations needed
-/// during authentication (AC-3, FR-007, NFR-015).
+/// during authentication (AC-2, FR-007, NFR-015, US_065 AC-2).
 ///
-/// Consolidates three auth-layer session operations so that <c>AuthController</c> only
-/// needs a single session-related dependency:
-/// <list type="bullet">
-///   <item><term>CheckAsync</term><description>Rejects a login when an active session already exists (409 Conflict).</description></item>
-///   <item><term>CreateAsync</term><description>Registers a new session in Redis after successful login.</description></item>
-///   <item><term>InvalidateAsync</term><description>Removes the session from Redis on logout.</description></item>
-/// </list>
+/// Behavior change from US_014:
+///   US_014 — rejected new login attempts with 409 when a session was already active.
+///   US_065 — terminates the existing session and ALLOWS the new login (latest session wins).
 ///
-/// Design: the guard does NOT invalidate the existing session on a conflict. The user
-/// must explicitly logout from their current device before logging in on a new one.
+/// The old device receives a 440 SESSION_TERMINATED response on its next authenticated
+/// request via <see cref="ISessionService.CheckAndClearTerminationFlagAsync"/>.
 /// </summary>
 public sealed class ConcurrentSessionGuard
 {
@@ -31,23 +27,24 @@ public sealed class ConcurrentSessionGuard
     }
 
     /// <summary>
-    /// Checks whether a concurrent active session exists for <paramref name="userId"/>.
+    /// Handles concurrent session enforcement for a new login attempt (US_065 AC-2).
+    ///
+    /// If an active session exists for <paramref name="userId"/>, it is terminated and a
+    /// one-time termination flag is stored in Redis so the old device is notified on its
+    /// next request. The new login is ALWAYS allowed (latest session wins).
+    ///
+    /// Returns a <see cref="SessionTerminationResult"/> describing the terminated session
+    /// (callers should blacklist the old JWT and write an audit log entry).
+    /// Returns a result with <c>WasTerminated = false</c> when no existing session was active.
     /// </summary>
-    /// <returns>
-    /// <see cref="ConcurrentSessionResult.Allowed"/> when no active session exists and login
-    /// may proceed. <see cref="ConcurrentSessionResult.Blocked"/> when an active session is
-    /// already present — the caller must return 409 Conflict.
-    /// </returns>
-    public async Task<ConcurrentSessionResult> CheckAsync(
+    public async Task<SessionTerminationResult> HandleConcurrentSessionAsync(
         string userId,
         string attemptIpAddress,
         CancellationToken cancellationToken = default)
     {
-        SessionData? existing = null;
-
         try
         {
-            existing = await _sessionService.GetSessionAsync(userId, cancellationToken);
+            return await _sessionService.TerminateAndReplaceSessionAsync(userId, cancellationToken);
         }
         catch (Exception ex)
         {
@@ -56,24 +53,8 @@ public sealed class ConcurrentSessionGuard
                 ex,
                 "ConcurrentSessionGuard could not query Redis for user {UserId}. Allowing login (fail-open).",
                 userId);
-            return ConcurrentSessionResult.Allowed;
+            return new SessionTerminationResult { WasTerminated = false };
         }
-
-        if (existing is null)
-            return ConcurrentSessionResult.Allowed;
-
-        // Active session found — reject the new login attempt (AC-3, FR-007).
-        _logger.LogWarning(
-            "Concurrent login rejected for user {UserId}. " +
-            "Existing session {SessionId} last active at {LastActivity} from {ExistingIp}. " +
-            "New attempt from {AttemptIp}.",
-            userId,
-            existing.SessionId,
-            existing.LastActivity,
-            existing.IpAddress,
-            attemptIpAddress);
-
-        return ConcurrentSessionResult.Blocked;
     }
 
     /// <summary>
@@ -82,10 +63,11 @@ public sealed class ConcurrentSessionGuard
     public Task CreateAsync(
         string userId,
         string sessionId,
+        string jti,
         string ipAddress,
         string userAgent,
         CancellationToken cancellationToken = default)
-        => _sessionService.CreateSessionAsync(userId, sessionId, ipAddress, userAgent, cancellationToken);
+        => _sessionService.CreateSessionAsync(userId, sessionId, jti, ipAddress, userAgent, cancellationToken);
 
     /// <summary>
     /// Deletes the Redis session on explicit logout (delegates to <see cref="ISessionService.InvalidateSessionAsync"/>).
@@ -94,12 +76,13 @@ public sealed class ConcurrentSessionGuard
         => _sessionService.InvalidateSessionAsync(userId, cancellationToken);
 }
 
-/// <summary>Outcome of a concurrent-session gate check.</summary>
+/// <summary>Outcome of a concurrent-session gate check (retained for backward compatibility).</summary>
 public enum ConcurrentSessionResult
 {
     /// <summary>No active session found — login may proceed.</summary>
     Allowed,
 
-    /// <summary>Active session exists — login must be rejected with 409 Conflict.</summary>
+    /// <summary>Active session exists — login must be rejected with 409 Conflict (US_014 behavior, superseded by US_065).</summary>
+    [Obsolete("US_065 changed behavior: concurrent sessions are now terminated, not rejected. Use HandleConcurrentSessionAsync instead.")]
     Blocked,
 }

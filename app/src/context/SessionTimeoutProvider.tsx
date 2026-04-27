@@ -27,8 +27,10 @@ import {
   apiPost,
   registerActivityReset,
   registerSessionInvalidate,
+  registerSessionTerminated,
   unregisterActivityReset,
   unregisterSessionInvalidate,
+  unregisterSessionTerminated,
 } from '@/lib/apiClient';
 import SessionTimeoutModal from '@/components/SessionTimeoutModal';
 
@@ -69,6 +71,15 @@ export function SessionTimeoutProvider({ children }: SessionTimeoutProviderProps
     navigate('/login?expired=true', { replace: true });
   }, [clearAuth, navigate]);
 
+  // Handle concurrent session termination (US_065 AC-2, 440 response).
+  // Stops timers, clears auth, and navigates to login with ?reason=session_terminated
+  // so SessionTerminatedAlert is displayed.
+  const handleSessionTerminated = useCallback(() => {
+    setShowWarning(false);
+    clearAuth();
+    navigate('/login?reason=session_terminated', { replace: true });
+  }, [clearAuth, navigate]);
+
   const handleWarn = useCallback(() => {
     setShowWarning(true);
   }, []);
@@ -77,21 +88,25 @@ export function SessionTimeoutProvider({ children }: SessionTimeoutProviderProps
     enabled: !!accessToken,
     onWarn: handleWarn,
     onExpire: invalidateSession,
+    isWarningVisible: showWarning,
   });
 
-  // Register resetTimer and invalidateSession with apiClient interceptors (AC-2)
+  // Register resetTimer, invalidateSession, and sessionTerminated with apiClient interceptors
   useEffect(() => {
     registerActivityReset(resetTimer);
     registerSessionInvalidate(invalidateSession);
+    registerSessionTerminated(handleSessionTerminated);
     return () => {
       unregisterActivityReset();
       unregisterSessionInvalidate();
+      unregisterSessionTerminated();
     };
-  }, [resetTimer, invalidateSession]);
+  }, [resetTimer, invalidateSession, handleSessionTerminated]);
 
-  // "Extend Session" flow — POST /api/auth/extend-session
+  // "Extend Session" flow — POST /api/session/extend (US_065 AC-4)
+  // Throws so SessionTimeoutModal can distinguish network errors from 401 responses.
   const handleExtend = useCallback(async () => {
-    const data = await apiPost<{ accessToken: string }>('/api/auth/extend-session', {});
+    const data = await apiPost<{ accessToken: string }>('/api/session/extend', {});
     useAuthStore.getState().setTokens(data.accessToken);
     resetTimer();
     setShowWarning(false);

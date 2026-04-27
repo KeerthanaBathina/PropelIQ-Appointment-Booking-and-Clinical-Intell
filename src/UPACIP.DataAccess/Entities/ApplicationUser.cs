@@ -84,4 +84,22 @@ public sealed class ApplicationUser : IdentityUser<Guid>
 
     /// <summary>Client IP address at the time of the last successful login (IPv4 or IPv6).</summary>
     public string? LastLoginIp { get; set; }
+
+    // -------------------------------------------------------------------------
+    // Staff account deactivation fields (US_061 AC-3)
+    // -------------------------------------------------------------------------
+
+    /// <summary>
+    /// UTC timestamp when this account was deactivated.
+    /// Null while the account is active.  Set on deactivation; cleared on reactivation.
+    /// Preserved for audit trail even after subsequent reactivation cycles (FR-088).
+    /// </summary>
+    public DateTimeOffset? DeactivatedAt { get; set; }
+
+    /// <summary>
+    /// FK to the <see cref="ApplicationUser"/> who performed the deactivation.
+    /// Self-referencing; nullable (ON DELETE SET NULL) so the audit metadata survives
+    /// if the acting admin account is later removed (DR-016).
+    /// </summary>
+    public Guid? DeactivatedBy { get; set; }
 }

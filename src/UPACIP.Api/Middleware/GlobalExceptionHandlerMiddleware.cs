@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using UPACIP.Api.Models;
@@ -24,6 +25,22 @@ public sealed class GlobalExceptionHandlerMiddleware
     private const string ForeignKeyViolation  = "23503";
     private const string CheckViolation       = "23514";
 
+    /// <summary>
+    /// User-friendly messages per HTTP status code (AC-3: no internal details exposed).
+    /// The {0} placeholder in the 500 entry is replaced with the correlation ID at runtime.
+    /// </summary>
+    private static readonly Dictionary<int, string> UserFriendlyMessages = new()
+    {
+        [400] = "The request contains invalid data. Please check the fields below.",
+        [401] = "Authentication is required to access this resource.",
+        [403] = "You do not have permission to perform this action.",
+        [404] = "The requested resource was not found.",
+        [409] = "A conflict occurred with the current state of the resource.",
+        [429] = "Too many requests. Please try again later.",
+        [499] = "The request was cancelled.",
+        [500] = "An unexpected error occurred. Please contact support with reference ID: {0}.",
+    };
+
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -45,6 +62,63 @@ public sealed class GlobalExceptionHandlerMiddleware
         try
         {
             await _next(context);
+        }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // Client disconnected — 499 is a non-standard but widely-accepted code.
+            // No logging: these are benign and would pollute alerting dashboards (AC-3).
+            context.Response.StatusCode = 499;
+            return;
+        }
+        catch (ValidationException ex)
+        {
+            var correlationId = GetCorrelationId(context);
+            _logger.LogWarning(
+                "Validation failed. CorrelationId: {CorrelationId} Path: {Path} Errors: {ErrorCount}",
+                correlationId, context.Request.Path, ex.Errors.Count());
+
+            // Build field-level error map — field names and expected formats only (AC-4).
+            // ex.Message is deliberately excluded from the response body (AC-3, EC-1).
+            var validationErrors = ex.Errors
+                .GroupBy(e => e.PropertyName, StringComparer.OrdinalIgnoreCase)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(e => e.ErrorMessage).ToArray());
+
+            await WriteErrorResponseAsync(context,
+                statusCode:       (int)HttpStatusCode.BadRequest,
+                message:          UserFriendlyMessages[400],
+                detail:           null,
+                correlationId:    correlationId,
+                validationErrors: validationErrors);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            var correlationId = GetCorrelationId(context);
+            _logger.LogWarning(
+                ex,
+                "Unauthorized access. CorrelationId: {CorrelationId} Path: {Path}",
+                correlationId, context.Request.Path);
+
+            await WriteErrorResponseAsync(context,
+                statusCode:    (int)HttpStatusCode.Unauthorized,
+                message:       UserFriendlyMessages[401],
+                detail:        null,
+                correlationId: correlationId);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            var correlationId = GetCorrelationId(context);
+            _logger.LogWarning(
+                ex,
+                "Resource not found. CorrelationId: {CorrelationId} Path: {Path}",
+                correlationId, context.Request.Path);
+
+            await WriteErrorResponseAsync(context,
+                statusCode:    (int)HttpStatusCode.NotFound,
+                message:       UserFriendlyMessages[404],
+                detail:        null,
+                correlationId: correlationId);
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -92,7 +166,7 @@ public sealed class GlobalExceptionHandlerMiddleware
 
             await WriteErrorResponseAsync(context,
                 statusCode:    (int)HttpStatusCode.InternalServerError,
-                message:       "An unexpected error occurred. Please try again later.",
+                message:       string.Format(UserFriendlyMessages[500], correlationId),
                 detail:        null,
                 correlationId: correlationId);
         }
@@ -107,18 +181,20 @@ public sealed class GlobalExceptionHandlerMiddleware
         int statusCode,
         string message,
         string? detail,
-        string correlationId)
+        string correlationId,
+        IDictionary<string, string[]>? validationErrors = null)
     {
         context.Response.StatusCode  = statusCode;
         context.Response.ContentType = "application/json";
 
         var errorResponse = new ErrorResponse
         {
-            StatusCode    = statusCode,
-            Message       = message,
-            Detail        = detail,
-            CorrelationId = correlationId,
-            Timestamp     = DateTimeOffset.UtcNow
+            StatusCode       = statusCode,
+            Message          = message,
+            Detail           = detail,
+            CorrelationId    = correlationId,
+            Timestamp        = DateTimeOffset.UtcNow,
+            ValidationErrors = validationErrors
         };
 
         await context.Response.WriteAsync(

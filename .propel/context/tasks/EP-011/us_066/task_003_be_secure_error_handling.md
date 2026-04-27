@@ -194,9 +194,9 @@ dotnet test --no-build
 
 ## Implementation Checklist
 
-- [ ] Create `CorrelationIdMiddleware` with header propagation and Serilog LogContext enrichment
-- [ ] Create `ErrorResponse` DTO with `CorrelationId`, `Message`, `StatusCode`, and optional `Errors` list
-- [ ] Create `GlobalExceptionHandlerMiddleware` with exception-to-status-code mapping and sanitized responses
-- [ ] Define static user-friendly error message mapping per HTTP status code
-- [ ] Register `CorrelationIdMiddleware` and `GlobalExceptionHandlerMiddleware` in correct pipeline order in `Program.cs`
-- [ ] Verify `.Enrich.FromLogContext()` is configured in Serilog pipeline for correlation ID propagation
+- [x] Create `CorrelationIdMiddleware` with header propagation and Serilog LogContext enrichment
+- [x] Create `ErrorResponse` DTO with `CorrelationId`, `Message`, `StatusCode`, and optional `Errors` list
+- [x] Create `GlobalExceptionHandlerMiddleware` with exception-to-status-code mapping and sanitized responses
+- [x] Define static user-friendly error message mapping per HTTP status code
+- [x] Register `CorrelationIdMiddleware` and `GlobalExceptionHandlerMiddleware` in correct pipeline order in `Program.cs`
+- [x] Verify `.Enrich.FromLogContext()` is configured in Serilog pipeline for correlation ID propagation

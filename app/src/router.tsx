@@ -19,7 +19,7 @@ const StaffDashboard = lazy(() => import('@/pages/StaffDashboard'));
 const AdminDashboard = lazy(() => import('@/pages/AdminDashboard'));
 const AppointmentBookingPage = lazy(() => import('@/pages/AppointmentBookingPage'));
 const AppointmentHistoryPage = lazy(() => import('@/pages/AppointmentHistoryPage'));
-const ArrivalQueuePage = lazy(() => import('@/pages/ArrivalQueuePage'));
+const ArrivalQueuePage = lazy(() => import('@/pages/staff/ArrivalQueuePage'));
 // SCR-008 — AI Conversational Intake (US_027)
 const AIIntakePage = lazy(() => import('@/pages/AIIntakePage'));
 // SCR-009 — Manual Intake Form (US_028)
@@ -32,6 +32,8 @@ const PatientProfilePage = lazy(() => import('@/pages/PatientProfilePage'));
 const PatientProfile360Page = lazy(() => import('@/pages/PatientProfile360Page'));
 // SCR-014 — Medical Coding Review (US_047)
 const MedicalCodingReviewPage = lazy(() => import('@/pages/MedicalCodingReviewPage'));
+// SCR-016 — Patient Search (US_062)
+const PatientSearchPage = lazy(() => import('@/pages/staff/PatientSearchPage'));
 
 function RouteLoadingFallback() {
   return (
@@ -128,7 +130,7 @@ function AppRoutes() {
             </ProtectedRoute>
           }
         />
-        {/* SCR-011 — Arrival Queue (US_026) */}
+        {/* SCR-011 — Arrival Queue (US_053) */}
         <Route
           path="/staff/queue"
           element={
@@ -143,6 +145,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['Staff']}>
               <DocumentUploadPage />
+            </ProtectedRoute>
+          }
+        />
+        {/* SCR-016 — Patient Search (US_062 AC-1, AC-2) */}
+        <Route
+          path="/staff/patients/search"
+          element={
+            <ProtectedRoute allowedRoles={['Staff']}>
+              <PatientSearchPage />
             </ProtectedRoute>
           }
         />

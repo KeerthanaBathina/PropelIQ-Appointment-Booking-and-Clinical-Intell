@@ -164,12 +164,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `TokenBudgetOptions` configuration class with per-request-type input/output limits and register with `IOptions<T>` pattern
-- [ ] Create `AiRequestType` enum (DocumentParsing, ConversationalIntake, MedicalCoding)
-- [ ] Create `TokenBudgetResult` model with validation outcome fields
-- [ ] Implement `ITokenBudgetValidator` interface with `ValidateAsync` method signature
-- [ ] Implement `TokenBudgetValidator` with tiktoken-compatible token counting (cl100k_base encoding) and budget comparison
-- [ ] Integrate token budget validation into `AiGatewayService` request pipeline as pre-provider middleware (reject with 422 if over budget)
-- [ ] Add `TokenBudget` section to `appsettings.json` with configured limits (DocumentParsing: 4000/1000, Intake: 500/200, Coding: 2000/500)
-- [ ] Add structured Serilog logging for all budget enforcement decisions with correlation IDs and PII redaction
+- [X] Create `TokenBudgetOptions` configuration class with per-request-type input/output limits and register with `IOptions<T>` pattern
+- [X] Create `AiRequestType` enum (DocumentParsing, ConversationalIntake, MedicalCoding)
+- [X] Create `TokenBudgetResult` model with validation outcome fields
+- [X] Implement `ITokenBudgetValidator` interface with `ValidateAsync` method signature
+- [X] Implement `TokenBudgetValidator` with tiktoken-compatible token counting (cl100k_base encoding) and budget comparison
+- [X] Integrate token budget validation into `AiGatewayService` request pipeline as pre-provider middleware (reject with 422 if over budget)
+- [X] Add `TokenBudget` section to `appsettings.json` with configured limits (DocumentParsing: 4000/1000, Intake: 500/200, Coding: 2000/500)
+- [X] Add structured Serilog logging for all budget enforcement decisions with correlation IDs and PII redaction
 - **[AI Tasks - MANDATORY]** Verify AIR-O01, AIR-O02, AIR-O03 requirements are met

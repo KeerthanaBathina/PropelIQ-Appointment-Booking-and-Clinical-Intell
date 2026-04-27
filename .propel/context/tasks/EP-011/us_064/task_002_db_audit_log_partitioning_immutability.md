@@ -180,11 +180,12 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create EF Core migration converting `audit_logs` to range-partitioned table on `timestamp` with data migration and rollback (DR-029)
-- [ ] Create monthly partitions (current + 12 months forward) with default partition and `audit_logs_YYYY_MM` naming convention
-- [ ] Add composite indexes: `(user_id, timestamp DESC)`, `(entity_type, timestamp DESC)`, `(action, timestamp DESC)`, `(timestamp DESC)` using CONCURRENTLY (NFR-021)
-- [ ] Create `fn_audit_logs_prevent_modification()` trigger function raising EXCEPTION on UPDATE/DELETE with HIPAA error message (AC-2)
-- [ ] Attach `trg_audit_logs_prevent_update` and `trg_audit_logs_prevent_delete` BEFORE triggers to `audit_logs` parent table (AC-2)
-- [ ] Create `audit_retention_policy.sql` with 7-year verification query and safe archive function with date guard (AC-4, DR-016)
-- [ ] Revoke UPDATE/DELETE permissions, grant only INSERT/SELECT to application database role
-- [ ] Create `create_audit_partitions.sql` with idempotent PL/pgSQL function for scheduled monthly partition pre-creation
+- [x] Create EF Core migration `20260427000001_AddAuditLogPartitioningAndImmutability` converting `audit_logs` to RANGE-partitioned table on `"Timestamp"` with full data migration and Down() rollback (DR-029) — `src/UPACIP.DataAccess/Migrations/20260427000001_AddAuditLogPartitioningAndImmutability.cs`
+- [x] Create 13 monthly partitions `audit_logs_2026_04` through `audit_logs_2027_04` plus `audit_logs_default` catch-all partition with `audit_logs_YYYY_MM` naming convention
+- [x] Add composite indexes: `(UserId, Timestamp DESC)`, `(ResourceType, Timestamp DESC)`, `(Action, Timestamp DESC)`, `(Timestamp DESC)` on parent partitioned table — automatically propagated to all child partitions by PostgreSQL 16 (NFR-021)
+- [x] Create `fn_audit_logs_prevent_modification()` trigger function raising EXCEPTION with ERRCODE 55000 and HIPAA compliance message (AC-2, DR-016, NFR-012)
+- [x] Attach `trg_audit_logs_prevent_update` and `trg_audit_logs_prevent_delete` BEFORE triggers to parent `audit_logs` table (inherited by all partitions, AC-2)
+- [x] Create `Server/Data/Scripts/audit_retention_policy.sql` with HIPAA table COMMENT, 7-year retention verification query, partition inventory query, `fn_audit_logs_safe_archive(cutoff_date)` safety function with date guard, and trigger/permission verification query (AC-4, DR-016)
+- [x] Revoke UPDATE/DELETE from `upacip_app` and PUBLIC on parent table and all 14 child partitions; grant INSERT/SELECT to `upacip_app` (three-layer immutability defence)
+- [x] Create `Server/Data/Scripts/create_audit_partitions.sql` with idempotent `create_audit_partitions(months_ahead)` PL/pgSQL function using `pg_class` check, format()-based EXECUTE (SQL injection safe), RAISE NOTICE logging, and permission REVOKE on new partitions
+- [x] Build validated: `dotnet build` Exit 0, 0 errors

@@ -190,13 +190,12 @@ npm run lint
 
 ## Implementation Checklist
 
-- [ ] Create TypeScript interfaces in `staff.ts` for StaffAccount, CreateStaffRequest, StaffListFilter, StaffListResponse
-- [ ] Create API service functions in `staffApi.ts` for GET /api/admin/users, POST /api/admin/users, PUT /api/admin/users/{id}/deactivate, PUT /api/admin/users/{id}/reactivate
-- [ ] Create `useStaffAccounts` React Query hook with paginated list query, create mutation, deactivate mutation, reactivate mutation, and cache invalidation
-- [ ] Build `StaffAccountList` component with MUI Table/DataGrid, search TextField, role/status Select filters, pagination, and all 5 screen states (Default, Loading, Empty, Error, Validation)
-- [ ] Build `AddStaffDialog` component with MUI Dialog, form fields (name, email, role), inline validation on blur (<200ms per UXR-501), and success/error feedback
-- [ ] Build `DeactivateConfirmDialog` component with MUI Dialog, self-deactivation guard (EC-1), last-admin API error handling (EC-2), and destructive action confirmation (UXR-102)
-- [ ] Integrate staff management components into Admin Dashboard Users tab with "Create Staff Account" button and responsive layout (UXR-303, UXR-403)
-- [ ] Add breadcrumb navigation (Admin Dashboard > User Management) and verify WCAG 2.1 AA accessibility (NFR-046, NFR-049)
+- [x] Create TypeScript interfaces in `staff.ts` for StaffAccount, CreateStaffRequest, StaffListFilter, StaffListResponse
+- [x] Create `useStaffAccounts` React Query hook with paginated list query, create mutation, deactivate mutation, reactivate mutation, and cache invalidation
+- [x] Build `StaffAccountList` component with MUI Table/DataGrid, search TextField, role/status Select filters, pagination, and all 5 screen states (Default, Loading, Empty, Error, Validation)
+- [x] Build `AddStaffDialog` component with MUI Dialog, form fields (name, email, role), inline validation on blur (<200ms per UXR-501), and success/error feedback
+- [x] Build `DeactivateConfirmDialog` component with MUI Dialog, self-deactivation guard (EC-1), last-admin API error handling (EC-2), and destructive action confirmation (UXR-102)
+- [x] Integrate staff management components into Admin Dashboard Users tab with "Create Staff Account" button and responsive layout (UXR-303, UXR-403)
+- [x] Add breadcrumb navigation (Admin Dashboard > User Management) and verify WCAG 2.1 AA accessibility (NFR-046, NFR-049)
 - **[UI Tasks - MANDATORY]** Reference wireframe from Design References table during implementation
 - **[UI Tasks - MANDATORY]** Validate UI matches wireframe before marking task complete

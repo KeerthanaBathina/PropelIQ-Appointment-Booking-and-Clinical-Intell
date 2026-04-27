@@ -144,24 +144,24 @@ Server/
 
 - [ ] Unit tests pass
 - [ ] Integration tests pass (if applicable)
-- [ ] PUT /queue/{id}/priority returns 200 with updated queue when valid priority set
-- [ ] PUT /queue/{id}/priority returns 404 when queue_id does not exist
-- [ ] PUT /queue/reorder returns 200 with reordered queue on valid request
-- [ ] PUT /queue/reorder returns 409 Conflict when row_version mismatch (concurrent modification)
-- [ ] Urgent patients always appear above normal patients in GET /queue/today response
-- [ ] Multiple urgent patients sorted by arrival_timestamp ascending
-- [ ] QueueAuditLog records created for every priority change and reorder operation
-- [ ] Audit records contain correct staff_user_id, original_position, new_position
-- [ ] Redis cache invalidated after priority/reorder operations
-- [ ] Unauthorized users (non-Staff, non-Admin) receive 403 Forbidden
+- [x] PUT /queue/{id}/priority returns 200 with updated queue when valid priority set
+- [x] PUT /queue/{id}/priority returns 404 when queue_id does not exist
+- [x] PUT /queue/reorder returns 200 with reordered queue on valid request
+- [x] PUT /queue/reorder returns 409 Conflict when row_version mismatch (concurrent modification)
+- [x] Urgent patients always appear above normal patients in GET /queue/today response
+- [x] Multiple urgent patients sorted by arrival_timestamp ascending
+- [x] QueueAuditLog records created for every priority change and reorder operation
+- [x] Audit records contain correct staff_user_id, original_position, new_position
+- [x] Redis cache invalidated after priority/reorder operations
+- [x] Unauthorized users (non-Staff, non-Admin) receive 403 Forbidden
 
 ## Implementation Checklist
 
-- [ ] Create `SetPriorityRequest` DTO with Guid queue_id and QueuePriority enum, validated via DataAnnotations
-- [ ] Create `ReorderQueueRequest` DTO with Guid queue_id and int new_position (Range 1-999), validated via DataAnnotations
-- [ ] Create `QueueReorderResponse` DTO wrapping ordered List of QueueEntryDto
-- [ ] Create `QueueAuditLog` entity with action_type, queue_id, staff_user_id, original/new position and priority fields, timestamp
-- [ ] Implement `PUT /queue/{queue_id}/priority` endpoint — validate input, call service, return sorted queue; [Authorize(Roles="Staff,Admin")]
-- [ ] Implement `PUT /queue/reorder` endpoint — validate input, call service with optimistic lock check, return 200 or 409; [Authorize(Roles="Staff,Admin")]
-- [ ] Implement `SetPriorityAsync` in QueueService — update priority, recalculate all queue_position values (urgent first by arrival, normal second by arrival), write QueueAuditLog
-- [ ] Implement `ReorderQueueAsync` in QueueService — read row_version, shift positions, update target, catch DbUpdateConcurrencyException for 409, invalidate Redis cache, write QueueAuditLog
+- [x] Create `SetPriorityRequest` DTO with Guid queue_id and QueuePriority enum, validated via DataAnnotations
+- [x] Create `ReorderQueueRequest` DTO with Guid queue_id and int new_position (Range 1-999), validated via DataAnnotations
+- [x] Create `QueueReorderResponse` DTO wrapping ordered List of QueueEntryDto
+- [x] Create `QueueAuditLog` entity with action_type, queue_id, staff_user_id, original/new position and priority fields, timestamp
+- [x] Implement `PUT /queue/{queue_id}/priority` endpoint — validate input, call service, return sorted queue; [Authorize(Roles="Staff,Admin")]
+- [x] Implement `PUT /queue/reorder` endpoint — validate input, call service with optimistic lock check, return 200 or 409; [Authorize(Roles="Staff,Admin")]
+- [x] Implement `SetPriorityAsync` in QueueService — update priority, recalculate all queue_position values (urgent first by arrival, normal second by arrival), write QueueAuditLog
+- [x] Implement `ReorderQueueAsync` in QueueService — read row_version, shift positions, update target, catch DbUpdateConcurrencyException for 409, invalidate Redis cache, write QueueAuditLog

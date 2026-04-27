@@ -204,10 +204,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create `NotificationTemplate.cs` entity with all properties, JSONB AllowedVariables, audit columns, RowVersion
-- [ ] Create `RiskConfiguration.cs` entity with threshold, JSONB ScoringParameters, RecalculationPending flag, RowVersion
-- [ ] Create `NotificationTemplateConfiguration.cs` — Fluent API with unique index, check constraints, JSONB mapping, seed data (6 records)
-- [ ] Create `RiskConfigurationConfiguration.cs` — Fluent API with check constraint (0–100), JSONB mapping, seed data (1 record)
-- [ ] Add `DbSet<NotificationTemplate>` and `DbSet<RiskConfiguration>` to AppDbContext.cs
-- [ ] Generate EF Core migration and verify Up/Down methods are correct
+- [x] Create `NotificationTemplate.cs` entity with all properties, JSONB AllowedVariables, audit columns, RowVersion
+- [x] Create `RiskConfiguration.cs` entity with threshold, JSONB ScoringParameters, RecalculationPending flag, RowVersion
+- [x] Create `NotificationTemplateConfiguration.cs` — Fluent API with unique index, check constraints, JSONB mapping, seed data (6 records)
+- [x] Create `RiskConfigurationConfiguration.cs` — Fluent API with check constraint (0–100), JSONB mapping, seed data (1 record)
+- [x] Add `DbSet<NotificationTemplate>` and `DbSet<RiskConfiguration>` to AppDbContext.cs
+- [x] Generate EF Core migration and verify Up/Down methods are correct
 - [ ] Apply migration and validate schema in PostgreSQL

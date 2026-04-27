@@ -126,9 +126,10 @@ Server/
 
 ## Implementation Checklist
 
-- [ ] Create EF Core migration enabling `pg_trgm` extension (`CREATE EXTENSION IF NOT EXISTS pg_trgm`)
-- [ ] Add GIN trigram index on `patients.full_name` using `gin_trgm_ops` operator class
-- [ ] Add B-tree index on `patients.phone_number` for exact phone lookups
-- [ ] Add B-tree index on `patients.date_of_birth` for exact DOB lookups
-- [ ] Add partial B-tree index on `patients.full_name` filtered by `WHERE deleted_at IS NULL` for active-only searches
-- [ ] Implement `Down()` rollback method dropping all indexes and extension in reverse order
+- [x] Create EF Core migration enabling `pg_trgm` extension (`CREATE EXTENSION IF NOT EXISTS pg_trgm`) — `20260426000005_AddPatientSearchIndexes.cs`
+- [x] Add GIN trigram index on `patients.full_name` using `gin_trgm_ops` operator class — `ix_patients_full_name_trgm`
+- [x] Add B-tree index on `patients.phone_number` for exact phone lookups — `ix_patients_phone_number`
+- [x] Add B-tree index on `patients.date_of_birth` for exact DOB lookups — `ix_patients_date_of_birth`
+- [x] Add partial B-tree index on `patients.full_name` filtered by `WHERE deleted_at IS NULL` for active-only searches — `ix_patients_full_name_active`
+- [x] Implement `Down()` rollback method dropping all indexes and extension in reverse order
+- [x] Build validated: `dotnet build` Exit 0, 0 errors

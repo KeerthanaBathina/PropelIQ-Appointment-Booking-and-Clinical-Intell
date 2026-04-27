@@ -148,6 +148,105 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<PayerRuleViolation> PayerRuleViolations => Set<PayerRuleViolation>();
 
+    /// <summary>
+    /// Immutable queue-specific audit trail recording every priority change and manual reorder
+    /// performed by staff (US_054 AC-3, TR-028). Richer than the general AuditLog — includes
+    /// original/new position and priority for queue reconstruction and compliance reporting.
+    /// Append-only; no update or delete paths are exposed.
+    /// </summary>
+    public DbSet<QueueAuditLog> QueueAuditLogs => Set<QueueAuditLog>();
+
+    /// <summary>
+    /// System-wide key-value configuration table (US_055 AC-3, DR-009).
+    /// Stores runtime-configurable platform settings such as the wait time alert threshold
+    /// (<c>queue.wait_threshold_minutes</c>). Values are also cached in Redis (60s TTL)
+    /// for low-latency reads; this table acts as the source of truth on cache miss.
+    /// </summary>
+    public DbSet<SystemConfig> SystemConfigs => Set<SystemConfig>();
+
+    /// <summary>
+    /// Pre-aggregated daily queue metrics for history reporting and CSV export (US_056 AC-3, AC-4).
+    /// One row per (summary_date, provider_id, appointment_type) partition.
+    /// Null provider_id / appointment_type represent all-provider / all-type roll-ups.
+    /// </summary>
+    public DbSet<QueueDailySummary> QueueDailySummaries => Set<QueueDailySummary>();
+
+    /// <summary>
+    /// Pre-aggregated daily system metrics snapshots for the Admin Dashboard trend charts
+    /// (US_058 AC-1, AC-2, NFR-004).  One row per UTC calendar day; upserted by the
+    /// metrics service or a background aggregation job.
+    /// </summary>
+    public DbSet<SystemMetricsSnapshot> SystemMetricsSnapshots => Set<SystemMetricsSnapshot>();
+
+    /// <summary>
+    /// Notification message template definitions for the Admin Configuration UI
+    /// (US_058 AC-3, FR-095).  Each row defines the channel, trigger event, and message body
+    /// skeleton for a notification type (e.g. appointment reminder, cancellation notice).
+    /// Distinct from <c>NotificationLog</c> which records individual delivery attempts.
+    /// </summary>
+    public DbSet<NotificationTemplate> NotificationTemplates => Set<NotificationTemplate>();
+
+    /// <summary>
+    /// Singleton risk configuration record including scoring parameter weights
+    /// and deferred recalculation flag (US_060 AC-3, AC-4).
+    /// The table is designed to hold exactly one row seeded by migration
+    /// <c>20260426000003_AddNotificationTemplateAndRiskConfigSchema</c>.
+    /// All writes go through the Admin Configuration UI and are protected
+    /// by an optimistic-concurrency token.
+    /// </summary>
+    public DbSet<RiskConfiguration> RiskConfigurations => Set<RiskConfiguration>();
+
+    /// <summary>
+    /// Admin-configurable weekly slot template headers — one per (provider, day-of-week)
+    /// combination (US_059 AC-1, AC-2).  Child blocks are stored in
+    /// <see cref="SlotTemplateBlocks"/>.
+    /// </summary>
+    public DbSet<SlotTemplate> SlotTemplates => Set<SlotTemplate>();
+
+    /// <summary>
+    /// Child time-block records within a <see cref="SlotTemplate"/> defining per-hour
+    /// appointment types and availability (US_059 AC-1).
+    /// Cascade-deleted with their parent <see cref="SlotTemplate"/>.
+    /// </summary>
+    public DbSet<SlotTemplateBlock> SlotTemplateBlocks => Set<SlotTemplateBlock>();
+
+    /// <summary>
+    /// Clinic-wide business hours — one row per day of the week (US_059 AC-3).
+    /// Seeded with Mon–Fri 08:00–17:00, Sat 09:00–13:00, Sun closed.
+    /// </summary>
+    public DbSet<BusinessHours> BusinessHours => Set<BusinessHours>();
+
+    /// <summary>
+    /// Holiday definitions that block appointment slots for a specific date (US_059 AC-4).
+    /// Supports soft-delete (<c>DeletedAt</c>) and recurring annual holidays.
+    /// </summary>
+    public DbSet<Holiday> Holidays => Set<Holiday>();
+
+    // ── AI Cost Tracking (US_071) ─────────────────────────────────────────────
+
+    /// <summary>
+    /// Immutable per-request AI cost records appended by the AI Gateway after every LLM call
+    /// (US_071 TASK_001, AC-1).  Stores provider, request type, token counts, estimated cost,
+    /// cost source (actual vs. approximate), and correlation ID for cross-service tracing.
+    /// Append-only — no UPDATE or DELETE paths are exposed.
+    /// </summary>
+    public DbSet<AiRequestLog> AiRequestLogs => Set<AiRequestLog>();
+
+    /// <summary>
+    /// Per-provider AI cost budget configuration and rate card (US_071 TASK_001, AC-1, AC-2).
+    /// One row per provider (unique constraint on <c>Provider</c>).
+    /// Seeded by migration <c>AddAiCostTrackingTables</c> with GPT-4o-mini and Claude 3.5 Sonnet defaults.
+    /// </summary>
+    public DbSet<AiCostBudgetConfig> AiCostBudgetConfigs => Set<AiCostBudgetConfig>();
+
+    /// <summary>
+    /// Pre-aggregated daily AI cost rollup by provider and request type (US_071 TASK_001, AC-1).
+    /// Written by the daily aggregation job; unique composite constraint on
+    /// (<c>SummaryDate</c>, <c>Provider</c>, <c>RequestType</c>) enables safe upserts.
+    /// Used by the admin cost dashboard for O(log n) date-range queries (NFR-004).
+    /// </summary>
+    public DbSet<AiCostDailySummary> AiCostDailySummaries => Set<AiCostDailySummary>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to
