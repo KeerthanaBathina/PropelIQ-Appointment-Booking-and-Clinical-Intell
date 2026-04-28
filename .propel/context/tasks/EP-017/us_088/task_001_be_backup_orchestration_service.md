@@ -249,25 +249,26 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Backup executes at configured schedule time and produces a `.dump` file in the backup directory (AC-1)
-- [ ] Backup filename follows `upacip_backup_YYYYMMDD_HHMMSS.dump` naming convention
-- [ ] BackupLog record contains filename, file size, duration, status, and SHA-256 checksum (AC-3)
-- [ ] Structured Serilog event emitted with backup metadata on completion (AC-3)
-- [ ] Failed backup is retried once after 15 minutes (AC-4)
-- [ ] Double failure emits critical alert via Serilog (AC-4)
-- [ ] Backup is skipped with error log when disk usage exceeds 80% threshold (edge case 1)
-- [ ] Disk space warning emitted when usage exceeds 70%
-- [ ] PostgreSQL password is never visible in command-line arguments or logs
-- [ ] pg_dump runs with `--no-owner --no-privileges` flags
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Backup executes at configured schedule time and produces a `.dump` file in the backup directory (AC-1)
+- [x] Backup filename follows `upacip_backup_YYYYMMDD_HHMMSS.dump` naming convention
+- [x] BackupLog record contains filename, file size, duration, status, and SHA-256 checksum (AC-3)
+- [x] Structured Serilog event emitted with backup metadata on completion (AC-3)
+- [x] Failed backup is retried once after 15 minutes (AC-4)
+- [x] Double failure emits critical alert via Serilog (AC-4)
+- [x] Backup is skipped with error log when disk usage exceeds 80% threshold (edge case 1)
+- [x] Disk space warning emitted when usage exceeds 70%
+- [x] PostgreSQL password is never visible in command-line arguments or logs
+- [x] pg_dump runs with `--no-owner --no-privileges` flags
 
 ## Implementation Checklist
 
-- [ ] Create `BackupOptions` with pg_dump path, backup directory, schedule, retry delay, disk threshold
-- [ ] Create `BackupResult` DTO with success, file path, size, duration, checksum, error
-- [ ] Create `BackupLog` entity with metadata fields and add DbSet to ApplicationDbContext
-- [ ] Implement `IBackupExecutor` with pg_dump Process invocation and SHA-256 checksum computation
-- [ ] Implement disk space pre-check with 80% threshold and critical alert
-- [ ] Implement `DatabaseBackupService` BackgroundService with 2 AM schedule and retry logic
-- [ ] Secure credential handling via PGPASSWORD environment variable (not command-line)
-- [ ] Register BackupOptions, IBackupExecutor, and DatabaseBackupService in Program.cs
+- [x] Create `BackupOptions` with pg_dump path, backup directory, schedule, retry delay, disk threshold
+- [x] Create `BackupResult` DTO with success, file path, size, duration, checksum, error
+- [x] Create `BackupLog` entity with metadata fields and add DbSet to ApplicationDbContext
+- [x] Implement `IBackupExecutor` with pg_dump Process invocation and SHA-256 checksum computation
+- [x] Implement disk space pre-check with 80% threshold and critical alert
+- [x] Implement `DatabaseBackupService` BackgroundService with 2 AM schedule and retry logic
+- [x] Secure credential handling via PGPASSWORD environment variable (not command-line)
+- [x] Register BackupOptions, IBackupExecutor, and DatabaseBackupService in Program.cs
+

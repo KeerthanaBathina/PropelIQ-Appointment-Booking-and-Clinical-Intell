@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
+using UPACIP.Service.Caching;
 
 namespace UPACIP.Service.Appointments;
 
@@ -37,6 +38,7 @@ public sealed class AppointmentCancellationService : IAppointmentCancellationSer
 
     private readonly ApplicationDbContext                     _db;
     private readonly IAppointmentSlotService                  _slotService;
+    private readonly ICacheInvalidationCoordinator            _invalidationCoordinator;
     private readonly IWaitlistOfferQueue                      _waitlistQueue;
     private readonly IPreferredSlotSwapQueue                  _swapQueue;
     private readonly ILogger<AppointmentCancellationService>  _logger;
@@ -44,15 +46,17 @@ public sealed class AppointmentCancellationService : IAppointmentCancellationSer
     public AppointmentCancellationService(
         ApplicationDbContext                    db,
         IAppointmentSlotService                 slotService,
+        ICacheInvalidationCoordinator           invalidationCoordinator,
         IWaitlistOfferQueue                     waitlistQueue,
         IPreferredSlotSwapQueue                 swapQueue,
         ILogger<AppointmentCancellationService> logger)
     {
-        _db             = db;
-        _slotService    = slotService;
-        _waitlistQueue  = waitlistQueue;
-        _swapQueue      = swapQueue;
-        _logger         = logger;
+        _db                      = db;
+        _slotService             = slotService;
+        _invalidationCoordinator = invalidationCoordinator;
+        _waitlistQueue           = waitlistQueue;
+        _swapQueue               = swapQueue;
+        _logger                  = logger;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -225,12 +229,14 @@ public sealed class AppointmentCancellationService : IAppointmentCancellationSer
                 : CancellationResult.NotFound();
         }
 
-        // ── 10. Invalidate slot cache (AC-3, NFR-030) ────────────────────────
+        // ── 10. Invalidate slot + patient profile caches (US_084 task_002, AC-4) ─────────────
+        // Coordinator evicts both the slot availability cache (freed slot must reappear
+        // on the next query) AND the patient profile cache (appointment count changed).
         // Must occur AFTER commit so stale entries are never re-added after invalidation.
-        // Frees the slot within 1 minute by removing the cache entry for the affected date.
-        await _slotService.InvalidateCacheAsync(
-            DateOnly.FromDateTime(appointment.AppointmentTime),
+        await _invalidationCoordinator.InvalidateOnCancellationAsync(
             appointment.ProviderId,
+            appointment.AppointmentTime,
+            patient.Id,
             cancellationToken);
 
         // ── 11. Enqueue freed slot for waitlist matching (AC-2) ──────────────

@@ -221,26 +221,27 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] DELETE /api/patients/{id} sets DeletedAt to current timestamp (AC-1)
-- [ ] Patient is NOT physically removed from the database after soft delete (AC-1)
-- [ ] Standard patient queries exclude soft-deleted records without any code changes (AC-2 — existing query filter)
-- [ ] GET /api/patients?includeDeleted=true returns soft-deleted patients with IsDeleted=true (AC-3)
-- [ ] Soft-deleted patient shows DeletedAt timestamp in the response (AC-3)
-- [ ] Soft delete is blocked when patient has active scheduled appointments (edge case 1)
-- [ ] Soft delete response includes list of blocking dependencies when blocked
-- [ ] POST /api/patients/{id}/restore clears DeletedAt and restores patient to active status (edge case 2)
-- [ ] Restored patient's dependent data (appointments, intake, documents) is immediately queryable
-- [ ] Audit log entries are created for both soft delete and restore operations
-- [ ] Restore endpoint is restricted to admin role only
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] DELETE /api/patients/{id} sets DeletedAt to current timestamp (AC-1)
+- [x] Patient is NOT physically removed from the database after soft delete (AC-1)
+- [x] Standard patient queries exclude soft-deleted records without any code changes (AC-2 — existing query filter)
+- [x] GET /api/patients?includeDeleted=true returns soft-deleted patients with IsDeleted=true (AC-3)
+- [x] Soft-deleted patient shows DeletedAt timestamp in the response (AC-3)
+- [x] Soft delete is blocked when patient has active scheduled appointments (edge case 1)
+- [x] Soft delete response includes list of blocking dependencies when blocked
+- [x] POST /api/patients/{id}/restore clears DeletedAt and restores patient to active status (edge case 2)
+- [x] Restored patient's dependent data (appointments, intake, documents) is immediately queryable
+- [x] Audit log entries are created for both soft delete and restore operations
+- [x] Restore endpoint is restricted to admin role only
 
 ## Implementation Checklist
 
-- [ ] Create `SoftDeleteResult` model with Success, BlockedReason, ActiveDependencies
-- [ ] Create `PatientListItem` DTO with IsDeleted and DeletedAt for admin queries
-- [ ] Implement `IPatientSoftDeleteService.SoftDeleteAsync` with dependency guard for active appointments/intake/documents
-- [ ] Implement `IPatientSoftDeleteService.RestoreAsync` to clear DeletedAt for admin restore
-- [ ] Implement `IPatientSoftDeleteService.GetPatientsIncludingDeletedAsync` using IgnoreQueryFilters
-- [ ] Add DELETE, POST restore, and GET includeDeleted endpoints to PatientController
-- [ ] Integrate audit logging for soft delete and restore operations
-- [ ] Register IPatientSoftDeleteService in Program.cs
+- [x] Create `SoftDeleteResult` model with Success, BlockedReason, ActiveDependencies
+- [x] Create `PatientListItem` DTO with IsDeleted and DeletedAt for admin queries
+- [x] Implement `IPatientSoftDeleteService.SoftDeleteAsync` with dependency guard for active appointments/intake/documents
+- [x] Implement `IPatientSoftDeleteService.RestoreAsync` to clear DeletedAt for admin restore
+- [x] Implement `IPatientSoftDeleteService.GetPatientsIncludingDeletedAsync` using IgnoreQueryFilters
+- [x] Add DELETE, POST restore, and GET includeDeleted endpoints to PatientController
+- [x] Integrate audit logging for soft delete and restore operations
+- [x] Register IPatientSoftDeleteService in Program.cs
+

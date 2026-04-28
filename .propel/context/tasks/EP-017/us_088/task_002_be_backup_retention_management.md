@@ -217,24 +217,25 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Daily backups older than 30 days are deleted (unless promoted to weekly/monthly) (AC-2)
-- [ ] Sunday backups are classified as weekly tier and retained for 90 days (AC-2)
-- [ ] 1st-of-month backups are classified as monthly tier and retained for 1 year (AC-2)
-- [ ] Backup on Sunday the 1st is classified as monthly (highest tier, longest retention)
-- [ ] Retention cleanup logs structured summary with deleted count and freed bytes
-- [ ] Files not matching `upacip_backup_*.dump` pattern are skipped with warning
-- [ ] Retention cleanup failure does not fail the backup cycle
-- [ ] BackupLog entry records retention cleanup activity
-- [ ] Changing retention periods in appsettings takes effect on next backup cycle
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Daily backups older than 30 days are deleted (unless promoted to weekly/monthly) (AC-2)
+- [x] Sunday backups are classified as weekly tier and retained for 90 days (AC-2)
+- [x] 1st-of-month backups are classified as monthly tier and retained for 1 year (AC-2)
+- [x] Backup on Sunday the 1st is classified as monthly (highest tier, longest retention)
+- [x] Retention cleanup logs structured summary with deleted count and freed bytes
+- [x] Files not matching `upacip_backup_*.dump` pattern are skipped with warning
+- [x] Retention cleanup failure does not fail the backup cycle
+- [x] BackupLog entry records retention cleanup activity
+- [x] Changing retention periods in appsettings takes effect on next backup cycle
 
 ## Implementation Checklist
 
-- [ ] Create `BackupRetentionOptions` with daily/weekly/monthly retention periods
-- [ ] Create `BackupFileInfo` DTO with tier classification and `BackupTier` enum
-- [ ] Implement `IBackupRetentionService` with directory scan, tier classification, and expiration logic
-- [ ] Handle tier promotion edge cases (Sunday 1st → monthly, missing backups)
-- [ ] Implement expired file deletion with per-file and summary logging
-- [ ] Integrate retention cleanup into DatabaseBackupService after successful backup
-- [ ] Persist retention cleanup activity to BackupLog
-- [ ] Register BackupRetentionOptions and IBackupRetentionService in Program.cs
+- [x] Create `BackupRetentionOptions` with daily/weekly/monthly retention periods
+- [x] Create `BackupFileInfo` DTO with tier classification and `BackupTier` enum
+- [x] Implement `IBackupRetentionService` with directory scan, tier classification, and expiration logic
+- [x] Handle tier promotion edge cases (Sunday 1st → monthly, missing backups)
+- [x] Implement expired file deletion with per-file and summary logging
+- [x] Integrate retention cleanup into DatabaseBackupService after successful backup
+- [x] Persist retention cleanup activity to BackupLog
+- [x] Register BackupRetentionOptions and IBackupRetentionService in Program.cs
+

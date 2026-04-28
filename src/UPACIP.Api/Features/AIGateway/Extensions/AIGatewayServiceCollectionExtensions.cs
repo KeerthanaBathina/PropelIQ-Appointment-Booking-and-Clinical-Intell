@@ -184,6 +184,12 @@ public static class AIGatewayServiceCollectionExtensions
         // IPiiRedactionService is registered in Program.cs before AddAIGateway().
         services.AddSingleton<PiiRedactionMiddleware>();
 
+        // ── AI Audit Logging Middleware (US_080 task_002, AIR-S04) ────────────
+        // Singleton — reads post-PII-redacted prompt + response from completed requests
+        // and enqueues persistence entries to IAiAuditService (bounded channel).
+        // IAiAuditService is registered in Program.cs before AddAIGateway().
+        services.AddSingleton<AiAuditLoggingMiddleware>();
+
         // ── Core gateway service (Scoped) ─────────────────────────────────────
         services.AddScoped<IAIGatewayService, AIGatewayService>();
 

@@ -246,24 +246,25 @@ powershell -ExecutionPolicy Bypass -File scripts/Setup-WalArchiving.ps1
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] PostgreSQL `archive_mode = on` and `archive_command` configured correctly
-- [ ] WAL segments appear in the archive directory after database writes
-- [ ] `pg_switch_wal()` executes every 15 minutes, forcing segment completion (AC-1)
-- [ ] Monitoring detects stalled archiving when no new segments arrive within 20 minutes
-- [ ] WAL segment gaps are detected and logged with sequence details
-- [ ] Corrupted WAL segments are detected via `pg_waldump` and flagged (edge case 1)
-- [ ] WAL segments older than 30 days are cleaned up by retention
-- [ ] `pg_stat_archiver` query reports archival status correctly
-- [ ] RPO ≤ 15 minutes achieved via forced WAL switching (AC-4, NFR-024)
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] PostgreSQL `archive_mode = on` and `archive_command` configured correctly
+- [x] WAL segments appear in the archive directory after database writes
+- [x] `pg_switch_wal()` executes every 15 minutes, forcing segment completion (AC-1)
+- [x] Monitoring detects stalled archiving when no new segments arrive within 20 minutes
+- [x] WAL segment gaps are detected and logged with sequence details
+- [x] Corrupted WAL segments are detected via `pg_waldump` and flagged (edge case 1)
+- [x] WAL segments older than 30 days are cleaned up by retention
+- [x] `pg_stat_archiver` query reports archival status correctly
+- [x] RPO ≤ 15 minutes achieved via forced WAL switching (AC-4, NFR-024)
 
 ## Implementation Checklist
 
-- [ ] Create `WalArchivalOptions` with archive directory, switch interval, monitoring frequency, retention
-- [ ] Create `Setup-WalArchiving.ps1` PowerShell script for postgresql.conf configuration
-- [ ] Implement `pg_switch_wal()` scheduled execution every 15 minutes
-- [ ] Implement WAL archival health monitoring with gap and corruption detection
-- [ ] Implement WAL retention cleanup aligned with backup retention window
-- [ ] Create `WalArchivalStatus` DTO for health reporting
-- [ ] Expose WAL archival status via health check integration
-- [ ] Register WalArchivalOptions and WalArchivalMonitoringService in Program.cs
+- [x] Create `WalArchivalOptions` with archive directory, switch interval, monitoring frequency, retention
+- [x] Create `Setup-WalArchiving.ps1` PowerShell script for postgresql.conf configuration
+- [x] Implement `pg_switch_wal()` scheduled execution every 15 minutes
+- [x] Implement WAL archival health monitoring with gap and corruption detection
+- [x] Implement WAL retention cleanup aligned with backup retention window
+- [x] Create `WalArchivalStatus` DTO for health reporting
+- [x] Expose WAL archival status via health check integration
+- [x] Register WalArchivalOptions and WalArchivalMonitoringService in Program.cs
+

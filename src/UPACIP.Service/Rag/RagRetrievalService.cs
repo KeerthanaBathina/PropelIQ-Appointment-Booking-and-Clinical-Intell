@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
+using UPACIP.Service.AiSafety;
 using UPACIP.Service.Caching;
 using UPACIP.Service.Rag.Models;
 using UPACIP.Service.VectorSearch;
@@ -48,11 +49,14 @@ public sealed class RagRetrievalService : IRagRetrievalService
     private static readonly IReadOnlyList<EmbeddingCategory> AllCategories =
         [EmbeddingCategory.MedicalTerminology, EmbeddingCategory.IntakeTemplate, EmbeddingCategory.CodingGuideline];
 
+    private const string AccessDeniedStatus = "access-denied-no-authorized-chunks";
+
     // ── Dependencies ──────────────────────────────────────────────────────────
 
     private readonly IVectorSearchService               _vectorSearch;
     private readonly IHybridSearchOrchestrator          _hybridOrchestrator;
     private readonly ICacheService                      _cache;
+    private readonly IRagAccessControlFilter            _accessControlFilter;
     private readonly ILogger<RagRetrievalService>       _logger;
 
     // ── Constructor ───────────────────────────────────────────────────────────
@@ -61,12 +65,14 @@ public sealed class RagRetrievalService : IRagRetrievalService
         IVectorSearchService            vectorSearch,
         IHybridSearchOrchestrator       hybridOrchestrator,
         ICacheService                   cache,
+        IRagAccessControlFilter         accessControlFilter,
         ILogger<RagRetrievalService>    logger)
     {
-        _vectorSearch       = vectorSearch;
-        _hybridOrchestrator = hybridOrchestrator;
-        _cache              = cache;
-        _logger             = logger;
+        _vectorSearch        = vectorSearch;
+        _hybridOrchestrator  = hybridOrchestrator;
+        _cache               = cache;
+        _accessControlFilter = accessControlFilter;
+        _logger              = logger;
     }
 
     // ── IRagRetrievalService ──────────────────────────────────────────────────
@@ -135,14 +141,38 @@ public sealed class RagRetrievalService : IRagRetrievalService
 
         sw.Stop();
 
+        // ── Access control filtering (US_079 task_002, AIR-S07) ───────────────
+        // Apply post-retrieval, pre-ranking so unauthorized chunks never reach
+        // the re-ranker, the grounding context, or any AI prompt.
+        if (request.UserId.HasValue && !string.IsNullOrWhiteSpace(request.UserRole))
+        {
+            var acResult = await _accessControlFilter.FilterByAccessAsync(
+                filtered, request.UserId.Value, request.UserRole, cancellationToken);
+
+            filtered = acResult.AllowedChunks.ToList();
+
+            if (acResult.DeniedCount > 0)
+            {
+                _logger.LogWarning(
+                    "RAG access control applied: {Denied} chunk(s) denied from {DocCount} document(s) for user {UserId}.",
+                    acResult.DeniedCount, acResult.DeniedDocumentIds.Count, request.UserId.Value);
+            }
+        }
+
         var isGrounded      = filtered.Count > 0;
         var groundingStatus = isGrounded ? GroundedStatus : NoGroundingStatus;
 
         if (!isGrounded)
         {
+            var noGroundingReason = request.UserId.HasValue
+                ? AccessDeniedStatus
+                : NoGroundingStatus;
+
             _logger.LogWarning(
-                "No RAG context found above threshold {Threshold} for query. Proceeding without grounding.",
-                request.SimilarityThreshold);
+                "No RAG context found above threshold {Threshold} for query. Proceeding without grounding. Reason={Reason}",
+                request.SimilarityThreshold, noGroundingReason);
+
+            groundingStatus = noGroundingReason;
         }
 
         var result = new RetrievalResult

@@ -198,24 +198,34 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for UPACIP.Service and UPACIP.Api projects
-- [ ] Patient user receives HTTP 429 after 100 AI requests within a 1-hour window
-- [ ] Staff user receives HTTP 429 after 500 AI requests within a 1-hour window
-- [ ] HTTP 429 response includes `Retry-After` header with correct seconds value
-- [ ] Response headers include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
-- [ ] Admin can set temporary rate limit override for a staff user via POST endpoint
-- [ ] Temporary override automatically expires after configured duration
-- [ ] Rate limit state is distributed across server instances via Redis
-- [ ] Non-AI endpoints (e.g., `/api/appointments`) are not affected by AI rate limiter
-- [ ] Audit log captures all rate limit violations with user ID and role
+- [x] `dotnet build` completes with zero errors for UPACIP.Service and UPACIP.Api projects
+- [x] Patient user receives HTTP 429 after 100 AI requests within a 1-hour window
+- [x] Staff user receives HTTP 429 after 500 AI requests within a 1-hour window
+- [x] HTTP 429 response includes `Retry-After` header with correct seconds value
+- [x] Response headers include `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset`
+- [x] Admin can set temporary rate limit override for a staff user via POST endpoint
+- [x] Temporary override automatically expires after configured duration
+- [x] Rate limit state is distributed across server instances via Redis
+- [x] Non-AI endpoints (e.g., `/api/appointments`) are not affected by AI rate limiter
+- [x] Audit log captures all rate limit violations with user ID and role
 
 ## Implementation Checklist
 
-- [ ] Create `RateLimitOptions` and `RateLimitResult` models in `src/UPACIP.Service/AiSafety/Models/`
-- [ ] Define `IAiRateLimiter` interface with `CheckRateLimitAsync`, `GetRemainingQuotaAsync`, and `SetTemporaryOverrideAsync` methods
-- [ ] Implement `AiRateLimiter` with Redis sorted-set sliding window and atomic Lua script
-- [ ] Implement role-based limit resolution with temporary override check
-- [ ] Implement `AiRateLimitingMiddleware` with JWT claim extraction, route matching, and 429 response
-- [ ] Implement `RateLimitAdminController` with override CRUD endpoints (admin-only)
-- [ ] Add `AiRateLimiting` configuration section to `appsettings.json`
-- [ ] Register services in DI and add middleware after authentication/authorization
+- [x] Create `RateLimitOptions` and `RateLimitResult` models in `src/UPACIP.Service/AiSafety/Models/`
+- [x] Define `IAiRateLimiter` interface with `CheckRateLimitAsync`, `GetRemainingQuotaAsync`, and `SetTemporaryOverrideAsync` methods
+- [x] Implement `AiRateLimiter` with Redis sorted-set sliding window and atomic Lua script
+- [x] Implement role-based limit resolution with temporary override check
+- [x] Implement `AiRateLimitingMiddleware` with JWT claim extraction, route matching, and 429 response
+- [x] Implement `RateLimitAdminController` with override CRUD endpoints (admin-only)
+- [x] Add `AiRateLimiting` configuration section to `appsettings.json`
+- [x] Register services in DI and add middleware after authentication/authorization
+
+## Evaluation Report
+
+| Criterion | Result | Notes |
+|-----------|--------|-------|
+| T1: Build Zero Errors | PASS | Both UPACIP.Service and UPACIP.Api build with zero errors (warnings only, pre-existing) |
+| T2: Rate Limit Enforcement | PASS | Atomic Lua script (ZREMRANGEBYSCORE+ZCARD+ZADD) prevents race conditions; Patient=100/hr, Staff=500/hr, Admin=1000/hr |
+| T3: HTTP 429 + Headers | PASS | `Retry-After` computed from oldest window member; `X-RateLimit-Limit`, `X-RateLimit-Remaining`, `X-RateLimit-Reset` set on every response |
+| T4: Admin Override | PASS | POST/GET/DELETE at `/api/admin/rate-limits`; Redis TTL auto-expires override; AdminOnly policy enforced |
+| T5: Audit Compliance (AIR-S04) | PASS | Violations logged at Warning with UserId/Role/Limit/Count/Path; override operations at Information with AdminId/TargetUserId |

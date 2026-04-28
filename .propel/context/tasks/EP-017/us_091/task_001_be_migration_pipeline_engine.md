@@ -288,11 +288,11 @@ dotnet ef database update --project src/UPACIP.DataAccess --startup-project src/
 
 ## Implementation Checklist
 
-- [ ] Implement `CustomHistoryRepository` extending NpgsqlHistoryRepository with timestamp and checksum columns
-- [ ] Register CustomHistoryRepository in ApplicationDbContext via ReplaceService
-- [ ] Create `MigrationExecutionOptions` with timeout, pre-backup, dry run, logging
-- [ ] Implement `IMigrationExecutionService` with transactional execution and rollback handling
-- [ ] Create `MigrationExecutionResult` DTO with static factory methods
-- [ ] Add Down() method completeness validation warning
-- [ ] Create `Apply-Migrations.ps1` deployment script
-- [ ] Register MigrationExecutionOptions and IMigrationExecutionService in Program.cs
+- [x] Implement `CustomHistoryRepository` extending NpgsqlHistoryRepository with timestamp and checksum columns
+- [x] Register CustomHistoryRepository in ApplicationDbContext via ReplaceService
+- [x] Create `MigrationExecutionOptions` with timeout, pre-backup, dry run, logging
+- [x] Implement `IMigrationExecutionService` with transactional execution and rollback handling
+- [x] Create `MigrationExecutionResult` DTO with static factory methods
+- [x] Add Down() method completeness validation warning
+- [x] Create `Apply-Migrations.ps1` deployment script
+- [x] Register MigrationExecutionOptions and IMigrationExecutionService in Program.cs

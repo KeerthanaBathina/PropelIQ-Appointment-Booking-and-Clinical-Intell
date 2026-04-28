@@ -6,7 +6,10 @@ using Polly;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
+using UPACIP.Service.Caching;
 using UPACIP.Service.Notifications;
+using UPACIP.Service.Performance;
+using UPACIP.Service.Validation;
 
 namespace UPACIP.Service.Appointments;
 
@@ -31,9 +34,18 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
     // PostgreSQL SQLSTATE for unique constraint violation (DR-014).
     private const string PgUniqueViolation = "23505";
 
+    // Redis key prefix for slot availability cache-aside (US_081 task_002, AC-1).
+    // Key: slot:taken:{providerId}:{appointmentTime:yyyyMMddHHmm}  TTL: 5 minutes.
+    private const string SlotTakenKeyPrefix = "slot:taken:";
+    private static readonly TimeSpan SlotCacheTtl = TimeSpan.FromMinutes(5);
+
     private readonly ApplicationDbContext            _db;
     private readonly ISlotHoldService                _holdService;
     private readonly IAppointmentSlotService         _slotService;
+    private readonly ICacheService                   _cache;
+    private readonly ICacheInvalidationCoordinator   _invalidationCoordinator;
+    private readonly IPerformanceTracker             _tracker;
+    private readonly IDuplicateBookingValidator      _duplicateBookingValidator;
     private readonly NoShowRiskOrchestrator          _riskOrchestrator;
     private readonly IBookingConfirmationNotificationService _confirmationService;
     private readonly ClinicSettings                  _clinicSettings;
@@ -47,18 +59,26 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         ApplicationDbContext               db,
         ISlotHoldService                   holdService,
         IAppointmentSlotService            slotService,
+        ICacheService                      cache,
+        IPerformanceTracker                tracker,
+        ICacheInvalidationCoordinator      invalidationCoordinator,
+        IDuplicateBookingValidator         duplicateBookingValidator,
         NoShowRiskOrchestrator             riskOrchestrator,
         IBookingConfirmationNotificationService confirmationService,
         ClinicSettings                     clinicSettings,
         ILogger<AppointmentBookingService> logger)
     {
-        _db                   = db;
-        _holdService          = holdService;
-        _slotService          = slotService;
-        _riskOrchestrator     = riskOrchestrator;
-        _confirmationService  = confirmationService;
-        _clinicSettings       = clinicSettings;
-        _logger               = logger;
+        _db                        = db;
+        _holdService               = holdService;
+        _slotService               = slotService;
+        _cache                     = cache;
+        _tracker                   = tracker;
+        _invalidationCoordinator   = invalidationCoordinator;
+        _duplicateBookingValidator = duplicateBookingValidator;
+        _riskOrchestrator          = riskOrchestrator;
+        _confirmationService       = confirmationService;
+        _clinicSettings            = clinicSettings;
+        _logger                    = logger;
 
         _retryPolicy = Policy
             .Handle<NpgsqlException>(ex => ex.IsTransient)
@@ -122,6 +142,14 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
                 return BookingResult.GuardianConsentRequired();
             }
         }
+
+        // ── 1c. Duplicate booking pre-check (US_085 AC-3) ────────────────────
+        // Checked here — before the slot hold and transaction — so duplicate requests
+        // fail fast without wasting slot hold lookups or DB round-trips.
+        // Throws DuplicateBookingException → GlobalExceptionHandlerMiddleware → 409 Conflict.
+        // The DB unique constraint (US_010 task_001) remains the race-condition safety net.
+        await _duplicateBookingValidator.ValidateNoDuplicateAsync(
+            patientId, request.AppointmentTime, cancellationToken);
 
         // ── 2. Verify the slot hold belongs to this user (AC-3) ─────────────
         var holdOwned = await _holdService.IsHeldByUserAsync(
@@ -196,15 +224,50 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         // Normalise to UTC so PostgreSQL timestamp comparisons are consistent.
         var appointmentTime = DateTime.SpecifyKind(request.AppointmentTime, DateTimeKind.Utc);
 
-        // ── 4. Pre-insert slot availability check ────────────────────────────
-        // Uses ix_appointments_appointment_time_status_provider_id (US_017 TASK_003).
-        var slotTaken = await _db.Appointments
-            .AsNoTracking()
-            .AnyAsync(
-                a => a.ProviderId    == request.ProviderId
-                  && a.AppointmentTime == appointmentTime
-                  && a.Status          != AppointmentStatus.Cancelled,
-                cancellationToken);
+        // ── 4. Pre-insert slot availability check (US_081 task_002, AC-1) ────
+        // First check Redis cache (expected >80% hit ratio after pre-warming, NFR-004).
+        // On cache hit we skip the DB round-trip entirely, reducing hot-path latency.
+        // Cache key: slot:taken:{providerId}:{appointmentTime:yyyyMMddHHmm}
+        var slotCacheKey = $"{SlotTakenKeyPrefix}{request.ProviderId}:{appointmentTime:yyyyMMddHHmm}";
+
+        bool slotTaken;
+        using (var cacheSpan = _tracker.StartSpan("booking.cache_check"))
+        {
+            var cachedResult = await _cache.GetAsync<string>(slotCacheKey, cancellationToken);
+
+            if (cachedResult is not null)
+            {
+                // Cache hit — resolve availability without DB query.
+                slotTaken = cachedResult == "1";
+                _tracker.CompleteOperation(cacheSpan, success: true);
+
+                _logger.LogDebug(
+                    "Slot cache HIT: key={Key} taken={Taken}.",
+                    slotCacheKey, slotTaken);
+            }
+            else
+            {
+                // Cache miss — query DB, then populate cache (5-min TTL per NFR-030).
+                _tracker.CompleteOperation(cacheSpan, success: true);
+
+                using var querySpan = _tracker.StartSpan("booking.compiled_query");
+                slotTaken = await _db.Appointments
+                    .AsNoTracking()
+                    .AnyAsync(
+                        a => a.ProviderId      == request.ProviderId
+                          && a.AppointmentTime == appointmentTime
+                          && a.Status          != AppointmentStatus.Cancelled,
+                        cancellationToken);
+                _tracker.CompleteOperation(querySpan, success: true);
+
+                // Populate cache (write failure is swallowed by ICacheService).
+                await _cache.SetAsync(slotCacheKey, slotTaken ? "1" : "0", SlotCacheTtl, cancellationToken);
+
+                _logger.LogDebug(
+                    "Slot cache MISS — DB queried: key={Key} taken={Taken}.",
+                    slotCacheKey, slotTaken);
+            }
+        }
 
         if (slotTaken)
         {
@@ -246,10 +309,13 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
 
         _db.Appointments.Add(appointment);
 
-        // ── 7. Persist with conflict handling ────────────────────────────────
+        // ── 7. Persist with conflict handling (US_081 task_002, AC-1) ─────────
+        // Wrapped in a span so the transaction latency is visible in APM traces.
         try
         {
+            using var txSpan = _tracker.StartSpan("booking.transaction");
             await _db.SaveChangesAsync(cancellationToken);
+            _tracker.CompleteOperation(txSpan, success: true);
         }
         catch (DbUpdateConcurrencyException ex)
         {
@@ -281,11 +347,18 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
         appointment.BookingReference = bookingReference;
         await _db.SaveChangesAsync(cancellationToken);
 
-        // ── 9. Invalidate Redis slot cache for the affected date (US_017) ────
-        await _slotService.InvalidateCacheAsync(
-            DateOnly.FromDateTime(appointmentTime),
+        // ── 9. Invalidate Redis caches for the affected date (US_084 task_002, AC-4) ────
+        // Coordinator evicts both the slot availability cache AND the patient profile cache
+        // (appointment count changed). Must occur AFTER commit, never inside the transaction.
+        await _invalidationCoordinator.InvalidateOnBookingAsync(
             request.ProviderId,
+            appointmentTime,
+            patientId,
             cancellationToken);
+
+        // Invalidate the per-slot taken-status cache entry so the next booking
+        // request to the same slot gets a fresh DB check (US_081 task_002, AC-1).
+        await _cache.RemoveAsync(slotCacheKey, cancellationToken);
 
         // ── 10. Release the slot hold (AC-3) ─────────────────────────────────
         await _holdService.ReleaseHoldAsync(request.SlotId, userEmail, cancellationToken);
@@ -459,14 +532,15 @@ public sealed class AppointmentBookingService : IAppointmentBookingService
             return RescheduleResult.Conflict();
         }
 
-        // ── 4. Invalidate caches for both old and new slots ─────────────────
-        var oldDate = DateOnly.FromDateTime(oldTime);
-        var newDate = DateOnly.FromDateTime(newTime);
-
-        await _slotService.InvalidateCacheAsync(oldDate, oldProviderId, cancellationToken);
-
-        if (newDate != oldDate || newProviderId != oldProviderId)
-            await _slotService.InvalidateCacheAsync(newDate, newProviderId, cancellationToken);
+        // ── 4. Invalidate caches for both old and new slots (US_084 task_002, AC-4) ──────
+        // InvalidateOnRescheduleAsync evicts slot cache for old + new dates AND the patient
+        // profile cache (appointment history changed).
+        await _invalidationCoordinator.InvalidateOnRescheduleAsync(
+            providerId:  newProviderId,
+            oldDate:     oldTime,
+            newDate:     newTime,
+            patientId:   appointment.PatientId,
+            cancellationToken: cancellationToken);
 
         _logger.LogInformation(
             "Appointment rescheduled: appointmentId={Id}, from={OldTime}, to={NewTime}, slot={SlotId}.",

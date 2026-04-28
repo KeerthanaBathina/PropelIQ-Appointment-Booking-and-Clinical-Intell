@@ -187,26 +187,27 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Slot availability query returns cached data on second request within 5-minute window (cache hit)
-- [ ] After 5 minutes, slot availability query fetches fresh data from PostgreSQL (cache expiry)
-- [ ] Patient profile query returns cached data on second request within 5-minute window
-- [ ] After booking, the affected provider/date slot cache entry is invalidated immediately
-- [ ] After cancellation, the released slot appears as available on the next query (not stale)
-- [ ] After rescheduling, both old-date and new-date slot cache entries are invalidated
-- [ ] When Redis is unavailable, slot and profile queries fall through to database without error
-- [ ] Cache hit/miss metrics are emitted via IPerformanceTracker for operational monitoring
-- [ ] Cache hit ratio alert triggers when ratio drops below 80%
-- [ ] Two concurrent bookings for the same slot resolve via database locking (not cache)
-- [ ] Cache invalidation failures are swallowed and logged — never block the booking response
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Slot availability query returns cached data on second request within 5-minute window (cache hit)
+- [x] After 5 minutes, slot availability query fetches fresh data from PostgreSQL (cache expiry)
+- [x] Patient profile query returns cached data on second request within 5-minute window
+- [x] After booking, the affected provider/date slot cache entry is invalidated immediately
+- [x] After cancellation, the released slot appears as available on the next query (not stale)
+- [x] After rescheduling, both old-date and new-date slot cache entries are invalidated
+- [x] When Redis is unavailable, slot and profile queries fall through to database without error
+- [x] Cache hit/miss metrics are emitted via IPerformanceTracker for operational monitoring
+- [x] Cache hit ratio alert triggers when ratio drops below 80%
+- [x] Two concurrent bookings for the same slot resolve via database locking (not cache)
+- [x] Cache invalidation failures are swallowed and logged — never block the booking response
 
 ## Implementation Checklist
 
-- [ ] Harden `AppointmentSlotCacheService` with composite key validation, absolute 5-min TTL, Redis fallthrough, and cache metrics
-- [ ] Create `CachedPatientProfile` DTO and implement `PatientProfileCacheService` with cache-aside pattern
-- [ ] Implement `ICacheInvalidationCoordinator` / `CacheInvalidationCoordinator` with booking, cancellation, and reschedule invalidation
-- [ ] Integrate `ICacheInvalidationCoordinator` into `AppointmentBookingService` post-commit invalidation
-- [ ] Integrate `ICacheInvalidationCoordinator` into `AppointmentCancellationService` post-commit invalidation
-- [ ] Document stale-cache resolution via database-level optimistic locking for concurrent bookings
-- [ ] Add cache hit ratio monitoring and <80% alert in PerformanceMonitoringService
-- [ ] Register `PatientProfileCacheService` and `CacheInvalidationCoordinator` in DI
+- [x] Harden `AppointmentSlotCacheService` with composite key validation, absolute 5-min TTL, Redis fallthrough, and cache metrics
+- [x] Create `CachedPatientProfile` DTO and implement `PatientProfileCacheService` with cache-aside pattern
+- [x] Implement `ICacheInvalidationCoordinator` / `CacheInvalidationCoordinator` with booking, cancellation, and reschedule invalidation
+- [x] Integrate `ICacheInvalidationCoordinator` into `AppointmentBookingService` post-commit invalidation
+- [x] Integrate `ICacheInvalidationCoordinator` into `AppointmentCancellationService` post-commit invalidation
+- [x] Document stale-cache resolution via database-level optimistic locking for concurrent bookings
+- [x] Add cache hit ratio monitoring and <80% alert in PerformanceMonitoringService
+- [x] Register `PatientProfileCacheService` and `CacheInvalidationCoordinator` in DI
+

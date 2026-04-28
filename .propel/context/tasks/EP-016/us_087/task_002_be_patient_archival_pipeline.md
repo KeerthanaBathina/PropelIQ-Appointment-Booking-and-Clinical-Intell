@@ -236,26 +236,27 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Archive migration creates archive.patients, archive.intake_data, archive.clinical_documents, archive.extracted_data, archive.medical_codes tables
-- [ ] Soft-deleted patient older than SoftDeletedPatientArchivalDays is moved to archive.patients (AC-4)
-- [ ] All dependent records (appointments, intake, documents, extracted data, medical codes) are archived in same transaction
-- [ ] Original IDs are preserved in archive tables for cross-reference (AC-4)
-- [ ] ArchivedPatientReference is retained in main schema with patient ID and name
-- [ ] Audit log entries referencing archived patient ID still resolve via ArchivedPatientReference
-- [ ] Patient protected by audit-log reference within 7-year window is NOT archived
-- [ ] Clinical records are archived (not deleted) per DR-017 indefinite retention
-- [ ] FK constraints are respected during deletion (bottom-up order)
-- [ ] Single patient archival failure does not abort the entire batch
-- [ ] Changing SoftDeletedPatientArchivalDays takes effect on next nightly cycle
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Archive migration creates archive.patients, archive.intake_data, archive.clinical_documents, archive.extracted_data, archive.medical_codes tables
+- [x] Soft-deleted patient older than SoftDeletedPatientArchivalDays is moved to archive.patients (AC-4)
+- [x] All dependent records (appointments, intake, documents, extracted data, medical codes) are archived in same transaction
+- [x] Original IDs are preserved in archive tables for cross-reference (AC-4)
+- [x] ArchivedPatientReference is retained in main schema with patient ID and name
+- [x] Audit log entries referencing archived patient ID still resolve via ArchivedPatientReference
+- [x] Patient protected by audit-log reference within 7-year window is NOT archived
+- [x] Clinical records are archived (not deleted) per DR-017 indefinite retention
+- [x] FK constraints are respected during deletion (bottom-up order)
+- [x] Single patient archival failure does not abort the entire batch
+- [x] Changing SoftDeletedPatientArchivalDays takes effect on next nightly cycle
 
 ## Implementation Checklist
 
-- [ ] Add SoftDeletedPatientArchivalDays to RetentionPolicyOptions and appsettings.json
-- [ ] Create ArchivedPatientReference entity with original ID, name, email, timestamps
-- [ ] Create archive migration for patients, intake_data, clinical_documents, extracted_data, medical_codes
-- [ ] Implement IPatientArchivalService with cascading archival in transaction
-- [ ] Add audit-log reference protection check before archiving each patient
-- [ ] Handle FK dependency order during main-table deletion (bottom-up)
-- [ ] Extend DataRetentionService nightly batch with patient archival step
-- [ ] Register IPatientArchivalService and add DbSet<ArchivedPatientReference> to ApplicationDbContext
+- [x] Add SoftDeletedPatientArchivalDays to RetentionPolicyOptions and appsettings.json
+- [x] Create ArchivedPatientReference entity with original ID, name, email, timestamps
+- [x] Create archive migration for patients, intake_data, clinical_documents, extracted_data, medical_codes
+- [x] Implement IPatientArchivalService with cascading archival in transaction
+- [x] Add audit-log reference protection check before archiving each patient
+- [x] Handle FK dependency order during main-table deletion (bottom-up)
+- [x] Extend DataRetentionService nightly batch with patient archival step
+- [x] Register IPatientArchivalService and add DbSet<ArchivedPatientReference> to ApplicationDbContext
+

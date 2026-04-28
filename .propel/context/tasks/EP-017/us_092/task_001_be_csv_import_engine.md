@@ -268,11 +268,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `ImportOptions` with batch size, max file size, max errors, allowed entity types
-- [ ] Implement `ICsvParser` with streaming read, delimiter auto-detection, encoding support
-- [ ] Define `ICsvImportProfile<T>` interface with mapping, validation, duplicate check
-- [ ] Implement `PatientImportProfile` with email validation, DOB parsing, email duplicate check
-- [ ] Implement `AppointmentImportProfile` with FK resolution, status enum, composite duplicate check
-- [ ] Implement `UserImportProfile` with role restriction (staff/admin only), email duplicate check
-- [ ] Implement `ICsvImportEngine` with batch persist, error collection, and result reporting
-- [ ] Create `ImportResult` and `RowError` DTOs with PII-safe raw value handling
+- [x] Create `ImportOptions` with batch size, max file size, max errors, allowed entity types
+- [x] Implement `ICsvParser` with streaming read, delimiter auto-detection, encoding support
+- [x] Define `ICsvImportProfile<T>` interface with mapping, validation, duplicate check
+- [x] Implement `PatientImportProfile` with email validation, DOB parsing, email duplicate check
+- [x] Implement `AppointmentImportProfile` with FK resolution, status enum, composite duplicate check
+- [x] Implement `UserImportProfile` with role restriction (staff/admin only), email duplicate check
+- [x] Implement `ICsvImportEngine` with batch persist, error collection, and result reporting
+- [x] Create `ImportResult` and `RowError` DTOs with PII-safe raw value handling

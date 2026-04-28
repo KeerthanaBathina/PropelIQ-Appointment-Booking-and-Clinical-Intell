@@ -1,0 +1,64 @@
+{
+  "ContentFilterRules": [
+    {
+      "Category": "HarmfulMedicalAdvice",
+      "RegexPattern": "(take|administer|give)\\s+\\d+\\s*(mg|ml|mcg|units?|tablets?|capsules?)\\s+(of\\s+)?\\w+\\s*(daily|twice|three\\s+times|per\\s+day|every\\s+\\d+\\s+hours?)?",
+      "Description": "Unqualified dosage instruction that may cause patient harm if followed without medical supervision."
+    },
+    {
+      "Category": "HarmfulMedicalAdvice",
+      "RegexPattern": "you\\s+(definitely\\s+)?(have|are\\s+diagnosed\\s+with|suffer\\s+from)\\s+[a-zA-Z]+",
+      "Description": "Self-diagnosis encouragement — directing a user to self-diagnose a condition without qualified medical evaluation."
+    },
+    {
+      "Category": "HarmfulMedicalAdvice",
+      "RegexPattern": "(stop|discontinue|quit|cease)\\s+(taking|using|your)\\s+(medication|treatment|prescription|therapy|drug|pill)",
+      "Description": "Unqualified treatment discontinuation instruction — advising to stop medication without medical supervision."
+    },
+    {
+      "Category": "HarmfulMedicalAdvice",
+      "RegexPattern": "you\\s+(do\\s+not|don't)\\s+need\\s+(a\\s+)?(doctor|physician|specialist|medical\\s+attention|prescription)",
+      "Description": "Discouraging professional medical consultation in a context where it may be warranted."
+    },
+    {
+      "Category": "DiscriminatoryLanguage",
+      "RegexPattern": "(treatment|care|medication|therapy|diagnosis)\\s+(is|should\\s+be|must\\s+be)\\s+(different|less\\s+effective|not\\s+suitable|limited)\\s+(for|in)\\s+(women|men|elderly|disabled|patients\\s+of\\s+color|minorities)",
+      "Description": "Discriminatory treatment recommendation based on a protected characteristic."
+    },
+    {
+      "Category": "DiscriminatoryLanguage",
+      "RegexPattern": "(women|elderly|disabled\\s+patients?|minorities|patients\\s+of\\s+color)\\s+(are|tend\\s+to\\s+be|typically|generally)\\s+(less\\s+compliant|unreliable|exaggerating|dramatic)",
+      "Description": "Stereotyping patients by protected characteristic in a clinical context."
+    },
+    {
+      "Category": "DiscriminatoryLanguage",
+      "RegexPattern": "(not\\s+worth|waste\\s+of|futile\\s+to\\s+treat)\\s+(treating|caring\\s+for|providing\\s+care)\\s+(elderly|disabled|homeless|undocumented)",
+      "Description": "Dismissing care provision for a vulnerable patient group."
+    },
+    {
+      "Category": "DangerousClinicalSuggestion",
+      "RegexPattern": "(warfarin|coumadin)\\s+(with|and|combined\\s+with|alongside)\\s+(aspirin|ibuprofen|naproxen|nsaid)",
+      "Description": "Dangerous anticoagulant + NSAID/antiplatelet combination that significantly increases bleeding risk."
+    },
+    {
+      "Category": "DangerousClinicalSuggestion",
+      "RegexPattern": "(maoi|phenelzine|tranylcypromine|selegiline)\\s+(with|and|combined\\s+with|alongside)\\s+(ssri|sertraline|fluoxetine|paroxetine|citalopram)",
+      "Description": "Contraindicated MAOI + SSRI combination that can cause serotonin syndrome."
+    },
+    {
+      "Category": "DangerousClinicalSuggestion",
+      "RegexPattern": "(metformin|glucophage)\\s+(safe|can\\s+be\\s+used|appropriate)\\s+(with|in)\\s+(severe\\s+renal|kidney\\s+failure|egfr\\s+less\\s+than\\s+30|stage\\s+[45]\\s+ckd)",
+      "Description": "Metformin use in severe renal impairment — contraindicated due to lactic acidosis risk."
+    },
+    {
+      "Category": "DangerousClinicalSuggestion",
+      "RegexPattern": "(double|increase)\\s+(your|the)\\s+dose\\s+(if|when)\\s+you\\s+(miss|forget|skip)",
+      "Description": "Incorrect missed-dose instruction — doubling doses for many medications is dangerous."
+    },
+    {
+      "Category": "DangerousClinicalSuggestion",
+      "RegexPattern": "(insulin|lantus|humalog|novolog)\\s+(\\d+\\s+units?)\\s+(without|regardless\\s+of)\\s+(checking|monitoring|testing)\\s+(blood\\s+sugar|glucose|bg)",
+      "Description": "Insulin dosing without blood glucose monitoring — dangerous for patients with diabetes."
+    }
+  ]
+}

@@ -4,6 +4,7 @@ using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
 using UPACIP.Api.Models;
+using UPACIP.Service.Validation;
 
 namespace UPACIP.Api.Middleware;
 
@@ -118,6 +119,27 @@ public sealed class GlobalExceptionHandlerMiddleware
                 statusCode:    (int)HttpStatusCode.NotFound,
                 message:       UserFriendlyMessages[404],
                 detail:        null,
+                correlationId: correlationId);
+        }
+        catch (DuplicateBookingException ex)
+        {
+            // Application-level duplicate check (US_085 AC-3).
+            // Returns 409 Conflict with the conflicting appointment ID so the client
+            // can display a descriptive message without exposing raw constraint names.
+            var correlationId = GetCorrelationId(context);
+            _logger.LogWarning(
+                "Duplicate booking rejected: patientId={PatientId} appointmentTime={AppointmentTime} " +
+                "existingAppointmentId={ExistingId} CorrelationId={CorrelationId}",
+                ex.PatientId, ex.AppointmentTime, ex.ExistingAppointmentId, correlationId);
+
+            var detail = ex.ExistingAppointmentId.HasValue
+                ? $"{ex.Message} ExistingAppointmentId: {ex.ExistingAppointmentId.Value}"
+                : ex.Message;
+
+            await WriteErrorResponseAsync(context,
+                statusCode:    (int)HttpStatusCode.Conflict,
+                message:       "Duplicate booking",
+                detail:        detail,
                 correlationId: correlationId);
         }
         catch (DbUpdateConcurrencyException ex)

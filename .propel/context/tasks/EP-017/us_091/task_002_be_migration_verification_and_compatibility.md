@@ -334,11 +334,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Implement `IMigrationVerificationService` with structure checksum, row count, FK, and history verification
-- [ ] Create `VerificationResult` DTO with per-table check results and supporting records
-- [ ] Implement `ICompatibilityGuard` analyzing MigrationOperation types for breaking changes
-- [ ] Create `CompatibilityReport` DTO with breaking changes and expand-contract recommendations
-- [ ] Create `MigrationVerificationLog` entity and add DbSet to ApplicationDbContext
-- [ ] Integrate compatibility guard (pre-execution) into MigrationExecutionService
-- [ ] Integrate verification service (post-execution) into MigrationExecutionService
-- [ ] Register IMigrationVerificationService and ICompatibilityGuard in Program.cs
+- [x] Implement `IMigrationVerificationService` with structure checksum, row count, FK, and history verification
+- [x] Create `VerificationResult` DTO with per-table check results and supporting records
+- [x] Implement `ICompatibilityGuard` analyzing MigrationOperation types for breaking changes
+- [x] Create `CompatibilityReport` DTO with breaking changes and expand-contract recommendations
+- [x] Create `MigrationVerificationLog` entity and add DbSet to ApplicationDbContext
+- [x] Integrate compatibility guard (pre-execution) into MigrationExecutionService
+- [x] Integrate verification service (post-execution) into MigrationExecutionService
+- [x] Register IMigrationVerificationService and ICompatibilityGuard in Program.cs

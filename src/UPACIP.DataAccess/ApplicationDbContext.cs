@@ -322,6 +322,118 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<HallucinationAlert> HallucinationAlerts => Set<HallucinationAlert>();
 
+    // ── AI Audit Logging (US_080 task_002) ───────────────────────────────────
+
+    /// <summary>
+    /// Full AI request/response audit trail partitioned by month (US_080 task_002, AIR-S04, AC-3, AC-4).
+    /// Each row captures the post-PII-redacted prompt, model response, token counts, latency,
+    /// confidence score, request type, and patient/A/B correlation metadata.
+    /// EF Core treats the partitioned parent table as a regular table;
+    /// PostgreSQL routes inserts to the correct monthly partition transparently.
+    /// </summary>
+    public DbSet<AiAuditLogEntity> AiAuditLogs => Set<AiAuditLogEntity>();
+
+    // ── A/B Testing (US_080 task_001) ────────────────────────────────────────
+
+    /// <summary>
+    /// A/B experiment definitions controlling traffic splitting between AI model versions
+    /// (US_080 task_001, AC-1, AIR-O10).
+    /// A filtered unique index ensures only one experiment can be Active at a time.
+    /// </summary>
+    public DbSet<AbExperimentEntity> AbExperiments => Set<AbExperimentEntity>();
+
+    /// <summary>
+    /// Per-request AI performance metric records captured by AbTestingMiddleware for each
+    /// experiment variant (US_080 task_001, AC-2, AIR-O10).
+    /// Append-only — no UPDATE or DELETE paths are exposed.
+    /// </summary>
+    public DbSet<AbMetricRecordEntity> AbMetricRecords => Set<AbMetricRecordEntity>();
+
+    // ── Uptime Monitoring (US_083 task_001) ───────────────────────────────────
+
+    /// <summary>
+    /// Rolling 30-day uptime availability snapshots recorded every 30 seconds by the
+    /// uptime monitoring BackgroundService (US_083 task_001, AC-1, NFR-019).
+    /// Maintenance-window rows are excluded from SLA computation.
+    /// Rows older than 90 days are pruned automatically every 100th probe cycle.
+    /// </summary>
+    public DbSet<UptimeSnapshot> UptimeSnapshots => Set<UptimeSnapshot>();
+
+    // ── Appointment Archival (US_086 task_002) ─────────────────────────────────
+
+    /// <summary>
+    /// Reference stubs retained in the main schema after completed/cancelled appointments
+    /// older than the configured threshold are moved to <c>archive.appointments</c>
+    /// (US_086 AC-3, AC-5, DR-018, DR-020).
+    ///
+    /// Each row preserves the original appointment ID, patient ID, and appointment time so
+    /// that patient-history queries can render the appointment on the timeline and navigate
+    /// to the archive for full details without a full archive-schema scan.
+    /// </summary>
+    public DbSet<ArchivedAppointmentReference> ArchivedAppointmentReferences => Set<ArchivedAppointmentReference>();
+
+    // ── Patient Archival (US_087 task_002) ─────────────────────────────────────
+
+    /// <summary>
+    /// Reference stubs retained in the main schema after soft-deleted patient records
+    /// (and all dependent data) are moved to <c>archive.patients</c> (US_087 AC-4, DR-021).
+    ///
+    /// Each row preserves the original patient ID, name, and email so that audit-log entries
+    /// referencing the patient remain resolvable without a cross-schema lookup.
+    /// </summary>
+    public DbSet<ArchivedPatientReference> ArchivedPatientReferences => Set<ArchivedPatientReference>();
+
+    /// <summary>
+    /// Outage lifecycle records created when a dependency transitions Healthy → Unhealthy
+    /// and resolved when it recovers (US_083 task_001, AC-3, NFR-019).
+    /// Active outages have a null <c>ResolvedAt</c> field.
+    /// </summary>
+    public DbSet<OutageRecord> OutageRecords => Set<OutageRecord>();
+
+    // ── Database Backup (US_088 task_001) ──────────────────────────────────────
+
+    /// <summary>
+    /// Persistent audit log for each automated database backup attempt (US_088, AC-3, DR-022).
+    ///
+    /// Each row records: filename, size, duration, SHA-256 checksum, status
+    /// ("Completed" / "Failed" / "Skipped"), and whether the attempt was a retry (AC-4).
+    /// </summary>
+    public DbSet<BackupLog> BackupLogs => Set<BackupLog>();
+
+    // ── Backup Restoration Testing (US_089 task_003) ───────────────────────────
+
+    /// <summary>
+    /// Persistent audit trail for each admin-triggered quarterly backup restoration test
+    /// (US_089 task_003, AC-3, AC-4, DR-026).
+    ///
+    /// Each row records all three validation outcomes (row counts, FK integrity, checksums),
+    /// restoration duration, the admin who triggered the test, and whether it passed overall.
+    /// </summary>
+    public DbSet<RestorationTestLog> RestorationTestLogs => Set<RestorationTestLog>();
+
+    // ── Point-in-Time Recovery (US_090 task_002) ───────────────────────────────
+
+    /// <summary>
+    /// Persistent audit trail for each admin-triggered PITR operation
+    /// (US_090 task_002, AC-2, AC-3, DR-027).
+    ///
+    /// Each row records the target and achieved recovery timestamps, base backup used,
+    /// WAL segments replayed, integrity validation outcome, and the admin who triggered it.
+    /// </summary>
+    public DbSet<RecoveryLog> RecoveryLogs => Set<RecoveryLog>();
+
+    /// <summary>
+    /// Persistent audit trail for post-migration integrity verification runs
+    /// (US_091 task_002, AC-5, DR-032).
+    /// </summary>
+    public DbSet<MigrationVerificationLog> MigrationVerificationLogs => Set<MigrationVerificationLog>();
+
+    /// <summary>
+    /// Audit trail for all CSV import runs — records file metadata, row counts, and
+    /// capped error reports (US_092 task_002, AC-2, AC-3).
+    /// </summary>
+    public DbSet<ImportLog> ImportLogs => Set<ImportLog>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

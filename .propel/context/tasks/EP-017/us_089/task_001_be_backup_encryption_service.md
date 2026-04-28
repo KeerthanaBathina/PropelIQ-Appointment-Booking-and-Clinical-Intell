@@ -226,24 +226,25 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Backup file is encrypted with AES-256 and output has `.dump.enc` extension (AC-1)
-- [ ] Plaintext `.dump` file is deleted after successful encryption
-- [ ] Encrypted file can be decrypted back to match the original plaintext backup (round-trip)
-- [ ] Random IV is prepended to the encrypted file (unique per encryption operation)
-- [ ] Encryption key is never logged or visible in process arguments
-- [ ] Empty encryption key with `Enabled = true` prevents backup cycle start
-- [ ] Encryption failure does not fail the backup — plaintext file preserved with warning
-- [ ] Retention service scans both `.dump` and `.dump.enc` file patterns
-- [ ] BackupLog records encrypted file metadata (size, checksum, path)
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Backup file is encrypted with AES-256 and output has `.dump.enc` extension (AC-1)
+- [x] Plaintext `.dump` file is deleted after successful encryption
+- [x] Encrypted file can be decrypted back to match the original plaintext backup (round-trip)
+- [x] Random IV is prepended to the encrypted file (unique per encryption operation)
+- [x] Encryption key is never logged or visible in process arguments
+- [x] Empty encryption key with `Enabled = true` prevents backup cycle start
+- [x] Encryption failure does not fail the backup — plaintext file preserved with warning
+- [x] Retention service scans both `.dump` and `.dump.enc` file patterns
+- [x] BackupLog records encrypted file metadata (size, checksum, path)
 
 ## Implementation Checklist
 
-- [ ] Create `EncryptionOptions` with Base64 key, enabled flag, and buffer size
-- [ ] Implement `IBackupEncryptionService` with streaming AES-256-CBC encryption
-- [ ] Implement `DecryptBackupAsync` for restoration testing support
-- [ ] Define `EncryptionResult` DTO with encrypted file metadata
-- [ ] Update `BackupResult` with encrypted file path, size, and checksum fields
-- [ ] Integrate encryption into `DatabaseBackupService` post-backup pipeline
-- [ ] Update `BackupRetentionService` file scan pattern for `.dump.enc` compatibility
-- [ ] Register EncryptionOptions and IBackupEncryptionService in Program.cs
+- [x] Create `EncryptionOptions` with Base64 key, enabled flag, and buffer size
+- [x] Implement `IBackupEncryptionService` with streaming AES-256-CBC encryption
+- [x] Implement `DecryptBackupAsync` for restoration testing support
+- [x] Define `EncryptionResult` DTO with encrypted file metadata
+- [x] Update `BackupResult` with encrypted file path, size, and checksum fields
+- [x] Integrate encryption into `DatabaseBackupService` post-backup pipeline
+- [x] Update `BackupRetentionService` file scan pattern for `.dump.enc` compatibility
+- [x] Register EncryptionOptions and IBackupEncryptionService in Program.cs
+

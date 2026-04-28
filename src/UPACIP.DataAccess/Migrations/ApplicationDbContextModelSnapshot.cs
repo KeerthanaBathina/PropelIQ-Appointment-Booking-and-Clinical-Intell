@@ -126,6 +126,109 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("asp_net_user_tokens", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AbExperimentEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CandidateModelId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("ControlModelId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("CreatedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("TrafficSplitPercentage")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StartDate")
+                        .IsDescending()
+                        .HasDatabaseName("ix_ab_experiments_start_date");
+
+                    b.HasIndex("Status")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ab_experiments_active_unique")
+                        .HasFilter("\"status\" = 'Active'");
+
+                    b.ToTable("ab_experiments", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AbMetricRecordEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<float?>("Accuracy")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<decimal>("EstimatedCost")
+                        .HasColumnType("numeric(18,8)");
+
+                    b.Property<Guid>("ExperimentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<long>("LatencyMs")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("TokensUsed")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Variant")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExperimentId")
+                        .HasDatabaseName("ix_ab_metric_records_experiment_id");
+
+                    b.HasIndex("ExperimentId", "Variant", "CreatedAt")
+                        .HasDatabaseName("ix_ab_metric_records_experiment_variant_created");
+
+                    b.ToTable("ab_metric_records", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.AgreementRateMetric", b =>
                 {
                     b.Property<Guid>("MetricId")
@@ -169,6 +272,428 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("ix_agreement_rate_metrics_calculation_date");
 
                     b.ToTable("agreement_rate_metrics", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiAccuracyMetric", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("MetricDate")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("MetricType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<int>("SampleSize")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("Value")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MetricDate", "MetricType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ai_accuracy_metrics_date_type");
+
+                    b.ToTable("ai_accuracy_metrics", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiAuditLogEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AbExperimentId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AbVariant")
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<float?>("ConfidenceScore")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("InputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("LatencyMs")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("ModelVersion")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid?>("PatientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Prompt")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<string>("Response")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TotalTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("character varying(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ConfidenceScore")
+                        .HasDatabaseName("ix_ai_audit_logs_confidence_score");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("ix_ai_audit_logs_created_at");
+
+                    b.HasIndex("ModelVersion")
+                        .HasDatabaseName("ix_ai_audit_logs_model_version");
+
+                    b.HasIndex("RequestType")
+                        .HasDatabaseName("ix_ai_audit_logs_request_type");
+
+                    b.HasIndex("PatientId", "CreatedAt")
+                        .HasDatabaseName("ix_ai_audit_logs_patient_created");
+
+                    b.ToTable("ai_audit_logs", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiCostBudgetConfig", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AlertEnabled")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<decimal>("CostPer1kInputTokens")
+                        .HasColumnType("numeric(10,6)");
+
+                    b.Property<decimal>("CostPer1kOutputTokens")
+                        .HasColumnType("numeric(10,6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<decimal>("DailyBudgetThreshold")
+                        .HasColumnType("numeric(10,2)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Provider")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ai_cost_budget_configs_provider");
+
+                    b.ToTable("ai_cost_budget_configs", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("e0f1a2b3-c4d5-6789-abcd-ef0123456701"),
+                            AlertEnabled = true,
+                            CostPer1kInputTokens = 0.000150m,
+                            CostPer1kOutputTokens = 0.000600m,
+                            CreatedAt = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DailyBudgetThreshold = 5.00m,
+                            Provider = "OpenAI",
+                            UpdatedAt = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("e0f1a2b3-c4d5-6789-abcd-ef0123456702"),
+                            AlertEnabled = true,
+                            CostPer1kInputTokens = 0.003000m,
+                            CostPer1kOutputTokens = 0.015000m,
+                            CreatedAt = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Utc),
+                            DailyBudgetThreshold = 20.00m,
+                            Provider = "Anthropic",
+                            UpdatedAt = new DateTime(2026, 4, 27, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiCostDailySummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ApproximateRequestCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<int>("RequestCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.Property<DateOnly>("SummaryDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("TotalEstimatedCost")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(12,6)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<long>("TotalInputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.Property<long>("TotalOutputTokens")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasDefaultValue(0L);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SummaryDate")
+                        .IsDescending()
+                        .HasDatabaseName("ix_ai_cost_daily_summaries_date");
+
+                    b.HasIndex("SummaryDate", "Provider", "RequestType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ai_cost_daily_summaries_date_provider_type");
+
+                    b.ToTable("ai_cost_daily_summaries", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiLatencyMetric", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTime>("MetricDate")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("OperationType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<double>("P50Milliseconds")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("P95Milliseconds")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("SampleSize")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("TargetP95Milliseconds")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MetricDate", "OperationType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ai_latency_metrics_date_operation");
+
+                    b.ToTable("ai_latency_metrics", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiMetricAlert", b =>
+                {
+                    b.Property<Guid>("AlertId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("AcknowledgedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("CurrentValue")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsAcknowledged")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MetricName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("TrendDirection")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("character varying(10)");
+
+                    b.HasKey("AlertId");
+
+                    b.HasIndex("AcknowledgedByUserId");
+
+                    b.HasIndex("GeneratedAt")
+                        .HasDatabaseName("ix_ai_metric_alerts_generated_at");
+
+                    b.HasIndex("IsAcknowledged")
+                        .HasDatabaseName("ix_ai_metric_alerts_is_acknowledged");
+
+                    b.ToTable("ai_metric_alerts", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiMetricThreshold", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("MetricName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<double>("TargetValue")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<double>("WarningValue")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MetricName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_ai_metric_thresholds_metric_name");
+
+                    b.ToTable("ai_metric_thresholds", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiRequestLog", b =>
+                {
+                    b.Property<Guid>("LogId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("CorrelationId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CostSource")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("character varying(15)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<decimal>("EstimatedCost")
+                        .HasColumnType("numeric(12,6)");
+
+                    b.Property<int>("InputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("OutputTokens")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<string>("RequestType")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("character varying(30)");
+
+                    b.HasKey("LogId");
+
+                    b.HasIndex("CorrelationId")
+                        .HasDatabaseName("ix_ai_request_logs_correlation_id");
+
+                    b.HasIndex("CreatedAt")
+                        .IsDescending()
+                        .HasDatabaseName("ix_ai_request_logs_created_at");
+
+                    b.HasIndex("Provider", "CreatedAt")
+                        .HasDatabaseName("ix_ai_request_logs_provider_created_at");
+
+                    b.ToTable("ai_request_logs", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ApplicationRole", b =>
@@ -253,6 +778,12 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateOnly?>("DateOfBirth")
                         .HasColumnType("date");
 
+                    b.Property<DateTimeOffset?>("DeactivatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<Guid?>("DeactivatedBy")
+                        .HasColumnType("uuid");
+
                     b.Property<DateTimeOffset?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -336,6 +867,14 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("AccountStatus")
+                        .HasDatabaseName("IX_asp_net_users_AccountStatus");
+
+                    b.HasIndex("DeactivatedBy");
+
+                    b.HasIndex("LastLoginAt")
+                        .HasDatabaseName("IX_asp_net_users_LastLoginAt");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 
@@ -394,6 +933,9 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime?>("RiskCalculatedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid?>("SlotTemplateId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -415,6 +957,8 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("PatientId")
                         .HasDatabaseName("ix_appointments_patient_id");
 
+                    b.HasIndex("SlotTemplateId");
+
                     b.HasIndex("AppointmentTime", "Status")
                         .HasDatabaseName("ix_appointments_appointment_time_status");
 
@@ -424,6 +968,9 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("PatientId", "AppointmentTime")
                         .IsUnique()
                         .HasDatabaseName("ix_appointments_patient_id_appointment_time");
+
+                    b.HasIndex("ProviderId", "AppointmentTime")
+                        .HasDatabaseName("ix_appointments_provider_id_appointment_time");
 
                     b.HasIndex("AppointmentTime", "Status", "ProviderId")
                         .HasDatabaseName("ix_appointments_appointment_time_status_provider_id");
@@ -476,12 +1023,9 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("ix_audit_logs_action_timestamp");
 
                     b.HasIndex("UserId", "Timestamp")
-                        .HasDatabaseName("ix_audit_logs_user_id_timestamp");
-
-                    b.HasIndex("UserId", "Timestamp")
+                        .IsDescending(false, true)
                         .HasDatabaseName("ix_audit_logs_security_events")
-                        .HasFilter("\"Action\" IN ('FailedLogin', 'AccountLocked', 'SessionReplaced', 'AdminManualUnlock')")
-                        .IsDescending(false, true);
+                        .HasFilter("\"Action\" IN ('FailedLogin', 'AccountLocked', 'SessionReplaced', 'AdminManualUnlock')");
 
                     b.ToTable("audit_logs", (string)null);
                 });
@@ -542,6 +1086,260 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("uq_bundling_edits_column1_column2");
 
                     b.ToTable("bundling_edits", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.BusinessHours", b =>
+                {
+                    b.Property<Guid>("BusinessHoursId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<TimeOnly?>("CloseTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<bool>("IsClosed")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<TimeOnly?>("OpenTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("BusinessHoursId");
+
+                    b.HasIndex("DayOfWeek")
+                        .IsUnique()
+                        .HasDatabaseName("ix_business_hours_day_of_week");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("business_hours", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_business_hours_open_close_valid", "\"IsClosed\" = true OR (\"OpenTime\" IS NOT NULL AND \"CloseTime\" IS NOT NULL AND \"OpenTime\" < \"CloseTime\")");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590001-0059-0001-0000-000000000000"),
+                            DayOfWeek = 0,
+                            IsClosed = true,
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590002-0059-0001-0000-000000000000"),
+                            CloseTime = new TimeOnly(17, 0, 0),
+                            DayOfWeek = 1,
+                            IsClosed = false,
+                            OpenTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590003-0059-0001-0000-000000000000"),
+                            CloseTime = new TimeOnly(17, 0, 0),
+                            DayOfWeek = 2,
+                            IsClosed = false,
+                            OpenTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590004-0059-0001-0000-000000000000"),
+                            CloseTime = new TimeOnly(17, 0, 0),
+                            DayOfWeek = 3,
+                            IsClosed = false,
+                            OpenTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590005-0059-0001-0000-000000000000"),
+                            CloseTime = new TimeOnly(17, 0, 0),
+                            DayOfWeek = 4,
+                            IsClosed = false,
+                            OpenTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590006-0059-0001-0000-000000000000"),
+                            CloseTime = new TimeOnly(17, 0, 0),
+                            DayOfWeek = 5,
+                            IsClosed = false,
+                            OpenTime = new TimeOnly(8, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            BusinessHoursId = new Guid("b0590007-0059-0001-0000-000000000000"),
+                            CloseTime = new TimeOnly(13, 0, 0),
+                            DayOfWeek = 6,
+                            IsClosed = false,
+                            OpenTime = new TimeOnly(9, 0, 0),
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CalibrationDriftAlert", b =>
+                {
+                    b.Property<Guid>("AlertId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("AcknowledgedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("ActualAccuracy")
+                        .HasColumnType("double precision");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<double>("DriftPercentage")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsAcknowledged")
+                        .HasColumnType("boolean");
+
+                    b.Property<double>("PredictedAccuracy")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("AlertId");
+
+                    b.HasIndex("AcknowledgedByUserId");
+
+                    b.HasIndex("DataType")
+                        .HasDatabaseName("ix_calibration_drift_alerts_data_type");
+
+                    b.HasIndex("GeneratedAt")
+                        .HasDatabaseName("ix_calibration_drift_alerts_generated_at");
+
+                    b.HasIndex("IsAcknowledged")
+                        .HasDatabaseName("ix_calibration_drift_alerts_is_acknowledged");
+
+                    b.ToTable("calibration_drift_alerts", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CalibrationParameter", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<double>("Intercept")
+                        .HasColumnType("double precision");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("LastCalibratedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<double>("Slope")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("VerificationSampleSize")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DataType")
+                        .HasDatabaseName("ix_calibration_parameters_data_type");
+
+                    b.HasIndex("DataType", "IsActive")
+                        .IsUnique()
+                        .HasDatabaseName("ix_calibration_parameters_data_type_active")
+                        .HasFilter("is_active = true");
+
+                    b.ToTable("calibration_parameters", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CalibrationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("ActualAccuracy")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("BinEnd")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("BinStart")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("CalibrationRunDate")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<bool>("DriftDetected")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<double>("DriftPercentage")
+                        .HasColumnType("double precision");
+
+                    b.Property<double>("PredictedAccuracy")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("SampleSize")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DriftDetected")
+                        .HasDatabaseName("ix_calibration_records_drift_detected");
+
+                    b.HasIndex("CalibrationRunDate", "DataType")
+                        .HasDatabaseName("ix_calibration_records_run_date_data_type");
+
+                    b.ToTable("calibration_records", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalConflict", b =>
@@ -1131,6 +1929,16 @@ namespace UPACIP.DataAccess.Migrations
                     b.Property<DateTime?>("ArchivedAtUtc")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<float?>("CalibratedConfidenceScore")
+                        .HasColumnType("real");
+
+                    b.Property<string>("CalibrationStatus")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Uncalibrated");
+
                     b.Property<float>("ConfidenceScore")
                         .HasColumnType("real");
 
@@ -1227,7 +2035,192 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("DocumentId", "IsArchived")
                         .HasDatabaseName("ix_extracted_data_document_id_is_archived");
 
+                    b.HasIndex("FlaggedForReview", "VerifiedByUserId")
+                        .HasDatabaseName("ix_extracted_data_pending_review")
+                        .HasFilter("flagged_for_review = true AND verified_by_user_id IS NULL");
+
                     b.ToTable("extracted_data", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.HallucinationAlert", b =>
+                {
+                    b.Property<Guid>("AlertId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AcknowledgedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid?>("AcknowledgedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<double>("CurrentRate")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("GeneratedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsAcknowledged")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsRetroactive")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Recommendation")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("character varying(500)");
+
+                    b.Property<double>("TargetRate")
+                        .HasColumnType("double precision");
+
+                    b.HasKey("AlertId");
+
+                    b.HasIndex("AcknowledgedByUserId");
+
+                    b.HasIndex("GeneratedAt")
+                        .HasDatabaseName("ix_hallucination_alerts_generated_at");
+
+                    b.HasIndex("IsAcknowledged")
+                        .HasDatabaseName("ix_hallucination_alerts_is_acknowledged");
+
+                    b.HasIndex("IsRetroactive")
+                        .HasDatabaseName("ix_hallucination_alerts_is_retroactive");
+
+                    b.ToTable("hallucination_alerts", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.HallucinationMetric", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("HallucinationCount")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("HallucinationRate")
+                        .HasColumnType("double precision");
+
+                    b.Property<DateTime>("MetricDate")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("PartiallySupportedCount")
+                        .HasColumnType("integer");
+
+                    b.Property<double>("TargetRate")
+                        .HasColumnType("double precision");
+
+                    b.Property<int>("TotalVerified")
+                        .HasColumnType("integer");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MetricDate")
+                        .IsUnique()
+                        .HasDatabaseName("ix_hallucination_metrics_metric_date");
+
+                    b.ToTable("hallucination_metrics", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.HallucinationRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<bool>("IsRetroactive")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("MedicalCodeId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("SourceSupportStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("VerificationNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)");
+
+                    b.Property<DateTime>("VerifiedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<Guid>("VerifiedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SourceSupportStatus")
+                        .HasDatabaseName("ix_hallucination_records_source_support_status");
+
+                    b.HasIndex("VerifiedAt")
+                        .HasDatabaseName("ix_hallucination_records_verified_at");
+
+                    b.HasIndex("MedicalCodeId", "CreatedAt")
+                        .HasDatabaseName("ix_hallucination_records_medical_code_id_created_at");
+
+                    b.ToTable("hallucination_records", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.Holiday", b =>
+                {
+                    b.Property<Guid>("HolidayId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("Date")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<bool>("IsHalfDay")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<bool>("IsRecurring")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.HasKey("HolidayId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("Date")
+                        .IsUnique()
+                        .HasDatabaseName("ix_holidays_date")
+                        .HasFilter("\"DeletedAt\" IS NULL");
+
+                    b.ToTable("holidays", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.Icd10CodeLibrary", b =>
@@ -1527,6 +2520,10 @@ namespace UPACIP.DataAccess.Migrations
                     b.HasIndex("PatientId", "VerificationStatus")
                         .HasDatabaseName("ix_medical_codes_patient_verification_status");
 
+                    b.HasIndex("SuggestedByAi", "ApprovedByUserId")
+                        .HasDatabaseName("ix_medical_codes_ai_pending_approval")
+                        .HasFilter("suggested_by_ai = true AND approved_by_user_id IS NULL");
+
                     b.HasIndex("PatientId", "CodeType", "CodeValue")
                         .HasDatabaseName("ix_medical_codes_patient_codetype_codevalue");
 
@@ -1662,6 +2659,230 @@ namespace UPACIP.DataAccess.Migrations
                         .HasDatabaseName("ix_notification_logs_status");
 
                     b.ToTable("notification_logs", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.NotificationTemplate", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AllowedVariables")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("Channel")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<string>("MessageBody")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Subject")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TemplateName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<string>("TriggerEvent")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TemplateName")
+                        .IsUnique()
+                        .HasDatabaseName("ix_notification_templates_template_name");
+
+                    b.HasIndex("Channel", "TriggerEvent")
+                        .HasDatabaseName("ix_notification_templates_channel_trigger");
+
+                    b.ToTable("notification_templates", (string)null);
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("a1b2c3d4-e5f6-7890-abcd-000000000001"),
+                            Channel = "Email",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Dear {{PatientName}},\n\nThis is a reminder of your appointment on {{AppointmentDate}} at {{AppointmentTime}} with {{ProviderName}}.\n\nIf you need to reschedule or cancel, please contact us at least 24 hours in advance.\n\nThank you,\nThe Care Team",
+                            TemplateName = "Appointment Reminder",
+                            TriggerEvent = "Reminder24h",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("b2c3d4e5-f6a7-8901-bcde-000000000002"),
+                            Channel = "SMS",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Hi {{PatientName}}, your appointment on {{AppointmentDate}} at {{AppointmentTime}} has been cancelled. Call us to reschedule.",
+                            TemplateName = "Cancellation Notice",
+                            TriggerEvent = "AppointmentCancelled",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("c3d4e5f6-a7b8-9012-cdef-000000000003"),
+                            Channel = "Email",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Dear {{PatientName}},\n\nWe noticed you missed your appointment on {{AppointmentDate}} at {{AppointmentTime}}.\n\nPlease contact us to schedule a new appointment at your earliest convenience.\n\nThank you,\nThe Care Team",
+                            TemplateName = "No-Show Alert",
+                            TriggerEvent = "PatientNoShow",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("d4e5f6a7-b8c9-0123-def0-000000000004"),
+                            AllowedVariables = "[\"patient_name\",\"date\",\"time\",\"provider\"]",
+                            Channel = "Email",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Dear {{patient_name}},\n\nYour appointment has been confirmed for {{date}} at {{time}} with {{provider}}.\n\nPlease arrive 10 minutes early. If you need to reschedule, contact us at least 24 hours in advance.\n\nThank you,\nThe Care Team",
+                            Subject = "Appointment Confirmed",
+                            TemplateName = "Booking Confirmation (Email)",
+                            TriggerEvent = "AppointmentBooked",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("e5f6a7b8-c9d0-1234-ef01-000000000005"),
+                            AllowedVariables = "[\"patient_name\",\"date\",\"time\"]",
+                            Channel = "SMS",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Hi {{patient_name}}, your appointment is confirmed for {{date}} at {{time}}. Reply CANCEL to cancel.",
+                            TemplateName = "Booking Confirmation (SMS)",
+                            TriggerEvent = "AppointmentBooked",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("f6a7b8c9-d0e1-2345-f012-000000000006"),
+                            AllowedVariables = "[\"patient_name\",\"date\",\"time\",\"provider\"]",
+                            Channel = "Email",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Dear {{patient_name}},\n\nThis is a reminder that you have an appointment tomorrow, {{date}}, at {{time}} with {{provider}}.\n\nIf you need to cancel, please let us know at least 24 hours in advance.\n\nThank you,\nThe Care Team",
+                            Subject = "Appointment Reminder — Tomorrow",
+                            TemplateName = "24h Reminder (Email)",
+                            TriggerEvent = "Reminder24h",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("a7b8c9d0-e1f2-3456-0123-000000000007"),
+                            AllowedVariables = "[\"patient_name\",\"date\",\"time\"]",
+                            Channel = "SMS",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Reminder: {{patient_name}}, you have an appointment tomorrow {{date}} at {{time}}. Reply CANCEL to cancel.",
+                            TemplateName = "24h Reminder (SMS)",
+                            TriggerEvent = "Reminder24h",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("b8c9d0e1-f2a3-4567-1234-000000000008"),
+                            AllowedVariables = "[\"patient_name\",\"date\",\"time\",\"provider\"]",
+                            Channel = "Email",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "Dear {{patient_name}},\n\nYour appointment with {{provider}} is in 2 hours at {{time}} today, {{date}}.\n\nPlease make sure you arrive on time.\n\nThank you,\nThe Care Team",
+                            Subject = "Appointment in 2 Hours",
+                            TemplateName = "2h Reminder (Email)",
+                            TriggerEvent = "Reminder2h",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        },
+                        new
+                        {
+                            Id = new Guid("c9d0e1f2-a3b4-5678-2345-000000000009"),
+                            AllowedVariables = "[\"patient_name\",\"time\",\"provider\"]",
+                            Channel = "SMS",
+                            CreatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            IsActive = true,
+                            MessageBody = "{{patient_name}}, your appointment with {{provider}} is in 2 hours at {{time}}. See you soon!",
+                            TemplateName = "2h Reminder (SMS)",
+                            TriggerEvent = "Reminder2h",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        });
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.OutageRecord", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AffectedServices")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasDefaultValue("");
+
+                    b.Property<DateTime?>("AlertSentAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<string>("ImpactLevel")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("character varying(20)")
+                        .HasDefaultValue("Minor");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StartedAt")
+                        .HasDatabaseName("ix_outage_records_started_at");
+
+                    b.ToTable("outage_records", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.PasswordResetToken", b =>
@@ -2295,6 +3516,60 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("queue_audit_logs", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueDailySummary", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AppointmentType")
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<decimal?>("AvgWaitTimeMinutes")
+                        .HasColumnType("numeric(8,2)");
+
+                    b.Property<int>("CompletedCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("NoShowCount")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<Guid?>("ProviderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateOnly>("SummaryDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("TotalPatients")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProviderId");
+
+                    b.HasIndex("SummaryDate")
+                        .HasDatabaseName("ix_queue_daily_summary_date");
+
+                    b.HasIndex("SummaryDate", "ProviderId", "AppointmentType")
+                        .IsUnique()
+                        .HasDatabaseName("ix_queue_daily_summary_date_provider_type");
+
+                    b.ToTable("queue_daily_summary", (string)null);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueEntry", b =>
                 {
                     b.Property<Guid>("Id")
@@ -2367,8 +3642,15 @@ namespace UPACIP.DataAccess.Migrations
                         .IsDescending(true, false)
                         .HasDatabaseName("IX_QueueEntry_Priority_Position");
 
+                    b.HasIndex("Status", "ArrivalTimestamp")
+                        .HasDatabaseName("ix_queue_entries_status_arrival_timestamp")
+                        .HasFilter("status IN ('Waiting', 'InVisit')");
+
                     b.HasIndex("Status", "CreatedAt")
                         .HasDatabaseName("IX_queue_entries_status_created_at");
+
+                    b.HasIndex("Status", "Priority", "CreatedAt")
+                        .HasDatabaseName("ix_queue_entries_status_priority_created_at");
 
                     b.ToTable("queue_entries", (string)null);
                 });
@@ -2441,6 +3723,164 @@ namespace UPACIP.DataAccess.Migrations
                     b.ToTable("reminder_batch_checkpoints", (string)null);
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.RiskConfiguration", b =>
+                {
+                    b.Property<Guid>("RiskConfigId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("AutoOutreach")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<int>("HighRiskThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(75);
+
+                    b.Property<DateTime?>("LastRecalculatedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("MediumRiskThreshold")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(45);
+
+                    b.Property<int>("MinAppointmentsForAiScore")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(3);
+
+                    b.Property<bool>("RecalculationPending")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<string>("ScoringParameters")
+                        .IsRequired()
+                        .HasColumnType("jsonb");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<Guid?>("UpdatedByUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("RiskConfigId");
+
+                    b.HasIndex("UpdatedByUserId");
+
+                    b.ToTable("risk_configuration", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_risk_configuration_high_threshold_range", "\"HighRiskThreshold\" >= 0 AND \"HighRiskThreshold\" <= 100");
+
+                            t.HasCheckConstraint("ck_risk_configuration_medium_threshold_range", "\"MediumRiskThreshold\" >= 0 AND \"MediumRiskThreshold\" <= 100");
+                        });
+
+                    b.HasData(
+                        new
+                        {
+                            RiskConfigId = new Guid("d0e1f2a3-b4c5-6789-abcd-000000000010"),
+                            AutoOutreach = true,
+                            HighRiskThreshold = 75,
+                            MediumRiskThreshold = 45,
+                            MinAppointmentsForAiScore = 3,
+                            RecalculationPending = false,
+                            ScoringParameters = "{\"priorNoShowsWeight\":0.50,\"cancellationHistoryWeight\":0.30,\"appointmentLeadTimeWeight\":0.20}",
+                            UpdatedAt = new DateTime(2026, 4, 26, 0, 0, 0, 0, DateTimeKind.Utc),
+                            Version = 0
+                        });
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SlotTemplate", b =>
+                {
+                    b.Property<Guid>("SlotTemplateId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProviderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("Version")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.HasKey("SlotTemplateId");
+
+                    b.HasIndex("ProviderId")
+                        .HasDatabaseName("ix_slot_templates_provider_id");
+
+                    b.HasIndex("ProviderId", "DayOfWeek")
+                        .IsUnique()
+                        .HasDatabaseName("ix_slot_templates_provider_id_day_of_week");
+
+                    b.ToTable("slot_templates", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SlotTemplateBlock", b =>
+                {
+                    b.Property<Guid>("BlockId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("AppointmentType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("character varying(50)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<TimeOnly>("EndTime")
+                        .HasColumnType("time without time zone");
+
+                    b.Property<bool>("IsAvailable")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
+                    b.Property<Guid>("SlotTemplateId")
+                        .HasColumnType("uuid");
+
+                    b.Property<TimeOnly>("StartTime")
+                        .HasColumnType("time without time zone");
+
+                    b.HasKey("BlockId");
+
+                    b.HasIndex("SlotTemplateId")
+                        .HasDatabaseName("ix_slot_template_blocks_slot_template_id");
+
+                    b.ToTable("slot_template_blocks", null, t =>
+                        {
+                            t.HasCheckConstraint("ck_slot_template_blocks_end_after_start", "\"EndTime\" > \"StartTime\"");
+                        });
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.SystemConfig", b =>
                 {
                     b.Property<Guid>("ConfigId")
@@ -2494,6 +3934,90 @@ namespace UPACIP.DataAccess.Migrations
                             Description = "Wait time threshold in minutes for staff alerts (default: 30). Valid range: 5–120. Updated via PUT /api/queue/config/threshold.",
                             UpdatedAt = new DateTime(2026, 4, 24, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SystemMetricsSnapshot", b =>
+                {
+                    b.Property<Guid>("SnapshotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("ActiveUsers")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<decimal>("AiAgreementRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("DailyAppointments")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(0);
+
+                    b.Property<DateOnly>("MetricDate")
+                        .HasColumnType("date");
+
+                    b.Property<decimal>("NoShowRate")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(0m);
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<decimal>("UptimePercent")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("numeric(5,2)")
+                        .HasDefaultValue(100m);
+
+                    b.HasKey("SnapshotId");
+
+                    b.HasIndex("MetricDate")
+                        .IsUnique()
+                        .HasDatabaseName("ix_system_metrics_snapshots_metric_date");
+
+                    b.ToTable("system_metrics_snapshots", (string)null);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.UptimeSnapshot", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("DependencyStatusesJson")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
+                        .HasDefaultValue("{}");
+
+                    b.Property<bool>("IsHealthy")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("IsMaintenanceWindow")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("timestamptz");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Timestamp")
+                        .HasDatabaseName("ix_uptime_snapshots_timestamp");
+
+                    b.ToTable("uptime_snapshots", (string)null);
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.UserSession", b =>
@@ -2671,6 +4195,35 @@ namespace UPACIP.DataAccess.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AbMetricRecordEntity", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.AbExperimentEntity", "Experiment")
+                        .WithMany()
+                        .HasForeignKey("ExperimentId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Experiment");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.AiMetricAlert", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "AcknowledgedBy")
+                        .WithMany()
+                        .HasForeignKey("AcknowledgedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AcknowledgedBy");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.ApplicationUser", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("DeactivatedBy")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.Appointment", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.Patient", "Patient")
@@ -2678,6 +4231,11 @@ namespace UPACIP.DataAccess.Migrations
                         .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.HasOne("UPACIP.DataAccess.Entities.SlotTemplate", "SlotTemplate")
+                        .WithMany("Appointments")
+                        .HasForeignKey("SlotTemplateId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.OwnsOne("UPACIP.DataAccess.Entities.OwnedTypes.PreferredSlotCriteria", "PreferredSlotCriteria", b1 =>
                         {
@@ -2710,6 +4268,8 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Patient");
 
                     b.Navigation("PreferredSlotCriteria");
+
+                    b.Navigation("SlotTemplate");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.AuditLog", b =>
@@ -2720,6 +4280,26 @@ namespace UPACIP.DataAccess.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.BusinessHours", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "UpdatedByUser")
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("UpdatedByUser");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.CalibrationDriftAlert", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "AcknowledgedBy")
+                        .WithMany()
+                        .HasForeignKey("AcknowledgedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AcknowledgedBy");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.ClinicalConflict", b =>
@@ -2896,6 +4476,37 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("Document");
 
                     b.Navigation("VerifiedByUser");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.HallucinationAlert", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "AcknowledgedBy")
+                        .WithMany()
+                        .HasForeignKey("AcknowledgedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("AcknowledgedBy");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.HallucinationRecord", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.MedicalCode", "MedicalCode")
+                        .WithMany()
+                        .HasForeignKey("MedicalCodeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MedicalCode");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.Holiday", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("CreatedByUser");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.IntakeData", b =>
@@ -3352,6 +4963,16 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("StaffUser");
                 });
 
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueDailySummary", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Provider");
+                });
+
             modelBuilder.Entity("UPACIP.DataAccess.Entities.QueueEntry", b =>
                 {
                     b.HasOne("UPACIP.DataAccess.Entities.Appointment", "Appointment")
@@ -3361,6 +4982,36 @@ namespace UPACIP.DataAccess.Migrations
                         .IsRequired();
 
                     b.Navigation("Appointment");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.RiskConfiguration", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", null)
+                        .WithMany()
+                        .HasForeignKey("UpdatedByUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SlotTemplate", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.ApplicationUser", "Provider")
+                        .WithMany()
+                        .HasForeignKey("ProviderId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Provider");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SlotTemplateBlock", b =>
+                {
+                    b.HasOne("UPACIP.DataAccess.Entities.SlotTemplate", "SlotTemplate")
+                        .WithMany("Blocks")
+                        .HasForeignKey("SlotTemplateId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("SlotTemplate");
                 });
 
             modelBuilder.Entity("UPACIP.DataAccess.Entities.SystemConfig", b =>
@@ -3445,6 +5096,13 @@ namespace UPACIP.DataAccess.Migrations
                     b.Navigation("MedicalCodes");
 
                     b.Navigation("ProfileVersions");
+                });
+
+            modelBuilder.Entity("UPACIP.DataAccess.Entities.SlotTemplate", b =>
+                {
+                    b.Navigation("Appointments");
+
+                    b.Navigation("Blocks");
                 });
 #pragma warning restore 612, 618
         }
