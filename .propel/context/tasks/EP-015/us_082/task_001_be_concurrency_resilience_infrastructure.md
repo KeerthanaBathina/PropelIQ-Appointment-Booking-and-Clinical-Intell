@@ -221,25 +221,25 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Connection pool monitor reports correct active/idle/total connection counts
-- [ ] When 100+ concurrent DB requests arrive, overflow requests queue for up to 30 seconds
-- [ ] After 30-second queue timeout, HTTP 503 is returned with Retry-After header
-- [ ] AI workload enqueue returns 202 Accepted immediately without blocking HTTP thread
-- [ ] BackgroundAiQueueProcessor respects concurrency limit (max 10 simultaneous AI jobs)
-- [ ] Back-pressure signal activates when Redis queue depth exceeds 100 pending jobs
-- [ ] Circuit breaker opens for NonCritical endpoints after 5 consecutive failures
-- [ ] Critical endpoints (auth, booking) are never circuit-broken
-- [ ] Circuit breaker transitions from Open to HalfOpen after configured seconds
-- [ ] Pool utilization metrics are emitted to IPerformanceTracker
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Connection pool monitor reports correct active/idle/total connection counts
+- [x] When 100+ concurrent DB requests arrive, overflow requests queue for up to 30 seconds
+- [x] After 30-second queue timeout, HTTP 503 is returned with Retry-After header
+- [x] AI workload enqueue returns 202 Accepted immediately without blocking HTTP thread
+- [x] BackgroundAiQueueProcessor respects concurrency limit (max 10 simultaneous AI jobs)
+- [x] Back-pressure signal activates when Redis queue depth exceeds 100 pending jobs
+- [x] Circuit breaker opens for NonCritical endpoints after 5 consecutive failures
+- [x] Critical endpoints (auth, booking) are never circuit-broken
+- [x] Circuit breaker transitions from Open to HalfOpen after configured seconds
+- [x] Pool utilization metrics are emitted to IPerformanceTracker
 
 ## Implementation Checklist
 
-- [ ] Create `ConcurrencyOptions` and `EndpointClassification` models in `src/UPACIP.Service/Infrastructure/Models/`
-- [ ] Implement `IConnectionPoolMonitor` / `ConnectionPoolMonitor` with Npgsql pool statistics and exhaustion detection
-- [ ] Implement `ConnectionPoolGuardMiddleware` with 503 response on pool exhaustion timeout
-- [ ] Implement `BackgroundAiQueueProcessor` with SemaphoreSlim-throttled Redis queue consumption
-- [ ] Implement back-pressure signaling when AI queue depth exceeds threshold
-- [ ] Implement `EndpointCircuitBreakerMiddleware` with Polly policies for Standard and NonCritical endpoints
-- [ ] Add endpoint classification mapping in `appsettings.json` CircuitBreaker section
-- [ ] Register all services in DI and configure middleware ordering in Program.cs
+- [x] Create `ConcurrencyOptions` and `EndpointClassification` models in `src/UPACIP.Service/Infrastructure/Models/`
+- [x] Implement `IConnectionPoolMonitor` / `ConnectionPoolMonitor` with Npgsql pool statistics and exhaustion detection
+- [x] Implement `ConnectionPoolGuardMiddleware` with 503 response on pool exhaustion timeout
+- [x] Implement `BackgroundAiQueueProcessor` with SemaphoreSlim-throttled Redis queue consumption
+- [x] Implement back-pressure signaling when AI queue depth exceeds threshold
+- [x] Implement `EndpointCircuitBreakerMiddleware` with Polly policies for Standard and NonCritical endpoints
+- [x] Add endpoint classification mapping in `appsettings.json` CircuitBreaker section
+- [x] Register all services in DI and configure middleware ordering in Program.cs

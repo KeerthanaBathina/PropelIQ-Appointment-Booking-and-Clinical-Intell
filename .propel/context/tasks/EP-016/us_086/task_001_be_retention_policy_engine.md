@@ -230,25 +230,26 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Audit log entries are never deleted by any automated process (AC-1)
-- [ ] `RetentionPolicyGuard.CanDeleteAsync(AuditLogs, ...)` always returns `false`
-- [ ] Clinical records (ClinicalDocument, ExtractedData, MedicalCode) are never auto-deleted or archived (AC-2)
-- [ ] Notification logs older than 90 days are purged by the nightly job (AC-4)
-- [ ] Nightly purge job logs structured summary with per-type breakdown and total count
-- [ ] Purge runs in batches of configurable size (default 1000) to avoid long-running transactions
-- [ ] Changing `NotificationLogRetentionDays` in appsettings takes effect on next cycle without restart (edge case 1)
-- [ ] Notification log referenced by audit log within 7-year window is NOT purged (edge case 2)
-- [ ] Purge job failure logs error and continues to next scheduled cycle without retry
-- [ ] `AuditLogRetentionYears` below 7 is clamped to 7 with a warning log
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Audit log entries are never deleted by any automated process (AC-1)
+- [x] `RetentionPolicyGuard.CanDeleteAsync(AuditLogs, ...)` always returns `false`
+- [x] Clinical records (ClinicalDocument, ExtractedData, MedicalCode) are never auto-deleted or archived (AC-2)
+- [x] Notification logs older than 90 days are purged by the nightly job (AC-4)
+- [x] Nightly purge job logs structured summary with per-type breakdown and total count
+- [x] Purge runs in batches of configurable size (default 1000) to avoid long-running transactions
+- [x] Changing `NotificationLogRetentionDays` in appsettings takes effect on next cycle without restart (edge case 1)
+- [x] Notification log referenced by audit log within 7-year window is NOT purged (edge case 2)
+- [x] Purge job failure logs error and continues to next scheduled cycle without retry
+- [x] `AuditLogRetentionYears` below 7 is clamped to 7 with a warning log
 
 ## Implementation Checklist
 
-- [ ] Create `RetentionCategory` enum with all 5 data categories
-- [ ] Create `RetentionPolicyOptions` with per-category retention periods and HIPAA minimum enforcement
-- [ ] Create `PurgeResult` model with category, counts, dates, duration, and type breakdown
-- [ ] Implement `IRetentionPolicyGuard` / `RetentionPolicyGuard` with audit log and clinical record protection
-- [ ] Implement audit-log reference protection via `IsProtectedByAuditLogAsync`
-- [ ] Implement `DataRetentionService` BackgroundService with nightly schedule and notification log purge
-- [ ] Add RetentionPolicy configuration section to appsettings.json
-- [ ] Register RetentionPolicyOptions, IRetentionPolicyGuard, and DataRetentionService in Program.cs
+- [x] Create `RetentionCategory` enum with all 5 data categories
+- [x] Create `RetentionPolicyOptions` with per-category retention periods and HIPAA minimum enforcement
+- [x] Create `PurgeResult` model with category, counts, dates, duration, and type breakdown
+- [x] Implement `IRetentionPolicyGuard` / `RetentionPolicyGuard` with audit log and clinical record protection
+- [x] Implement audit-log reference protection via `IsProtectedByAuditLogAsync`
+- [x] Implement `DataRetentionService` BackgroundService with nightly schedule and notification log purge
+- [x] Add RetentionPolicy configuration section to appsettings.json
+- [x] Register RetentionPolicyOptions, IRetentionPolicyGuard, and DataRetentionService in Program.cs
+

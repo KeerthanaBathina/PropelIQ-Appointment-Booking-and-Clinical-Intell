@@ -302,11 +302,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `PitrOptions` with recovery database, pg tool paths, recovery port, timeout
-- [ ] Create `PitrRequest` and `PitrResult` DTOs for recovery request/response
-- [ ] Create `RecoveryLog` entity and add DbSet to ApplicationDbContext
-- [ ] Implement pre-flight validation (WAL availability, base backup selection, gap detection)
-- [ ] Implement base backup restoration with decryption and WAL replay via recovery_target_time
-- [ ] Implement post-recovery integrity verification (row counts, checksums, FK validation)
-- [ ] Add PITR, feasibility, and history endpoints to BackupController
-- [ ] Register PitrOptions and IPointInTimeRecoveryService in Program.cs
+- [x] Create `PitrOptions` with recovery database, pg tool paths, recovery port, timeout
+- [x] Create `PitrRequest` and `PitrResult` DTOs for recovery request/response
+- [x] Create `RecoveryLog` entity and add DbSet to ApplicationDbContext
+- [x] Implement pre-flight validation (WAL availability, base backup selection, gap detection)
+- [x] Implement base backup restoration with decryption and WAL replay via recovery_target_time
+- [x] Implement post-recovery integrity verification (row counts, checksums, FK validation)
+- [x] Add PITR, feasibility, and history endpoints to BackupController
+- [x] Register PitrOptions and IPointInTimeRecoveryService in Program.cs

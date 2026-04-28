@@ -190,13 +190,22 @@ public sealed class DocumentParsingDispatcher : BackgroundService
 
     /// <summary>
     /// Executes a single parsing job through the Polly retry pipeline.
-    /// On permanent failure marks the document <c>Failed</c> (US_039 AC-5).
+    /// A 25-second per-document hard timeout is enforced via a linked
+    /// <see cref="CancellationTokenSource"/> (US_081 task_002, AC-2).
+    /// On timeout, the document is marked <c>Failed</c> with a structured log
+    /// entry for capacity-planning visibility.
+    /// On permanent failure (all retries exhausted), marks the document <c>Failed</c> (US_039 AC-5).
     /// </summary>
     private async Task ProcessJobAsync(DocumentParsingQueueJob job, CancellationToken ct)
     {
         _logger.LogInformation(
             "DocumentParsingDispatcher: processing job. DocumentId={DocumentId} Attempt={Attempt}",
             job.DocumentId, job.AttemptNumber);
+
+        // Per-document 25-second hard timeout — 5-second buffer below the 30-second SLA (AC-2).
+        // Linked to host stoppingToken so both shutdown and timeout correctly cancel the parse.
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(25));
+        using var linkedCts  = CancellationTokenSource.CreateLinkedTokenSource(ct, timeoutCts.Token);
 
         try
         {
@@ -205,11 +214,21 @@ public sealed class DocumentParsingDispatcher : BackgroundService
                 using var scope  = _scopeFactory.CreateScope();
                 var worker       = scope.ServiceProvider.GetRequiredService<IDocumentParserWorker>();
                 await worker.ParseAsync(job.DocumentId, token);
-            }, ct);
+            }, linkedCts.Token);
 
             _logger.LogInformation(
                 "DocumentParsingDispatcher: job completed successfully. DocumentId={DocumentId}",
                 job.DocumentId);
+        }
+        catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested && !ct.IsCancellationRequested)
+        {
+            // Per-document 25s timeout fired before the host shut down — classify as timeout failure.
+            _logger.LogWarning(
+                "DocumentParsingDispatcher: document parse timed out after 25s (SLA=30s). " +
+                "DocumentId={DocumentId} — marking Failed. Review AI provider latency for capacity planning.",
+                job.DocumentId);
+
+            await MarkDocumentFailedAsync(job.DocumentId);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested)
         {

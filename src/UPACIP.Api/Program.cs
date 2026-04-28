@@ -105,6 +105,19 @@ builder.Services
     .AddValidatorsFromAssemblyContaining<AppointmentDateValidator>()  // UPACIP.Service validators
     .AddValidatorsFromAssemblyContaining<UPACIP.Api.Validation.SelectValueRequestDtoValidator>(); // UPACIP.Api validators
 
+// ── US_085 Booking Validation Rules (EP-016 task_001) ─────────────────────────────────────────
+// ValidationRuleOptions: IOptionsMonitor hot-reload so regex/timezone/max-days changes in
+//   appsettings.json take effect on the next request without restarting the application
+//   (edge case 1). AppointmentDateValidator and EmailValidatorExtensions both consume it.
+// IDuplicateBookingValidator / DuplicateBookingValidator: Scoped — application-level pre-check
+//   for duplicate (patient_id, appointment_time) bookings. Throws DuplicateBookingException
+//   → GlobalExceptionHandlerMiddleware → 409 Conflict before reaching the DB constraint (AC-3).
+builder.Services.Configure<UPACIP.Service.Validation.Models.ValidationRuleOptions>(
+    builder.Configuration.GetSection(
+        UPACIP.Service.Validation.Models.ValidationRuleOptions.SectionName));
+builder.Services.AddScoped<UPACIP.Service.Validation.IDuplicateBookingValidator,
+    UPACIP.Service.Validation.DuplicateBookingValidator>();
+
 // Override the default 400 response factory so FluentValidation errors use ErrorResponse
 // (same shape as constraint/exception errors) instead of ValidationProblemDetails.
 builder.Services.Configure<ApiBehaviorOptions>(options =>
@@ -192,16 +205,21 @@ npgsqlDataSourceBuilder.UseVector();
 var npgsqlDataSource = npgsqlDataSourceBuilder.Build();
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(
-        npgsqlDataSource,
-        npgsql => npgsql
-            // Retry up to 3 times with 10-second delay for transient faults (NFR-032)
-            .EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(10),
-                errorCodesToAdd: null)
-            // Lock to the installed PostgreSQL major version to avoid runtime negotiation overhead
-            .SetPostgresVersion(new Version(16, 0))));
+    options
+        .UseNpgsql(
+            npgsqlDataSource,
+            npgsql => npgsql
+                // Retry up to 3 times with 10-second delay for transient faults (NFR-032)
+                .EnableRetryOnFailure(
+                    maxRetryCount: 3,
+                    maxRetryDelay: TimeSpan.FromSeconds(10),
+                    errorCodesToAdd: null)
+                // Lock to the installed PostgreSQL major version to avoid runtime negotiation overhead
+                .SetPostgresVersion(new Version(16, 0)))
+        // Custom migration history table: extends __EFMigrationsHistory with AppliedAtUtc
+        // and MigrationChecksum columns for enhanced audit tracking (US_091 task_001, AC-3).
+        .ReplaceService<Microsoft.EntityFrameworkCore.Migrations.IHistoryRepository,
+            UPACIP.DataAccess.Migrations.CustomHistoryRepository>());
 
 // ASP.NET Core Identity — RBAC with Patient / Staff / Admin roles (AC-2)
 // Password policy: 8+ chars, upper, lower, digit, and special character.
@@ -407,8 +425,11 @@ builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 // Registration service — scoped per-request (depends on scoped DbContext and UserManager).
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
-// Email service — scoped; MailKit SmtpClient is instantiated per-send, so scoped is correct.
-builder.Services.AddScoped<IEmailService, SmtpEmailService>();
+// Email service — Scoped. SmtpEmailService is also registered as its concrete type so
+// NotificationRetryService can inject it directly (bypassing the resilient decorator to
+// avoid re-queuing loops). ResilientEmailService is the primary IEmailService (US_084).
+builder.Services.AddScoped<SmtpEmailService>();
+builder.Services.AddScoped<IEmailService, UPACIP.Service.Auth.ResilientEmailService>();
 
 // ── EP-005 SMTP transport layer (task_001_be_smtp_provider_integration) ─────────────────
 // Binds the EmailProvider configuration section (primary = SendGrid, fallback = Gmail).
@@ -457,7 +478,11 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
-builder.Services.AddScoped<ISmsTransport, TwilioSmsTransport>();
+// TwilioSmsTransport is also registered as its concrete type so NotificationRetryService
+// can inject it directly (bypassing ResilientSmsService to avoid re-queuing loops).
+// ResilientSmsService is the primary ISmsTransport (US_084 task_001, AC-2).
+builder.Services.AddScoped<TwilioSmsTransport>();
+builder.Services.AddScoped<ISmsTransport, UPACIP.Service.Notifications.ResilientSmsService>();
 
 // ── EP-005 SMS orchestration layer (US_033 task_002_be_notification_sms_orchestration_and_logging) ──
 // NotificationSmsService is Scoped — it depends on the scoped ApplicationDbContext and
@@ -624,6 +649,17 @@ builder.Services.AddHostedService<UPACIP.Service.Documents.QueueMonitorJob>();
 // Appointment slot service — slot availability queries with Redis cache-aside (US_017 AC-1, AC-4).
 builder.Services.AddScoped<IAppointmentSlotService, AppointmentSlotService>();
 
+// ── EP-016 Redis Caching Optimization (US_084 task_002, AC-2, AC-3, AC-4) ────────────────────
+// PatientProfileCacheService: Singleton — PHI-minimal cache-aside wrapper for patient profiles
+//   (patient:profile:{id}) with 5-minute absolute TTL. Emits cache.patient_profile.hit/miss
+//   metrics via IPerformanceTracker. Redis unavailability fails open (ICacheService circuit breaker).
+// ICacheInvalidationCoordinator / CacheInvalidationCoordinator: Scoped — consolidates slot and
+//   patient-profile cache eviction for booking, cancellation, and reschedule flows. All failures
+//   are swallowed so cache invalidation never blocks the booking response (edge case 2).
+builder.Services.AddSingleton<UPACIP.Service.Caching.PatientProfileCacheService>();
+builder.Services.AddScoped<UPACIP.Service.Caching.ICacheInvalidationCoordinator,
+    UPACIP.Service.Caching.CacheInvalidationCoordinator>();
+
 // Slot hold service — Redis-backed 60-second TTL slot reservation (US_018 AC-3).
 builder.Services.AddScoped<ISlotHoldService, SlotHoldService>();
 
@@ -754,6 +790,18 @@ builder.Services.AddScoped<IPatientProfileService, PatientProfileService>();
 // Patient search service — staff-only patient search with Redis cache-aside (US_062 AC-1, NFR-030).
 builder.Services.AddScoped<IPatientSearchService, PatientSearchService>();
 
+// ── EP-016 Patient Soft Delete (US_087 AC-1, AC-2, AC-3, DR-021, NFR-033) ───────────────────
+// PatientSoftDeleteService: Scoped — sets DeletedAt instead of issuing a physical DELETE (AC-1).
+//   Dependency guard blocks deletion when the patient has active scheduled appointments, intake
+//   records in AI processing, or clinical documents queued for parsing (edge case 1).
+//   RestoreAsync clears DeletedAt; dependent FK-linked data is automatically restored because it
+//   was never physically removed (edge case 2).
+//   GetPatientsIncludingDeletedAsync uses IgnoreQueryFilters() to bypass the global query filter
+//   and annotates each record with IsDeleted + DeletedAt for admin visual indication (AC-3).
+//   Every soft-delete and restore writes an immutable AuditLog entry (US_064, HIPAA).
+builder.Services.AddScoped<UPACIP.Service.Patients.IPatientSoftDeleteService,
+    UPACIP.Service.Patients.PatientSoftDeleteService>();
+
 // ── Manual fallback workflow (US_046, AC-1, AC-2, AC-3, AC-4) ───────────────────────────────
 // ConsolidationConfidenceService: evaluates AI confidence thresholds, returns low-confidence
 // items, and persists manual verification batches with audit logging (AC-1, AC-3, FR-093).
@@ -768,6 +816,21 @@ builder.Services.AddScoped<IDateValidationService, DateValidationService>();
 builder.Services.AddSingleton<IAiHealthCheckService, AiHealthCheckService>();
 builder.Services.AddSingleton<IConfidenceThresholdGate, ConfidenceThresholdGate>();
 builder.Services.AddSingleton<AiAuditLogger>();
+
+// ── EP-014 AI Audit Logging Pipeline (US_080 task_002, AC-3, AC-4, AIR-S04) ──────────────────
+// AiAuditService: Singleton + BackgroundService — channel-backed (capacity 1,000) async writer.
+//   LogAiInteractionAsync: enqueues post-PII-redacted audit entries; drops on back-pressure
+//   rather than blocking the AI Gateway response path (NFR-030).
+//   QueryAuditLogsAsync: cursor-based keyset pagination over the partitioned ai_audit_logs table.
+//   Background consumer persists entries in batches of 50 via IServiceScopeFactory-created scopes.
+// Registration pattern mirrors DocumentParsingQueueConsumer (AddSingleton + AddHostedService).
+// Note: AiAuditLoggingMiddleware (Singleton) is registered inside AddAIGateway() which
+//   follows below — IAiAuditService must be registered first so DI resolves it correctly.
+builder.Services.AddSingleton<UPACIP.Service.AiAudit.AiAuditService>();
+builder.Services.AddSingleton<UPACIP.Service.AiAudit.IAiAuditService>(
+    sp => sp.GetRequiredService<UPACIP.Service.AiAudit.AiAuditService>());
+builder.Services.AddHostedService(
+    sp => sp.GetRequiredService<UPACIP.Service.AiAudit.AiAuditService>());
 
 // ── ICD-10 coding pipeline (US_047, AC-1, AC-3, AC-4, FR-063) ────────────────────────────────
 // AiCodingGateway (task_003): production AI gateway calling OpenAI GPT-4o-mini (primary) and
@@ -787,6 +850,16 @@ builder.Services.AddScoped<UPACIP.Service.Coding.IAiCodingGateway, UPACIP.Servic
 builder.Services.AddScoped<UPACIP.Service.Coding.IIcd10CodingService, UPACIP.Service.Coding.Icd10CodingService>();
 builder.Services.AddScoped<UPACIP.Service.Coding.IIcd10LibraryService, UPACIP.Service.Coding.Icd10LibraryService>();
 builder.Services.AddHostedService<UPACIP.Service.Coding.Icd10CodingWorker>();
+
+// ── EP-016 Medical Code Validation (US_085 task_002, AC-4, DR-015) ───────────────────────────
+// IMedicalCodeValidationService / MedicalCodeValidationService: Scoped — exact-match lookup
+//   against icd10_code_library / cpt_code_library (EF Core) plus pgvector cosine-similarity
+//   suggestions from coding_guideline_embeddings via NpgsqlDataSource (raw SQL, OWASP A03 safe).
+//   Returns structured CodeValidationResult with IsValid, IsDeprecated, and up to 5
+//   CodeSuggestion alternatives (similarity threshold ≥ 0.5). Scoped because it holds a
+//   reference to the scoped ApplicationDbContext.
+builder.Services.AddScoped<UPACIP.Service.Validation.IMedicalCodeValidationService,
+    UPACIP.Service.Validation.MedicalCodeValidationService>();
 
 // ── CPT coding pipeline (US_048, AC-1, AC-3, AC-4, FR-066) ───────────────────────────────────
 // ICptCodingService: Scoped — manages approve/override actions on AI-suggested CPT MedicalCode rows.
@@ -850,6 +923,400 @@ builder.Services.AddHostedService<UPACIP.Service.Calibration.CalibrationJob>();
 //   component. IPiiRedactionService must be registered BEFORE AddAIGateway() is called so
 //   that PiiRedactionMiddleware can resolve it from the container at startup.
 builder.Services.AddSingleton<UPACIP.Service.AiSafety.IPiiRedactionService, UPACIP.Service.AiSafety.PiiRedactionService>();
+
+// ── EP-014 Prompt Injection Detection (US_079 task_001, AIR-S06, AIR-S04) ───────────────────
+// Load the externalized injection pattern file (config/prompt-injection-patterns.json).
+// Resolve path from the API project content root (two levels up to workspace root).
+// optional: true — application starts safely without the file, but patterns will be empty
+//   and a startup warning is emitted. reloadOnChange: true — IOptionsMonitor triggers
+//   PromptInjectionDetector cache invalidation without restart.
+var injectionPatternsPath = Path.GetFullPath(
+    Path.Combine(builder.Environment.ContentRootPath, "..", "..", "config", "prompt-injection-patterns.json"));
+builder.Configuration.AddJsonFile(
+    path:           injectionPatternsPath,
+    optional:       true,
+    reloadOnChange: true);
+
+// Bind the PromptInjectionPatterns configuration array to List<InjectionPattern>.
+builder.Services.Configure<List<UPACIP.Service.AiSafety.Models.InjectionPattern>>(
+    builder.Configuration.GetSection("PromptInjectionPatterns"));
+
+// IPromptInjectionDetector: Singleton — pattern-matching engine with compiled regex cache;
+//   hot-reloads patterns via IOptionsMonitor; uses MedicalTermAllowlist for false-positive
+//   suppression; logs all detection events per AIR-S04 (never raw attack payloads).
+// PromptSanitizationMiddleware is registered inside AddAIGateway() as it is a gateway pipeline
+//   component. IPromptInjectionDetector must be registered BEFORE AddAIGateway() so that
+//   PromptSanitizationMiddleware can resolve it from the container at startup.
+builder.Services.AddSingleton<UPACIP.Service.AiSafety.IPromptInjectionDetector,
+    UPACIP.Service.AiSafety.PromptInjectionDetector>();
+
+// ── EP-014 RAG Access Control + Content Filtering (US_079 task_002, AIR-S07, AIR-S05, AIR-S04)
+// IRagAccessControlFilter: Scoped — enforces document-level permissions on RAG-retrieved chunks;
+//   queries ClinicalDocuments and Appointments tables per request to build the user's
+//   authorized document set; logs denied access at Warning level per AIR-S04.
+//   Scoped because it depends on scoped ApplicationDbContext.
+builder.Services.AddScoped<UPACIP.Service.AiSafety.IRagAccessControlFilter,
+    UPACIP.Service.AiSafety.RagAccessControlFilter>();
+
+// Load the externalized content filter rules file (config/content-filter-rules.json).
+var contentFilterRulesPath = Path.GetFullPath(
+    Path.Combine(builder.Environment.ContentRootPath, "..", "..", "config", "content-filter-rules.json"));
+builder.Configuration.AddJsonFile(
+    path:           contentFilterRulesPath,
+    optional:       true,
+    reloadOnChange: true);
+
+// Bind the ContentFilterRules configuration array to List<ContentFilterRule>.
+builder.Services.Configure<List<UPACIP.Service.AiSafety.ContentFilterRule>>(
+    builder.Configuration.GetSection("ContentFilterRules"));
+
+// IContentFilterService: Singleton — compiled regex scanning of AI responses; hot-reloads
+//   rules via IOptionsMonitor; SHA-256 hashes blocked content for audit (never stores it);
+//   logs blocked responses at Warning level per AIR-S04.
+builder.Services.AddSingleton<UPACIP.Service.AiSafety.IContentFilterService,
+    UPACIP.Service.AiSafety.ContentFilterService>();
+
+// ── EP-014 AI Rate Limiting (US_079 task_003, AC-4, AIR-S08, TR-027) ─────────────────────────
+// RateLimitOptions: bound from "AiRateLimiting" section — PatientLimitPerHour=100,
+//   StaffLimitPerHour=500, AdminLimitPerHour=1000, WindowSizeMinutes=60,
+//   TemporaryOverrideDurationMinutes=120.
+// IAiRateLimiter: Scoped — Redis sorted-set sliding window with atomic Lua script;
+//   role-based limit resolution with admin temporary override support;
+//   fails open on Redis outage to prevent false-positive 429s (NFR-030 graceful fallback).
+//   Uses IConnectionMultiplexer (registered above) for direct Redis sorted-set operations.
+builder.Services
+    .AddOptions<UPACIP.Service.AiSafety.Models.RateLimitOptions>()
+    .Bind(builder.Configuration.GetSection(UPACIP.Service.AiSafety.Models.RateLimitOptions.SectionName));
+builder.Services.AddScoped<UPACIP.Service.AiSafety.IAiRateLimiter,
+    UPACIP.Service.AiSafety.AiRateLimiter>();
+
+// ── EP-014 A/B Testing Framework (US_080 task_001, AC-1, AC-2, AIR-O10) ──────────────────────
+// AiCostRatesOptions: bound from "AiCostRates" section — default gpt-4o-mini rates.
+// IAbTestingService: Scoped — deterministic SHA-256 variant assignment; Redis-cached active
+//   experiment (60 s TTL); EF Core metric persistence; results aggregation with z-test.
+// AbTestingMiddleware: Scoped — AI Gateway component that intercepts requests, assigns variant,
+//   overrides model ID, and records per-request metrics post-response.
+builder.Services
+    .AddOptions<UPACIP.Service.AiTesting.AiCostRatesOptions>()
+    .Bind(builder.Configuration.GetSection(UPACIP.Service.AiTesting.AiCostRatesOptions.SectionName));
+builder.Services.AddScoped<UPACIP.Service.AiTesting.IAbTestingService,
+    UPACIP.Service.AiTesting.AbTestingService>();
+builder.Services.AddScoped<UPACIP.Api.Features.AIGateway.Middleware.AbTestingMiddleware>();
+
+// ── EP-015 Performance Instrumentation & Alerting (US_081 task_001, AC-4) ────────────────────
+// IPerformanceTracker: Singleton — ActivitySource + Meter-based span instrumentation and
+//   in-memory circular-buffer latency histogram (max 10,000 samples per operation type).
+// ISlaMonitorService: Singleton — P95 nearest-rank computation from sliding window; trend
+//   detection (±5% noise margin); alert cooldown enforcement per AlertCooldownMinutes.
+// PerformanceMonitoringService: BackgroundService — evaluates SLA compliance on
+//   EvaluationIntervalSeconds tick; emits per-breach Warning logs and Information summary.
+builder.Services
+    .AddOptions<UPACIP.Service.Performance.Models.PerformanceOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Service.Performance.Models.PerformanceOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Performance.IPerformanceTracker,
+    UPACIP.Service.Performance.PerformanceTracker>();
+builder.Services.AddSingleton<UPACIP.Service.Performance.ISlaMonitorService,
+    UPACIP.Service.Performance.SlaMonitorService>();
+builder.Services.AddHostedService<UPACIP.Service.Performance.PerformanceMonitoringService>();
+
+// ── EP-015 Operation Performance Optimization (US_081 task_002, AC-1, AC-2, AC-3) ──────────
+// IPriorityRequestQueue/PriorityRequestQueue: Singleton BackgroundService — three bounded
+//   channels (Critical=20, Normal=10, Background=5) with SemaphoreSlim concurrency limits.
+//   MedicalCoding requests are throttled at Normal priority. Back-pressure applies to Background
+//   channel when saturated; requests are delayed not dropped (edge case — peak load).
+// AiOperationTimeoutsOptions: per-operation AI timeout thresholds (coding=4s, parsing=25s).
+// SlotCachePrewarmingService: BackgroundService — pre-warms Redis slot cache for next 7 days
+//   on startup and every 5 minutes; ensures >80% cache hit ratio (AC-1, NFR-004).
+builder.Services
+    .AddOptions<UPACIP.Service.Performance.Models.PriorityQueueOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Service.Performance.Models.PriorityQueueOptions.SectionName));
+builder.Services
+    .AddOptions<UPACIP.Api.Features.AIGateway.Configuration.AiOperationTimeoutsOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Api.Features.AIGateway.Configuration.AiOperationTimeoutsOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Performance.PriorityRequestQueue>();
+builder.Services.AddSingleton<UPACIP.Service.Performance.IPriorityRequestQueue>(
+    sp => sp.GetRequiredService<UPACIP.Service.Performance.PriorityRequestQueue>());
+builder.Services.AddHostedService(
+    sp => sp.GetRequiredService<UPACIP.Service.Performance.PriorityRequestQueue>());
+builder.Services.AddHostedService<UPACIP.Service.Appointments.SlotCachePrewarmingService>();
+
+// ── EP-016 Concurrency & Resilience Infrastructure (US_082 task_001, AC-2, AC-3, AC-4) ─────
+// ConcurrencyOptions: bound from "Concurrency" section — MaxDbConnections, pool exhaustion
+//   threshold, pool queue timeout, AI queue concurrency, and back-pressure threshold.
+// CircuitBreakerOptions: bound from "CircuitBreaker" section — critical-path list, failure
+//   thresholds for Standard / NonCritical circuits, and break duration configuration.
+// IConnectionPoolMonitor / ConnectionPoolMonitor: Singleton — reads NpgsqlDataSource.Statistics
+//   on every call to expose live pool utilization; logs Warning at ≥80% utilization;
+//   emits db.pool_utilization latency metric via IPerformanceTracker.
+// BackgroundAiQueueProcessor: Singleton BackgroundService — drains ai:workload:queue every 2 s;
+//   SemaphoreSlim concurrency gate (max AiQueueConcurrency); back-pressure signal exposed as
+//   IsBackPressureActive (volatile Interlocked) for upstream REST endpoints.
+builder.Services
+    .AddOptions<UPACIP.Service.Infrastructure.Models.ConcurrencyOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Service.Infrastructure.Models.ConcurrencyOptions.SectionName));
+builder.Services
+    .AddOptions<UPACIP.Api.Middleware.CircuitBreakerOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Api.Middleware.CircuitBreakerOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Infrastructure.IConnectionPoolMonitor,
+    UPACIP.Service.Infrastructure.ConnectionPoolMonitor>();
+builder.Services.AddHostedService<UPACIP.Service.Infrastructure.BackgroundAiQueueProcessor>();
+
+// ── EP-015 Uptime Monitoring & Alerting (US_083 task_001, AC-1, AC-3, AC-4, NFR-019) ─────────
+// MonitoringOptions: bound from "Monitoring" — probe interval, 30-day uptime window, 0.1% error
+//   rate threshold, 5-minute sliding window, and pre-configured maintenance windows.
+// IErrorRateMonitor / ErrorRateMonitor: Singleton — thread-safe ConcurrentQueue sliding window;
+//   accumulates request outcomes across all requests; evicts entries outside the 5-min window.
+// IUptimeTracker / UptimeTracker: Scoped — persists UptimeSnapshot rows and computes rolling
+//   uptime percentage; excludes maintenance rows from SLA computation.
+// IOutageAlertService / OutageAlertService: Singleton — in-memory state-transition detection;
+//   creates and resolves OutageRecord rows via IServiceScopeFactory; emits Serilog alerts.
+// UptimeMonitoringService: BackgroundService — 30-second probe cycle via PeriodicTimer;
+//   suppresses outage alerts during maintenance windows; prunes snapshots every 100th cycle.
+builder.Services
+    .AddOptions<UPACIP.Service.Monitoring.Models.MonitoringOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Service.Monitoring.Models.MonitoringOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Monitoring.IErrorRateMonitor,
+    UPACIP.Service.Monitoring.ErrorRateMonitor>();
+builder.Services.AddScoped<UPACIP.Service.Monitoring.IUptimeTracker,
+    UPACIP.Service.Monitoring.UptimeTracker>();
+builder.Services.AddSingleton<UPACIP.Service.Monitoring.IOutageAlertService,
+    UPACIP.Service.Monitoring.OutageAlertService>();
+builder.Services.AddSingleton<UPACIP.Service.Monitoring.IHealthStatusProvider,
+    UPACIP.Api.HealthChecks.AspNetHealthStatusProvider>();
+builder.Services.AddHostedService<UPACIP.Service.Monitoring.UptimeMonitoringService>();
+
+// ── EP-016 Data Retention Policy Engine (US_086 task_001, AC-1, AC-2, AC-4) ──────────────────
+// RetentionPolicyOptions: IOptionsMonitor hot-reload — policy changes in appsettings take
+//   effect on the next nightly job cycle without restart (edge case 1).
+//   AuditLogRetentionYears is clamped to minimum 7 (HIPAA 45 CFR § 164.530(j)).
+// IRetentionPolicyGuard / RetentionPolicyGuard: Scoped — blocks premature deletion of audit
+//   logs (always, AC-1) and clinical records (when indefinite retention is configured, AC-2).
+//   Also enforces audit-log reference protection: entities referenced by audit logs within
+//   the 7-year window are retained regardless of their own category policy (edge case 2).
+// DataRetentionService: BackgroundService (Singleton lifetime via hosted service) — nightly
+//   batch purge of NotificationLog entries older than 90 days (AC-4). Uses IServiceScopeFactory
+//   to resolve scoped services (ApplicationDbContext, IRetentionPolicyGuard) per cycle.
+builder.Services.Configure<UPACIP.Service.Retention.Models.RetentionPolicyOptions>(
+    builder.Configuration.GetSection(
+        UPACIP.Service.Retention.Models.RetentionPolicyOptions.SectionName));
+builder.Services.AddScoped<UPACIP.Service.Retention.IRetentionPolicyGuard,
+    UPACIP.Service.Retention.RetentionPolicyGuard>();
+builder.Services.AddHostedService<UPACIP.Service.Retention.DataRetentionService>();
+
+// ── EP-016 Appointment Archival Service (US_086 task_002, AC-3, AC-5) ────────────────────────
+// AppointmentArchivalService: Scoped — moves completed appointments older than
+//   AppointmentRetentionYears (default 3) and cancelled appointments older than
+//   CancelledAppointmentRetentionYears (default 1) to archive.appointments, retaining an
+//   ArchivedAppointmentReference stub in the main schema for patient-history queries (DR-018).
+//   IRetentionPolicyGuard enforces audit-log reference protection (edge case 2).
+//   Active NotificationLog FK references cause archival to defer until the notification purge
+//   step clears them (notification purge runs first in DataRetentionService cycle).
+builder.Services.AddScoped<UPACIP.Service.Retention.IAppointmentArchivalService,
+    UPACIP.Service.Retention.AppointmentArchivalService>();
+
+// PatientArchivalService: Scoped — moves soft-deleted patients whose DeletedAt exceeds
+//   SoftDeletedPatientArchivalDays (default 365) to archive.patients along with all dependent
+//   data (intake_data, clinical_documents, extracted_data, medical_codes) in a per-patient
+//   transaction. Retains an ArchivedPatientReference stub in the main schema for audit-log
+//   resolution. IRetentionPolicyGuard enforces audit-log reference protection.
+//   Runs as step 4 in DataRetentionService.RunArchivalCycleAsync (US_087 AC-4, DR-021).
+builder.Services.AddScoped<UPACIP.Service.Retention.IPatientArchivalService,
+    UPACIP.Service.Retention.PatientArchivalService>();
+
+// ── EP-017 Database Backup & Recovery (US_088 task_001, AC-1, AC-3, AC-4, DR-022) ──
+// BackupOptions: bound from "DatabaseBackup" — PgDumpPath, BackupDirectory, ScheduleLocalTime (02:00),
+//   RetryDelayMinutes (15), MaxRetries (1), DiskSpaceThresholdPercent (80%).
+// IBackupExecutor / BackupExecutor: Singleton — encapsulates pg_dump Process invocation, sets
+//   PGPASSWORD env var on child process only (OWASP A02), computes SHA-256 checksum (AC-3).
+// DatabaseBackupService: Singleton BackgroundService — 2 AM nightly schedule, disk pre-check,
+//   single-retry (AC-4), BACKUP_COMPLETED / BACKUP_CRITICAL_FAILURE Serilog events (AC-3, AC-4).
+//   Resolves ApplicationDbContext per cycle via IServiceScopeFactory to persist BackupLog entries.
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.BackupOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.BackupOptions.SectionName));
+
+builder.Services.AddSingleton<UPACIP.Service.Backup.IBackupExecutor,
+    UPACIP.Service.Backup.BackupExecutor>();
+
+builder.Services.AddHostedService<UPACIP.Service.Backup.DatabaseBackupService>();
+
+// BackupRetentionService: Singleton — tiered retention cleanup (AC-2, DR-023).
+//   Daily=30d, Weekly=90d (Sunday), Monthly=365d (1st of month).
+//   Called after each successful backup in DatabaseBackupService.RunRetentionCleanupAsync.
+//   Failure does not affect the backup cycle result.
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.BackupRetentionOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.BackupRetentionOptions.SectionName));
+
+builder.Services.AddSingleton<UPACIP.Service.Backup.IBackupRetentionService,
+    UPACIP.Service.Backup.BackupRetentionService>();
+
+// BackupEncryptionService: Singleton — AES-256-CBC streaming encryption/decryption (US_089, AC-1, DR-025).
+//   Key sourced from BackupEncryption__EncryptionKeyBase64 env var in production (never stored with backups).
+//   Enabled=true by default; set to false in development to skip encryption.
+//   Produces .dump.enc files with a random 16-byte IV prepended for IV-free decryption.
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.EncryptionOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.EncryptionOptions.SectionName));
+
+builder.Services.AddSingleton<UPACIP.Service.Backup.IBackupEncryptionService,
+    UPACIP.Service.Backup.BackupEncryptionService>();
+
+// BackupReplicationService: Singleton — geographic file-share replication with Polly retry (US_089, AC-2, DR-024).
+//   RemoteDestinationPath set via env var BackupReplication__RemoteDestinationPath in production.
+//   Only encrypted .dump.enc files are replicated — plaintext never leaves the primary server (OWASP A02).
+//   Replication failure is non-fatal: backup cycle still succeeds; BACKUP_REPLICATION_FAILED alert emitted.
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.ReplicationOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.ReplicationOptions.SectionName));
+
+builder.Services.AddSingleton<UPACIP.Service.Backup.IBackupReplicationService,
+    UPACIP.Service.Backup.BackupReplicationService>();
+
+// BackupRestorationTestService: Scoped — admin-triggered quarterly restoration test pipeline
+//   (US_089 task_003, AC-3, AC-4, DR-026).
+//   Decrypts latest .dump.enc → pg_restore → validates row counts, FK integrity, checksums.
+//   Test DB password via env var RestorationTest__TestDatabasePassword only (OWASP A02).
+//   Temp decrypted .dump deleted in finally block even on failure (OWASP A02).
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.RestorationTestOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.RestorationTestOptions.SectionName));
+
+builder.Services.AddScoped<UPACIP.Service.Backup.IBackupRestorationTestService,
+    UPACIP.Service.Backup.BackupRestorationTestService>();
+
+// WalArchivalMonitoringService: HostedService — monitors PostgreSQL WAL archiving health (US_090, AC-1, DR-027).
+//   Schedules pg_switch_wal() every 15 minutes to guarantee ≤15-minute RPO (AC-1, NFR-024).
+//   Monitors archive directory every 5 minutes for stalls, sequence gaps, and pg_waldump corruption (edge case 1).
+//   WAL retention cleanup runs daily, aligned with 30-day backup retention from US_088 task_002.
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.WalArchivalOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.WalArchivalOptions.SectionName));
+
+builder.Services.AddHostedService<UPACIP.Service.Backup.WalArchivalMonitoringService>();
+
+// Also register WalArchivalMonitoringService as a Singleton by concrete type so that
+// PointInTimeRecoveryService can inject it directly for live WAL status (GetArchivalStatus()).
+// AddHostedService registers only as IHostedService; we register a second entry that resolves
+// the same singleton instance from the DI container.
+builder.Services.AddSingleton(sp =>
+    (UPACIP.Service.Backup.WalArchivalMonitoringService)sp
+        .GetServices<Microsoft.Extensions.Hosting.IHostedService>()
+        .First(s => s is UPACIP.Service.Backup.WalArchivalMonitoringService));
+
+// PointInTimeRecoveryService: Scoped — five-phase PITR pipeline (US_090 task_002, AC-2, AC-3, AC-4, DR-027).
+//   Phases: pre-flight → decrypt base backup → pg_restore → WAL replay → integrity validation.
+//   WalArchivalMonitoringService injected directly for live WAL health status.
+//   RecoveryPassword via env var PitrRecovery__RecoveryPassword only (OWASP A02).
+//   Recovery always targets a separate database + port — never modifies production (OWASP A01).
+builder.Services
+    .Configure<UPACIP.Service.Backup.Models.PitrOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Backup.Models.PitrOptions.SectionName));
+
+builder.Services.AddScoped<UPACIP.Service.Backup.IPointInTimeRecoveryService,
+    UPACIP.Service.Backup.PointInTimeRecoveryService>();
+
+// ── EP-017 Migration Pipeline Engine (US_091 task_001, AC-2, AC-3, DR-028, DR-029) ───────
+// CustomHistoryRepository: registered via ReplaceService in AddDbContext above — extends
+//   __EFMigrationsHistory with AppliedAtUtc and MigrationChecksum columns (AC-3).
+// MigrationExecutionService: Scoped — applies pending EF Core migrations in a single
+//   PostgreSQL serializable transaction with automatic rollback on failure (AC-2, edge case 1).
+//   Down() validation warns when a migration has no rollback operations (AC-1 awareness).
+//   Pre-migration pg_dump backup created when CreatePreMigrationBackup=true.
+builder.Services
+    .Configure<UPACIP.Service.Migration.Models.MigrationExecutionOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Migration.Models.MigrationExecutionOptions.SectionName));
+
+builder.Services.AddScoped<UPACIP.Service.Migration.IMigrationExecutionService,
+    UPACIP.Service.Migration.MigrationExecutionService>();
+builder.Services.AddScoped<UPACIP.Service.Migration.IMigrationVerificationService,
+    UPACIP.Service.Migration.MigrationVerificationService>();
+builder.Services.AddScoped<UPACIP.Service.Migration.ICompatibilityGuard,
+    UPACIP.Service.Migration.CompatibilityGuard>();
+
+// ── EP-017 CSV Import Engine (US_092 task_001, AC-1, AC-2, AC-3, AC-4) ──
+// ImportOptions: bound from "CsvImport" — BatchSize, MaxFileSizeBytes, MaxErrorsBeforeAbort,
+//   AllowedEntityTypes. Prevents memory exhaustion (max 50 MB) and unbounded error lists.
+// ICsvParser / CsvParser: streaming RFC 4180 parser with delimiter auto-detection
+//   (comma/semicolon/tab) and UTF-8/ASCII encoding support (edge case 2).
+// ICsvImportProfile<T>: per-entity column mapping, validation, and duplicate detection.
+//   PatientImportProfile  — DR-001 unique email.
+//   AppointmentImportProfile — DR-014 composite (patient_id, appointment_time).
+//   UserImportProfile     — staff/admin only; patient role excluded from bulk import.
+// ICsvImportEngine / CsvImportEngine: parse → validate → persist pipeline.
+builder.Services
+    .AddOptions<UPACIP.Service.Import.Models.ImportOptions>()
+    .BindConfiguration(UPACIP.Service.Import.Models.ImportOptions.SectionName);
+builder.Services.AddScoped<UPACIP.Service.Import.ICsvParser,
+    UPACIP.Service.Import.CsvParser>();
+builder.Services.AddScoped<
+    UPACIP.Service.Import.Profiles.ICsvImportProfile<UPACIP.DataAccess.Entities.Patient>,
+    UPACIP.Service.Import.Profiles.PatientImportProfile>();
+builder.Services.AddScoped<
+    UPACIP.Service.Import.Profiles.ICsvImportProfile<UPACIP.DataAccess.Entities.Appointment>,
+    UPACIP.Service.Import.Profiles.AppointmentImportProfile>();
+builder.Services.AddScoped<
+    UPACIP.Service.Import.Profiles.ICsvImportProfile<UPACIP.DataAccess.Entities.ApplicationUser>,
+    UPACIP.Service.Import.Profiles.UserImportProfile>();
+builder.Services.AddScoped<UPACIP.Service.Import.ICsvImportEngine,
+    UPACIP.Service.Import.CsvImportEngine>();
+
+// ── EP-017 CSV Import API (US_092 task_002, AC-2, AC-3, edge case 1) ───────────────
+// CsvImportBackgroundService: BackgroundService polling the singleton job store on a
+//   500 ms interval. Processes queued ImportJob entries for large files (>10K rows).
+//   Opens temp file, calls ICsvImportEngine with progress callback, persists ImportLog.
+//   Deletes temp file after processing (success or failure).
+// ConcurrentDictionary<Guid, ImportJob>: singleton in-memory job store shared between
+//   ImportController (writer on queue) and CsvImportBackgroundService (writer on progress).
+// FormOptions.MultipartBodyLengthLimit: capped at MaxFileSizeBytes + headroom (55 MB).
+builder.Services.AddSingleton<System.Collections.Concurrent.ConcurrentDictionary<Guid, UPACIP.Service.Import.Models.ImportJob>>();
+builder.Services.AddHostedService<UPACIP.Service.Import.CsvImportBackgroundService>();
+builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
+    o.MultipartBodyLengthLimit = 55_000_000L);
+
+// ── EP-016 Graceful Degradation & AI Fallback Routing (US_083 task_002, AC-1, AC-2, AC-3) ──
+// DegradationOptions: bound from "Degradation" — FeatureDependencyMap maps feature names to
+//   the DependencyCategory values they depend on. StaffNotificationEnabled controls Serilog
+//   STAFF_NOTIFICATION events. FallbackMessage is embedded in 503 responses (EC-1).
+// IDegradationModeManager / DegradationModeManager: Singleton — ConcurrentDictionary health
+//   state per DependencyCategory; writes a 5-minute TTL Redis flag on state transitions for
+//   cross-instance signalling (EC-1 Redis-unavailable graceful fallback: in-memory is authoritative).
+//   DEGRADATION_ACTIVATED / STAFF_NOTIFICATION log events emitted on each transition.
+builder.Services
+    .AddOptions<UPACIP.Service.Monitoring.Models.DegradationOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Service.Monitoring.Models.DegradationOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Monitoring.IDegradationModeManager,
+    UPACIP.Service.Monitoring.DegradationModeManager>();
+
+// ── EP-016 External Dependency Circuit Breakers (US_084 task_001, AC-1) ───────────────────
+// ExternalServiceResilienceOptions: bound from "ExternalServiceResilience" — per-dependency
+//   FailureThreshold / BreakDurationSeconds / TimeoutSeconds / RetryCount / RetryBaseDelayMs.
+// ExternalServiceResilienceProvider: Singleton — builds ConcurrentDictionary of named
+//   Polly V8 pipelines (CircuitBreaker → Retry → Timeout) on startup; tracks circuit state.
+// NotificationRetryService: BackgroundService — 60-second PeriodicTimer that drains
+//   SMS and email Redis retry queues when the respective circuit is Closed/HalfOpen.
+builder.Services
+    .AddOptions<UPACIP.Service.Resilience.Models.ExternalServiceResilienceOptions>()
+    .Bind(builder.Configuration.GetSection(
+        UPACIP.Service.Resilience.Models.ExternalServiceResilienceOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Resilience.IExternalServiceResilienceProvider,
+    UPACIP.Service.Resilience.ExternalServiceResilienceProvider>();
+builder.Services.AddHostedService<UPACIP.Service.Notifications.NotificationRetryService>();
 
 // ── EP-013 Hallucination Tracking (US_074 task_002, AC-1, AC-2, AIR-Q06) ────────────────────
 // IHallucinationTrackingService: Scoped — records staff verification outcomes (Supported /
@@ -1171,6 +1638,12 @@ app.UseCorrelationId();
 // 2. Global exception handler — wraps everything below so errors carry a correlation ID
 app.UseGlobalExceptionHandler();
 
+// 3. Error rate tracking — captures all response codes (including those from middleware)
+// for the sliding-window 0.1% error rate monitor.  Placed after the global exception handler
+// so uncaught exceptions are already converted to 500 responses before the tracker reads
+// the status code.  Health check endpoints (/health, /ready) are excluded from tracking.
+app.UseMiddleware<UPACIP.Api.Middleware.ErrorRateTrackingMiddleware>();
+
 // 3. Swagger — developer tooling, registered early so exceptions are caught
 if (app.Environment.IsDevelopment())
 {
@@ -1191,14 +1664,47 @@ if (!app.Environment.IsDevelopment())
 }
 app.UseHttpsRedirection();
 app.UseCors("ReactFrontend");
+
+// Connection pool guard: wraps NpgsqlException pool-exhaustion timeouts in HTTP 503 with
+// Retry-After:5 so load balancers and clients back off cleanly (US_082 task_001, AC-2).
+// Positioned before rate limiting so exhaustion is reported even if the rate limiter would
+// otherwise approve the request — fail fast with a deterministic error code.
+app.UseMiddleware<UPACIP.Api.Middleware.ConnectionPoolGuardMiddleware>();
+
+// Endpoint circuit breaker: Polly V8 ResiliencePipeline per EndpointClassification.
+// Critical paths (/api/auth, /api/appointments/book, /health, /ready) are never broken.
+// Standard and NonCritical paths trip at 10 and 5 failures respectively in a 30-second
+// sampling window and return HTTP 503 with Retry-After to shed non-critical load during
+// traffic spikes (US_082 task_001, AC-4, edge case 2).
+app.UseMiddleware<UPACIP.Api.Middleware.EndpointCircuitBreakerMiddleware>();
+
 app.UseRateLimiter();        // Rate limiting policies (register-limit, check-email-limit)
 app.UseAuthentication(); // Must precede UseAuthorization to populate HttpContext.User
+
+// Graceful degradation: short-circuits AI-gated routes (/api/intake/conversational*,
+// /api/documents/parse|upload*, /api/coding/suggest|auto*) with HTTP 503 + structured fallback
+// JSON when the relevant DependencyCategory is unhealthy (US_083 task_002, AC-1, AC-2, AC-3).
+// Placed after UseAuthentication so user context is available for logging;
+// placed before UseSessionManagement and UseAuthorization to avoid consuming rate-limiter
+// budget or session budget for degraded-path requests.
+app.UseMiddleware<UPACIP.Api.Middleware.GracefulDegradationMiddleware>();
+
 app.UseSessionManagement(); // Sliding 15-min TTL reset + expired session 401 (NFR-014, AC-1/AC-2)
 // Input sanitization: XSS + command injection stripping on all JSON bodies and query strings.
 // Placed after authentication so the correlation ID is available for warning logs.
 // Placed before UseAuthorization so policy checks operate on sanitized data (US_066 AC-1, FR-095).
 app.UseInputSanitization();
 app.UseAuthorization();
+
+// Performance instrumentation: starts Activity span, records end-to-end latency per operation
+// type, and appends X-Request-Duration-Ms + X-Correlation-Id response headers (US_081 task_001).
+app.UseMiddleware<UPACIP.Api.Middleware.PerformanceInstrumentationMiddleware>();
+
+// AI rate limiting: sliding window per user, applied to /api/ai/*, /api/intake/*, /api/coding/*.
+// Runs after UseAuthorization so JWT claims (user ID, role) are available for limit resolution.
+// Fails open on Redis outage — legitimate users are never blocked due to cache unavailability.
+app.UseMiddleware<UPACIP.Api.Middleware.AiRateLimitingMiddleware>();
+
 app.MapControllers();
 
 // ── AI Gateway admin endpoints — model version management (US_069 TASK_003, AIR-O05) ──

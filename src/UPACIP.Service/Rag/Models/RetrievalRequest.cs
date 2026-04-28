@@ -37,4 +37,20 @@ public sealed class RetrievalRequest
     /// Default: <see langword="false"/> (pure cosine similarity).
     /// </summary>
     public bool UseHybridSearch { get; init; } = false;
+
+    // ── Access control context (US_079 task_002, AIR-S07) ────────────────────
+
+    /// <summary>
+    /// Authenticated user's identity ID for RAG access control filtering.
+    /// When <see langword="null"/> access control filtering is skipped
+    /// (system-internal calls without user context).
+    /// </summary>
+    public Guid? UserId { get; init; }
+
+    /// <summary>
+    /// The authenticated user's primary role name (e.g. "Patient", "Staff", "Admin").
+    /// Used by <c>IRagAccessControlFilter</c> to apply role-appropriate document
+    /// permission rules.  When <see langword="null"/> access control filtering is skipped.
+    /// </summary>
+    public string? UserRole { get; init; }
 }

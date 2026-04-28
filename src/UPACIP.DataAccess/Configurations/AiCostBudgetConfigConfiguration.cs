@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using UPACIP.DataAccess.Entities;
+using UPACIP.DataAccess.Enums;
 
 namespace UPACIP.DataAccess.Configurations;
 
@@ -96,7 +97,7 @@ public sealed class AiCostBudgetConfigConfiguration : IEntityTypeConfiguration<A
             new
             {
                 Id                  = OpenAiConfigId,
-                Provider            = "OpenAI",
+                Provider            = AiProvider.OpenAI,
                 DailyBudgetThreshold  = 5.00m,
                 AlertEnabled        = true,
                 CostPer1kInputTokens  = 0.000150m,
@@ -107,7 +108,7 @@ public sealed class AiCostBudgetConfigConfiguration : IEntityTypeConfiguration<A
             new
             {
                 Id                  = AnthropicConfigId,
-                Provider            = "Anthropic",
+                Provider            = AiProvider.Anthropic,
                 DailyBudgetThreshold  = 20.00m,
                 AlertEnabled        = true,
                 CostPer1kInputTokens  = 0.003000m,

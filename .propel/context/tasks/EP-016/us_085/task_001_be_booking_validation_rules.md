@@ -203,25 +203,26 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Booking with date >90 days ahead returns 400 with descriptive "beyond 90 days" error
-- [ ] Booking with past date returns 400 with distinct "in the past" error message
-- [ ] Booking at 11:59 PM local time on the last valid day is accepted (timezone normalization)
-- [ ] Booking at 12:01 AM local time on day 91 is rejected correctly
-- [ ] Duplicate booking (same patient + time) returns 409 Conflict with existing appointment details
-- [ ] Database-level unique constraint still catches race conditions on concurrent duplicate bookings
-- [ ] Invalid email format returns 400 with "Expected format: user@example.com" hint
-- [ ] Email regex pattern change in appsettings.json takes effect on next request without restart
-- [ ] Regex evaluation times out after 100ms for maliciously long input (ReDoS protection)
-- [ ] Email longer than 254 characters is rejected
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Booking with date >90 days ahead returns 400 with descriptive "beyond 90 days" error
+- [x] Booking with past date returns 400 with distinct "in the past" error message
+- [x] Booking at 11:59 PM local time on the last valid day is accepted (timezone normalization)
+- [x] Booking at 12:01 AM local time on day 91 is rejected correctly
+- [x] Duplicate booking (same patient + time) returns 409 Conflict with existing appointment details
+- [x] Database-level unique constraint still catches race conditions on concurrent duplicate bookings
+- [x] Invalid email format returns 400 with "Expected format: user@example.com" hint
+- [x] Email regex pattern change in appsettings.json takes effect on next request without restart
+- [x] Regex evaluation times out after 100ms for maliciously long input (ReDoS protection)
+- [x] Email longer than 254 characters is rejected
 
 ## Implementation Checklist
 
-- [ ] Create `ValidationRuleOptions` with ClinicTimezoneId, MaxBookingDaysAhead, EmailRegexPattern and bind via IOptionsMonitor
-- [ ] Enhance `AppointmentDateValidator` with timezone normalization and separate past-date/future-date error messages
-- [ ] Enhance `EmailValidator` with configurable regex, descriptive error, 254-char limit, and 100ms timeout
-- [ ] Implement `IDuplicateBookingValidator` / `DuplicateBookingValidator` with async EF Core existence check
-- [ ] Add `DuplicateBookingException` handling in `GlobalExceptionHandlerMiddleware` → 409 Conflict
-- [ ] Integrate `IDuplicateBookingValidator` into `AppointmentBookingService` pre-transaction check
-- [ ] Add ValidationRules configuration section to appsettings.json
-- [ ] Register DuplicateBookingValidator and bind ValidationRuleOptions in Program.cs
+- [x] Create `ValidationRuleOptions` with ClinicTimezoneId, MaxBookingDaysAhead, EmailRegexPattern and bind via IOptionsMonitor
+- [x] Enhance `AppointmentDateValidator` with timezone normalization and separate past-date/future-date error messages
+- [x] Enhance `EmailValidator` with configurable regex, descriptive error, 254-char limit, and 100ms timeout
+- [x] Implement `IDuplicateBookingValidator` / `DuplicateBookingValidator` with async EF Core existence check
+- [x] Add `DuplicateBookingException` handling in `GlobalExceptionHandlerMiddleware` → 409 Conflict
+- [x] Integrate `IDuplicateBookingValidator` into `AppointmentBookingService` pre-transaction check
+- [x] Add ValidationRules configuration section to appsettings.json
+- [x] Register DuplicateBookingValidator and bind ValidationRuleOptions in Program.cs
+

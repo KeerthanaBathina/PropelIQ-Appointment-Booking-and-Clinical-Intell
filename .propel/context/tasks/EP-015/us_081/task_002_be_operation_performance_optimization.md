@@ -248,11 +248,11 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `IPriorityRequestQueue` interface and `PriorityRequestQueue` with multi-channel priority queuing and SemaphoreSlim concurrency limits
-- [ ] Optimize `AppointmentBookingService` with compiled query, Redis cache-aside slot check, and batched transaction
-- [ ] Add slot cache pre-warming to `AppointmentSlotCacheService` with periodic 5-minute refresh
-- [ ] Add 25s per-document timeout and streaming chunk processing to `DocumentParsingWorker`
-- [ ] Add Redis-cached code library and parallel diagnosis/procedure coding to medical coding path
-- [ ] Configure per-operation timeouts in `AiGatewayService` (4s coding, 25s parsing)
-- [ ] Integrate priority classification into AI Gateway request routing
-- [ ] Instrument all optimization paths with `IPerformanceTracker.StartSpan` for bottleneck visibility
+- [x] Create `IPriorityRequestQueue` interface and `PriorityRequestQueue` with multi-channel priority queuing and SemaphoreSlim concurrency limits
+- [x] Optimize `AppointmentBookingService` with compiled query, Redis cache-aside slot check, and batched transaction
+- [x] Add slot cache pre-warming to `AppointmentSlotCacheService` with periodic 5-minute refresh
+- [x] Add 25s per-document timeout and streaming chunk processing to `DocumentParsingWorker`
+- [x] Add Redis-cached code library and parallel diagnosis/procedure coding to medical coding path
+- [x] Configure per-operation timeouts in `AiGatewayService` (4s coding, 25s parsing)
+- [x] Integrate priority classification into AI Gateway request routing
+- [x] Instrument all optimization paths with `IPerformanceTracker.StartSpan` for bottleneck visibility

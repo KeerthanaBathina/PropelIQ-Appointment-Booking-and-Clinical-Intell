@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Caching;
+using UPACIP.Service.Performance;
 
 namespace UPACIP.Service.Appointments;
 
@@ -29,18 +30,25 @@ public sealed class AppointmentSlotService : IAppointmentSlotService
 {
     private static readonly TimeSpan CacheTtl = TimeSpan.FromMinutes(5); // NFR-030
 
+    private const string MetricHit   = "cache.slots.hit";
+    private const string MetricMiss  = "cache.slots.miss";
+    private const string MetricError = "cache.slots.error";
+
     private readonly ApplicationDbContext            _db;
     private readonly ICacheService                   _cache;
+    private readonly IPerformanceTracker             _tracker;
     private readonly ILogger<AppointmentSlotService> _logger;
 
     public AppointmentSlotService(
         ApplicationDbContext              db,
         ICacheService                     cache,
+        IPerformanceTracker               performanceTracker,
         ILogger<AppointmentSlotService>   logger)
     {
-        _db     = db;
-        _cache  = cache;
-        _logger = logger;
+        _db      = db;
+        _cache   = cache;
+        _tracker = performanceTracker;
+        _logger  = logger;
     }
 
     // ─────────────────────────────────────────────────────────────────────────
@@ -54,16 +62,31 @@ public sealed class AppointmentSlotService : IAppointmentSlotService
     {
         var cacheKey = BuildRangeCacheKey(parameters);
 
-        // Cache-aside: attempt to serve from Redis first (AC-4, NFR-030)
-        var cached = await _cache.GetAsync<SlotAvailabilityResponse>(cacheKey, cancellationToken);
+        // Cache-aside: attempt to serve from Redis first (AC-2, NFR-030)
+        SlotAvailabilityResponse? cached = null;
+        try
+        {
+            cached = await _cache.GetAsync<SlotAvailabilityResponse>(cacheKey, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            // ICacheService swallows internally, but guard defensively.
+            _tracker.RecordLatency(MetricError, 1);
+            _logger.LogWarning(ex,
+                "Redis unavailable — slot query will hit database directly for key={CacheKey}.",
+                cacheKey);
+        }
+
         if (cached is not null)
         {
+            _tracker.RecordLatency(MetricHit, 1);
             _logger.LogDebug(
                 "Slot cache HIT for key {CacheKey}. Returning {SlotCount} slots.",
                 cacheKey, cached.Slots.Count);
             return cached;
         }
 
+        _tracker.RecordLatency(MetricMiss, 1);
         _logger.LogDebug("Slot cache MISS for key {CacheKey}. Querying database.", cacheKey);
 
         // ── Build date range ──────────────────────────────────────────────────

@@ -1,7 +1,8 @@
-using System.Threading;
 using Microsoft.Extensions.Logging;
 using UPACIP.Api.Features.AIGateway.Contracts;
 using UPACIP.Api.Features.AIGateway.Resilience;
+using UPACIP.Service.Monitoring;
+using UPACIP.Service.Monitoring.Models;
 
 namespace UPACIP.Api.Features.AIGateway.Services;
 
@@ -27,7 +28,8 @@ namespace UPACIP.Api.Features.AIGateway.Services;
 /// </summary>
 public sealed class DegradedModeHandler
 {
-    private readonly ProviderStateManager  _stateManager;
+    private readonly ProviderStateManager       _stateManager;
+    private readonly IDegradationModeManager     _degradationManager;
     private readonly ILogger<DegradedModeHandler> _logger;
 
     // ── Throttle: at most one admin-alert log per 60 seconds ────────────────
@@ -36,10 +38,12 @@ public sealed class DegradedModeHandler
 
     public DegradedModeHandler(
         ProviderStateManager          stateManager,
+        IDegradationModeManager       degradationManager,
         ILogger<DegradedModeHandler>  logger)
     {
-        _stateManager = stateManager;
-        _logger       = logger;
+        _stateManager       = stateManager;
+        _degradationManager = degradationManager;
+        _logger             = logger;
     }
 
     /// <summary>
@@ -76,6 +80,10 @@ public sealed class DegradedModeHandler
         long      elapsedMs)
     {
         MaybeEmitAdminAlert(request, primaryProviderName, fallbackProviderName);
+
+        // Signal the degradation manager so GracefulDegradationMiddleware and
+        // feature-availability checks reflect the AI outage (US_084 task_001, AC-1).
+        _degradationManager.ActivateDegradation(DependencyCategory.AiProviders);
 
         return AIResponse.Failed(
             request.RequestId,

@@ -192,25 +192,26 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] SMS circuit breaker opens after 3 consecutive Twilio failures
-- [ ] Email circuit breaker opens after 3 consecutive SMTP failures
-- [ ] AI primary circuit breaker opens after 5 consecutive OpenAI failures and routes to Claude
-- [ ] When both AI circuits are open, degradation mode is activated via `IDegradationModeManager`
-- [ ] When a circuit is open, requests return fallback immediately without attempting the external call
-- [ ] Failed SMS notifications are queued to `notification:sms:retry_queue` in Redis
-- [ ] Failed email notifications are queued to `notification:email:retry_queue` in Redis
-- [ ] `NotificationRetryService` re-attempts queued items only when circuit state is Closed/HalfOpen
-- [ ] Circuit state transitions are logged via Serilog with dependency name and state change
-- [ ] `GetAllCircuitStates()` returns current state for all dependencies (for monitoring integration)
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] SMS circuit breaker opens after 3 consecutive Twilio failures
+- [x] Email circuit breaker opens after 3 consecutive SMTP failures
+- [x] AI primary circuit breaker opens after 5 consecutive OpenAI failures and routes to Claude
+- [x] When both AI circuits are open, degradation mode is activated via `IDegradationModeManager`
+- [x] When a circuit is open, requests return fallback immediately without attempting the external call
+- [x] Failed SMS notifications are queued to `notification:sms:retry_queue` in Redis
+- [x] Failed email notifications are queued to `notification:email:retry_queue` in Redis
+- [x] `NotificationRetryService` re-attempts queued items only when circuit state is Closed/HalfOpen
+- [x] Circuit state transitions are logged via Serilog with dependency name and state change
+- [x] `GetAllCircuitStates()` returns current state for all dependencies (for monitoring integration)
 
 ## Implementation Checklist
 
-- [ ] Create `CircuitBreakerConfig` and `ExternalServiceResilienceOptions` models in `src/UPACIP.Service/Resilience/Models/`
-- [ ] Implement `IExternalServiceResilienceProvider` / `ExternalServiceResilienceProvider` with named Polly V8 pipelines
-- [ ] Implement `ResilientSmsService` with SMS circuit breaker and queue-for-retry fallback
-- [ ] Implement `ResilientEmailService` as `IEmailService` decorator with circuit breaker and queue-for-retry
-- [ ] Integrate AI circuit breaker pipelines into `AiGatewayService` with degradation mode signaling
-- [ ] Implement `NotificationRetryService` BackgroundService for queued SMS/email re-delivery
-- [ ] Expose `GetAllCircuitStates()` for monitoring integration with `SystemStatusController`
-- [ ] Register all services in DI and add ExternalServiceResilience configuration to appsettings.json
+- [x] Create `CircuitBreakerConfig` and `ExternalServiceResilienceOptions` models in `src/UPACIP.Service/Resilience/Models/`
+- [x] Implement `IExternalServiceResilienceProvider` / `ExternalServiceResilienceProvider` with named Polly V8 pipelines
+- [x] Implement `ResilientSmsService` with SMS circuit breaker and queue-for-retry fallback
+- [x] Implement `ResilientEmailService` as `IEmailService` decorator with circuit breaker and queue-for-retry
+- [x] Integrate AI circuit breaker pipelines into `AiGatewayService` with degradation mode signaling
+- [x] Implement `NotificationRetryService` BackgroundService for queued SMS/email re-delivery
+- [x] Expose `GetAllCircuitStates()` for monitoring integration with `SystemStatusController`
+- [x] Register all services in DI and add ExternalServiceResilience configuration to appsettings.json
+

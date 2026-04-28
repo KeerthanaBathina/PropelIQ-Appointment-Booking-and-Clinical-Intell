@@ -268,24 +268,25 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Latest encrypted backup is decrypted and restored to the test database (AC-3)
-- [ ] Row counts match between production and restored test database per table (AC-4)
-- [ ] Referential integrity validation detects zero FK violations in restored database (AC-4)
-- [ ] Table checksums match between production and restored test database (AC-4)
-- [ ] Temporary decrypted `.dump` file is deleted after restoration completes
-- [ ] RestorationTestLog records all validation outcomes with admin identity
-- [ ] API endpoints require admin role authorization
-- [ ] Quarterly status correctly reports "Completed", "DueSoon", or "Overdue"
-- [ ] Test database credentials are never logged or stored in appsettings.json
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Latest encrypted backup is decrypted and restored to the test database (AC-3)
+- [x] Row counts match between production and restored test database per table (AC-4)
+- [x] Referential integrity validation detects zero FK violations in restored database (AC-4)
+- [x] Table checksums match between production and restored test database (AC-4)
+- [x] Temporary decrypted `.dump` file is deleted after restoration completes
+- [x] RestorationTestLog records all validation outcomes with admin identity
+- [x] API endpoints require admin role authorization
+- [x] Quarterly status correctly reports "Completed", "DueSoon", or "Overdue"
+- [x] Test database credentials are never logged or stored in appsettings.json
 
 ## Implementation Checklist
 
-- [ ] Create `RestorationTestOptions` with pg_restore path, test DB config, quarterly alert threshold
-- [ ] Create `RestorationTestResult` DTO with row count, checksum, and FK validation results
-- [ ] Create `RestorationTestLog` entity and add DbSet to ApplicationDbContext
-- [ ] Implement `IBackupRestorationTestService` with decrypt → restore → validate pipeline
-- [ ] Implement row count, referential integrity, and checksum validation queries
-- [ ] Implement quarterly schedule tracking with alert status
-- [ ] Create `BackupController` with admin-only restore-test and status endpoints
-- [ ] Register RestorationTestOptions and IBackupRestorationTestService in Program.cs
+- [x] Create `RestorationTestOptions` with pg_restore path, test DB config, quarterly alert threshold
+- [x] Create `RestorationTestResult` DTO with row count, checksum, and FK validation results
+- [x] Create `RestorationTestLog` entity and add DbSet to ApplicationDbContext
+- [x] Implement `IBackupRestorationTestService` with decrypt → restore → validate pipeline
+- [x] Implement row count, referential integrity, and checksum validation queries
+- [x] Implement quarterly schedule tracking with alert status
+- [x] Create `BackupController` with admin-only restore-test and status endpoints
+- [x] Register RestorationTestOptions and IBackupRestorationTestService in Program.cs
+

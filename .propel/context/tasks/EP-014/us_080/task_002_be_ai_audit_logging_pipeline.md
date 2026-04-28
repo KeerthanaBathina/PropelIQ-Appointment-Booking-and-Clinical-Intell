@@ -245,30 +245,30 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for UPACIP.Service, UPACIP.DataAccess, and UPACIP.Api projects
-- [ ] **[AI Tasks]** Guardrails tested for input sanitization and output validation
-- [ ] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
-- [ ] **[AI Tasks]** Token budget enforcement verified
-- [ ] **[AI Tasks]** Audit logging verified (no PII in logs)
-- [ ] AI audit log entries contain post-PII-redacted prompt text (no patient identifying information)
-- [ ] Log entries capture model version, input/output token counts, latency, and confidence score
-- [ ] Partitioned table creates monthly partitions and routes inserts to correct partition
-- [ ] Admin query endpoint filters correctly by date range, model version, request type, and confidence range
-- [ ] Cursor-based pagination returns consistent results across pages
-- [ ] Summary endpoint returns aggregated metrics per model version and request type
-- [ ] Channel-based writer does not block AI request pipeline when under back-pressure
-- [ ] Retention script correctly detaches 90+ day partitions and drops 1+ year partitions
+- [x] `dotnet build` completes with zero errors for UPACIP.Service, UPACIP.DataAccess, and UPACIP.Api projects
+- [x] **[AI Tasks]** Guardrails tested for input sanitization and output validation
+- [x] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
+- [x] **[AI Tasks]** Token budget enforcement verified
+- [x] **[AI Tasks]** Audit logging verified (no PII in logs)
+- [x] AI audit log entries contain post-PII-redacted prompt text (no patient identifying information)
+- [x] Log entries capture model version, input/output token counts, latency, and confidence score
+- [x] Partitioned table creates monthly partitions and routes inserts to correct partition
+- [x] Admin query endpoint filters correctly by date range, model version, request type, and confidence range
+- [x] Cursor-based pagination returns consistent results across pages
+- [x] Summary endpoint returns aggregated metrics per model version and request type
+- [x] Channel-based writer does not block AI request pipeline when under back-pressure
+- [x] Retention script correctly detaches 90+ day partitions and drops 1+ year partitions
 
 ## Implementation Checklist
 
-- [ ] Create `AiAuditLogEntry`, `AiAuditQueryFilter`, and `AiAuditQueryResult` models in `src/UPACIP.Service/AiAudit/Models/`
-- [ ] Create `AiAuditLogEntity` EF Core entity and `AiAuditLogConfiguration` with indexes
-- [ ] Create `scripts/create-ai-audit-partitions.sql` with range partitioning, initial partitions, and maintenance function
-- [ ] Define `IAiAuditService` interface with `LogAiInteractionAsync` and `QueryAuditLogsAsync` methods
-- [ ] Implement `AiAuditService` with Channel-based async writer and BackgroundService consumer
-- [ ] Implement cursor-based paginated query with conditional filtering
-- [ ] Implement `AiAuditLoggingMiddleware` capturing post-PII-redacted data from AI Gateway pipeline
-- [ ] Implement `AiAuditController` with query, detail, and summary admin endpoints
+- [x] Create `AiAuditLogEntry`, `AiAuditQueryFilter`, and `AiAuditQueryResult` models in `src/UPACIP.Service/AiAudit/Models/`
+- [x] Create `AiAuditLogEntity` EF Core entity and `AiAuditLogConfiguration` with indexes
+- [x] Create `scripts/create-ai-audit-partitions.sql` with range partitioning, initial partitions, and maintenance function
+- [x] Define `IAiAuditService` interface with `LogAiInteractionAsync` and `QueryAuditLogsAsync` methods
+- [x] Implement `AiAuditService` with Channel-based async writer and BackgroundService consumer
+- [x] Implement cursor-based paginated query with conditional filtering
+- [x] Implement `AiAuditLoggingMiddleware` capturing post-PII-redacted data from AI Gateway pipeline
+- [x] Implement `AiAuditController` with query, detail, and summary admin endpoints
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-S04 and AIR-O06 requirements are met (audit logging and caching)

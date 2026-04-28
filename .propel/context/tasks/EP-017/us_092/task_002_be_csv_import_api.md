@@ -276,11 +276,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create `ImportLog` entity with audit fields and add DbSet to ApplicationDbContext
-- [ ] Create `ImportJob` and `ImportProgress` DTOs for background job tracking
-- [ ] Implement `ImportController` with upload, progress, preview, and history endpoints
-- [ ] Implement `CsvImportBackgroundService` for async large-file processing
-- [ ] Add progress callback support to `CsvImportEngine.ImportAsync`
-- [ ] Implement file upload validation (extension, size, content type, binary check)
-- [ ] Handle error report overflow (>100 errors → file-based full report)
-- [ ] Register CsvImportBackgroundService, job store, and configure form options in Program.cs
+- [x] Create `ImportLog` entity with audit fields and add DbSet to ApplicationDbContext
+- [x] Create `ImportJob` and `ImportProgress` DTOs for background job tracking
+- [x] Implement `ImportController` with upload, progress, preview, and history endpoints
+- [x] Implement `CsvImportBackgroundService` for async large-file processing
+- [x] Add progress callback support to `CsvImportEngine.ImportAsync`
+- [x] Implement file upload validation (extension, size, content type, binary check)
+- [x] Handle error report overflow (>100 errors → file-based full report)
+- [x] Register CsvImportBackgroundService, job store, and configure form options in Program.cs

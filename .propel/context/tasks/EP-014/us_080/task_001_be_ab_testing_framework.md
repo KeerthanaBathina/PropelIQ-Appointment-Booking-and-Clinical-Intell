@@ -221,30 +221,30 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for UPACIP.Service, UPACIP.DataAccess, and UPACIP.Api projects
-- [ ] **[AI Tasks]** Guardrails tested for input sanitization and output validation
-- [ ] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
-- [ ] **[AI Tasks]** Token budget enforcement verified
-- [ ] **[AI Tasks]** Audit logging verified (no PII in logs)
-- [ ] EF Core migration creates ab_experiments and ab_metric_records tables with correct indexes
-- [ ] Deterministic variant assignment returns the same variant for the same userId + experimentId
-- [ ] TrafficSplitPercentage correctly routes approximate percentage to candidate (verified with 1000+ test hashes)
-- [ ] Metrics record accuracy, latency, and cost separately per variant
-- [ ] Admin terminate endpoint immediately routes 100% traffic to control model
-- [ ] Admin pause endpoint stops routing to candidate without discarding collected metrics
-- [ ] Only one experiment can be Active at a time (filtered unique index enforced)
-- [ ] X-Ab-Experiment and X-Ab-Variant headers present on responses during active experiment
+- [x] `dotnet build` completes with zero errors for UPACIP.Service, UPACIP.DataAccess, and UPACIP.Api projects
+- [x] **[AI Tasks]** Guardrails tested for input sanitization and output validation
+- [x] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
+- [x] **[AI Tasks]** Token budget enforcement verified
+- [x] **[AI Tasks]** Audit logging verified (no PII in logs)
+- [x] EF Core migration creates ab_experiments and ab_metric_records tables with correct indexes
+- [x] Deterministic variant assignment returns the same variant for the same userId + experimentId
+- [x] TrafficSplitPercentage correctly routes approximate percentage to candidate (verified with 1000+ test hashes)
+- [x] Metrics record accuracy, latency, and cost separately per variant
+- [x] Admin terminate endpoint immediately routes 100% traffic to control model
+- [x] Admin pause endpoint stops routing to candidate without discarding collected metrics
+- [x] Only one experiment can be Active at a time (filtered unique index enforced)
+- [x] X-Ab-Experiment and X-Ab-Variant headers present on responses during active experiment
 
 ## Implementation Checklist
 
-- [ ] Create `AbExperiment`, `AbVariantAssignment`, `AbMetricRecord`, and `AbExperimentResult` models in `src/UPACIP.Service/AiTesting/Models/`
-- [ ] Create EF Core entities and configurations for ab_experiments and ab_metric_records tables
-- [ ] Define `IAbTestingService` interface with experiment lifecycle and metric methods
-- [ ] Implement deterministic SHA-256 hash-based variant assignment with Redis-cached active experiment
-- [ ] Implement metric recording with configurable per-token cost rates from appsettings
-- [ ] Implement experiment results aggregation with mean accuracy, P95 latency, total cost per variant
-- [ ] Implement `AbTestingMiddleware` with model override, stopwatch timing, and metric recording
-- [ ] Implement `AbTestingController` with create, terminate, pause, results, and list endpoints
+- [x] Create `AbExperiment`, `AbVariantAssignment`, `AbMetricRecord`, and `AbExperimentResult` models in `src/UPACIP.Service/AiTesting/Models/`
+- [x] Create EF Core entities and configurations for ab_experiments and ab_metric_records tables
+- [x] Define `IAbTestingService` interface with experiment lifecycle and metric methods
+- [x] Implement deterministic SHA-256 hash-based variant assignment with Redis-cached active experiment
+- [x] Implement metric recording with configurable per-token cost rates from appsettings
+- [x] Implement experiment results aggregation with mean accuracy, P95 latency, total cost per variant
+- [x] Implement `AbTestingMiddleware` with model override, stopwatch timing, and metric recording
+- [x] Implement `AbTestingController` with create, terminate, pause, results, and list endpoints
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-O10 requirements are met (A/B testing with metric tracking)

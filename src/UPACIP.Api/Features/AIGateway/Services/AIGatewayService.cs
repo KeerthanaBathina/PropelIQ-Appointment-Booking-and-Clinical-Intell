@@ -9,6 +9,8 @@ using UPACIP.Api.Features.AIGateway.Models;
 using UPACIP.Api.Features.AIGateway.Queue;
 using UPACIP.Api.Features.AIGateway.Resilience;
 using UPACIP.Service.AI;
+using UPACIP.Service.Performance;
+using UPACIP.Service.Performance.Models;
 
 namespace UPACIP.Api.Features.AIGateway.Services;
 
@@ -35,6 +37,7 @@ namespace UPACIP.Api.Features.AIGateway.Services;
 public sealed class AIGatewayService : IAIGatewayService
 {
     private readonly AIGatewayOptions                    _options;
+    private readonly AiOperationTimeoutsOptions          _timeouts;
     private readonly AIProviderFallbackHandler           _fallbackHandler;
     private readonly IDocumentParsingQueueProducer       _queueProducer;
     private readonly ITokenBudgetEnforcementService      _budgetEnforcement;
@@ -45,10 +48,13 @@ public sealed class AIGatewayService : IAIGatewayService
     private readonly AiCostTrackingMiddleware            _costTracking;
     private readonly AiAuditLogger                       _auditLogger;
     private readonly PiiRedactionMiddleware              _piiRedaction;
+    private readonly AiAuditLoggingMiddleware            _auditLogging;
+    private readonly IPriorityRequestQueue               _priorityQueue;
     private readonly ILogger<AIGatewayService>           _logger;
 
     public AIGatewayService(
         IOptions<AIGatewayOptions>          options,
+        IOptions<AiOperationTimeoutsOptions> timeouts,
         AIProviderFallbackHandler           fallbackHandler,
         IDocumentParsingQueueProducer       queueProducer,
         ITokenBudgetEnforcementService      budgetEnforcement,
@@ -59,9 +65,12 @@ public sealed class AIGatewayService : IAIGatewayService
         AiCostTrackingMiddleware            costTracking,
         AiAuditLogger                       auditLogger,
         PiiRedactionMiddleware              piiRedaction,
+        AiAuditLoggingMiddleware            auditLogging,
+        IPriorityRequestQueue               priorityQueue,
         ILogger<AIGatewayService>           logger)
     {
         _options           = options.Value;
+        _timeouts          = timeouts.Value;
         _fallbackHandler   = fallbackHandler;
         _queueProducer     = queueProducer;
         _budgetEnforcement = budgetEnforcement;
@@ -72,6 +81,8 @@ public sealed class AIGatewayService : IAIGatewayService
         _costTracking      = costTracking;
         _auditLogger       = auditLogger;
         _piiRedaction      = piiRedaction;
+        _auditLogging      = auditLogging;
+        _priorityQueue     = priorityQueue;
         _logger            = logger;
     }
 
@@ -189,10 +200,56 @@ public sealed class AIGatewayService : IAIGatewayService
             model:         "routing",
             promptContent: request.Prompt);
 
-        // ── Step 4 cont.: Provider dispatch via Polly resilience pipeline ─────
-        // AIProviderFallbackHandler applies circuit-breaker + retry per provider
-        // and transparently routes primary (OpenAI) → fallback (Claude) → error (AC-2).
-        var rawResponse = await _fallbackHandler.ExecuteAsync(request, cancellationToken);
+        // ── Step 4 cont.: Provider dispatch via priority queue + per-operation timeout ──
+        // Route to the in-process priority queue so concurrent AI calls are throttled:
+        //   MedicalCoding   → Normal  (max 10 concurrent)
+        //   ConversationalIntake → Normal
+        //   All others      → Normal (default)
+        // Per-operation timeout is enforced via a linked CancellationTokenSource.
+        // The fallback Polly pipeline runs inside the timeout budget (AC-2, AC-3).
+        var priority = request.RequestType switch
+        {
+            AIRequestType.MedicalCoding       => RequestPriority.Normal,
+            AIRequestType.ConversationalIntake => RequestPriority.Normal,
+            _                                  => RequestPriority.Normal,
+        };
+
+        var timeoutMs = request.RequestType switch
+        {
+            AIRequestType.DocumentParsing      => _timeouts.DocumentParsing,
+            AIRequestType.MedicalCoding        => _timeouts.MedicalCoding,
+            AIRequestType.ConversationalIntake => _timeouts.ConversationalIntake,
+            _                                  => _timeouts.Default,
+        };
+
+        AIResponse rawResponse;
+        try
+        {
+            rawResponse = await _priorityQueue.ExecuteAsync(
+                async ct =>
+                {
+                    // Create a per-operation timeout token linked to the caller's token.
+                    using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                    timeoutCts.CancelAfter(TimeSpan.FromMilliseconds(timeoutMs));
+
+                    return await _fallbackHandler.ExecuteAsync(request, timeoutCts.Token);
+                },
+                priority,
+                cancellationToken);
+        }
+        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        {
+            // Per-operation timeout fired before caller cancelled.
+            _logger.LogWarning(
+                "AI Gateway: per-operation timeout fired. " +
+                "RequestType={RequestType} TimeoutMs={TimeoutMs} CorrelationId={CorrelationId}",
+                request.RequestType, timeoutMs, request.CorrelationId);
+
+            return AIResponse.Failed(
+                request.RequestId,
+                $"{request.RequestType} request timed out after {timeoutMs}ms.",
+                sw.ElapsedMilliseconds);
+        }
 
         // Configuration-alert: model version mismatch detection on the returned response.
         if (!string.IsNullOrEmpty(rawResponse.ProviderName) &&
@@ -244,6 +301,14 @@ public sealed class AIGatewayService : IAIGatewayService
         // ── Step 7b: PII redaction audit event (US_074 AC-3, AIR-S01) ─────────
         // Logs only token counts per category — no PII values are written.
         _piiRedaction.LogRedactionEvent(piiCtx, request.CorrelationId);
+
+        // ── Step 8: Database audit logging (US_080 task_002, AIR-S04, AC-3) ───
+        // Captures post-PII-redacted prompt, response, tokens, latency, and A/B
+        // metadata into the ai_audit_logs partitioned table via bounded channel.
+        // Fire-and-forget — never blocks or delays the AI response.
+        var userId = caller.FindFirstValue(System.Security.Claims.ClaimTypes.NameIdentifier)
+                     ?? "unknown";
+        _auditLogging.LogInteraction(request, normalized, userId);
 
         return normalized;
     }

@@ -1,0 +1,112 @@
+{
+  "PromptInjectionPatterns": [
+    {
+      "Category": "RoleImpersonation",
+      "RegexPattern": "ignore\\s+(all\\s+)?previous\\s+instructions",
+      "Severity": "Critical",
+      "Description": "Attempts to nullify prior instructions and hijack the model's behaviour."
+    },
+    {
+      "Category": "RoleImpersonation",
+      "RegexPattern": "you\\s+are\\s+now\\s+a",
+      "Severity": "Critical",
+      "Description": "Attempts to redefine the model's identity via role assignment."
+    },
+    {
+      "Category": "RoleImpersonation",
+      "RegexPattern": "pretend\\s+(you\\s+are|to\\s+be)",
+      "Severity": "Critical",
+      "Description": "Instructs the model to adopt an alternative persona."
+    },
+    {
+      "Category": "RoleImpersonation",
+      "RegexPattern": "act\\s+as\\s+(if|a)\\b",
+      "Severity": "Critical",
+      "Description": "Directs the model to role-play as a different agent."
+    },
+    {
+      "Category": "RoleImpersonation",
+      "RegexPattern": "forget\\s+(everything|all)\\s+(above|previous)",
+      "Severity": "Critical",
+      "Description": "Commands the model to discard its system-level context."
+    },
+    {
+      "Category": "InstructionOverride",
+      "RegexPattern": "^system\\s*:",
+      "Severity": "High",
+      "Description": "Attempts to inject a fake system-role message at the start of user input."
+    },
+    {
+      "Category": "InstructionOverride",
+      "RegexPattern": "^assistant\\s*:",
+      "Severity": "High",
+      "Description": "Attempts to impersonate the assistant turn in the conversation."
+    },
+    {
+      "Category": "InstructionOverride",
+      "RegexPattern": "\\[INST\\]",
+      "Severity": "High",
+      "Description": "Llama-2 instruction delimiter injected to fake system context."
+    },
+    {
+      "Category": "InstructionOverride",
+      "RegexPattern": "<<SYS>>",
+      "Severity": "High",
+      "Description": "Llama-2 system-message tag injected into user input."
+    },
+    {
+      "Category": "InstructionOverride",
+      "RegexPattern": "\\[\\/INST\\]",
+      "Severity": "High",
+      "Description": "Llama-2 end-instruction delimiter used for context manipulation."
+    },
+    {
+      "Category": "InstructionOverride",
+      "RegexPattern": "<\\|im_start\\|>",
+      "Severity": "High",
+      "Description": "ChatML im_start token injected to override conversation structure."
+    },
+    {
+      "Category": "DataExfiltration",
+      "RegexPattern": "(output|print|show|list|reveal|display)\\s+(all|every|the)\\s+(previous|prior|above|system)",
+      "Severity": "Critical",
+      "Description": "Attempts to extract system prompt or prior conversation content."
+    },
+    {
+      "Category": "DataExfiltration",
+      "RegexPattern": "(what\\s+is|tell\\s+me)\\s+your\\s+(system\\s+)?prompt",
+      "Severity": "Critical",
+      "Description": "Directly requests the model to reveal its system instructions."
+    },
+    {
+      "Category": "DataExfiltration",
+      "RegexPattern": "repeat\\s+(the|your)\\s+(instructions|prompt)",
+      "Severity": "Critical",
+      "Description": "Commands the model to reproduce its system-level instructions verbatim."
+    },
+    {
+      "Category": "DelimiterInjection",
+      "RegexPattern": "```",
+      "Severity": "High",
+      "Description": "Triple-backtick code fence used to escape prompt boundaries."
+    },
+    {
+      "Category": "DelimiterInjection",
+      "RegexPattern": "<script[\\s>]",
+      "Severity": "High",
+      "Description": "HTML script tag injection within AI prompt input."
+    },
+    {
+      "Category": "DelimiterInjection",
+      "RegexPattern": "<iframe[\\s>]",
+      "Severity": "High",
+      "Description": "HTML iframe tag injection within AI prompt input."
+    },
+    {
+      "Category": "DelimiterInjection",
+      "RegexPattern": "[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F]",
+      "Severity": "High",
+      "Description": "Non-printable ASCII control characters (excluding LF, CR, TAB) used to corrupt prompt structure."
+    }
+  ]
+}

@@ -192,23 +192,24 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Valid ICD-10 code (e.g., "E11.65") returns `IsValid = true, IsDeprecated = false` with empty suggestions
-- [ ] Valid CPT code (e.g., "99213") returns `IsValid = true, IsDeprecated = false`
-- [ ] Deprecated code returns `IsValid = false, IsDeprecated = true` with up to 5 non-deprecated alternatives
-- [ ] Invalid code returns `IsValid = false, IsDeprecated = false` with similar alternatives from pgvector
-- [ ] Suggested alternatives have similarity score ≥ 0.5
-- [ ] Bulk validation of 10 codes executes in a single DB roundtrip for exact-match plus bounded parallel similarity searches
-- [ ] Unsupported code system (e.g., "SNOMED") throws ArgumentException
-- [ ] Code value is case-insensitive (normalized to uppercase)
-- [ ] Empty or whitespace-only code value returns validation error
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Valid ICD-10 code (e.g., "E11.65") returns `IsValid = true, IsDeprecated = false` with empty suggestions
+- [x] Valid CPT code (e.g., "99213") returns `IsValid = true, IsDeprecated = false`
+- [x] Deprecated code returns `IsValid = false, IsDeprecated = true` with up to 5 non-deprecated alternatives
+- [x] Invalid code returns `IsValid = false, IsDeprecated = false` with similar alternatives from pgvector
+- [x] Suggested alternatives have similarity score ≥ 0.5
+- [x] Bulk validation of 10 codes executes in a single DB roundtrip for exact-match plus bounded parallel similarity searches
+- [x] Unsupported code system (e.g., "SNOMED") throws ArgumentException
+- [x] Code value is case-insensitive (normalized to uppercase)
+- [x] Empty or whitespace-only code value returns validation error
 
 ## Implementation Checklist
 
-- [ ] Create `CodeValidationResult` model with IsValid, IsDeprecated, ValidationMessage, SuggestedAlternatives
-- [ ] Create `CodeSuggestion` model with CodeValue, CodeSystem, Description, SimilarityScore
-- [ ] Implement `IMedicalCodeValidationService` / `MedicalCodeValidationService` with exact-match lookup
-- [ ] Implement deprecated code detection with warning message and alternative suggestions
-- [ ] Implement pgvector cosine similarity search for suggested alternatives (top 5, threshold ≥ 0.5)
-- [ ] Implement bulk validation method with batched exact-match and bounded parallel similarity searches
-- [ ] Register `IMedicalCodeValidationService` as scoped in Program.cs
+- [x] Create `CodeValidationResult` model with IsValid, IsDeprecated, ValidationMessage, SuggestedAlternatives
+- [x] Create `CodeSuggestion` model with CodeValue, CodeSystem, Description, SimilarityScore
+- [x] Implement `IMedicalCodeValidationService` / `MedicalCodeValidationService` with exact-match lookup
+- [x] Implement deprecated code detection with warning message and alternative suggestions
+- [x] Implement pgvector cosine similarity search for suggested alternatives (top 5, threshold ≥ 0.5)
+- [x] Implement bulk validation method with batched exact-match and bounded parallel similarity searches
+- [x] Register `IMedicalCodeValidationService` as scoped in Program.cs
+

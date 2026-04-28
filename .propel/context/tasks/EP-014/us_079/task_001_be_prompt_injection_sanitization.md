@@ -199,14 +199,14 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `InjectionPattern` and `InjectionDetectionResult` models in `src/UPACIP.Service/AiSafety/Models/`
-- [ ] Create `config/prompt-injection-patterns.json` with regex patterns for all four injection categories
-- [ ] Define `IPromptInjectionDetector` interface with `DetectAsync` and `SanitizeAsync` methods
-- [ ] Implement `PromptInjectionDetector` with compiled regex scanning, severity-ordered evaluation, and 100ms regex timeout
-- [ ] Implement medical context scoring to suppress false positives using `MedicalTermAllowlist` and ±50-char context window
-- [ ] Implement `PromptSanitizationMiddleware` with block/sanitize decision based on RiskScore threshold
-- [ ] Register services in DI and configure middleware ordering (before PII redaction)
-- [ ] Implement audit logging for all detection events (blocked, sanitized, false-positive suppressed)
+- [x] Create `InjectionPattern` and `InjectionDetectionResult` models in `src/UPACIP.Service/AiSafety/Models/`
+- [x] Create `config/prompt-injection-patterns.json` with regex patterns for all four injection categories
+- [x] Define `IPromptInjectionDetector` interface with `DetectAsync` and `SanitizeAsync` methods
+- [x] Implement `PromptInjectionDetector` with compiled regex scanning, severity-ordered evaluation, and 100ms regex timeout
+- [x] Implement medical context scoring to suppress false positives using `MedicalTermAllowlist` and ±50-char context window
+- [x] Implement `PromptSanitizationMiddleware` with block/sanitize decision based on RiskScore threshold
+- [x] Register services in DI and configure middleware ordering (before PII redaction)
+- [x] Implement audit logging for all detection events (blocked, sanitized, false-positive suppressed)
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-S06 and AIR-S04 requirements are met (prompt injection sanitization and audit logging)

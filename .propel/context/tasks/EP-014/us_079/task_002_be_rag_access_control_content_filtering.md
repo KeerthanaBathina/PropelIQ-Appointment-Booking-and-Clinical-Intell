@@ -200,30 +200,39 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for UPACIP.Service and UPACIP.Api projects
-- [ ] **[AI Tasks]** Guardrails tested for input sanitization and output validation
-- [ ] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
-- [ ] **[AI Tasks]** Token budget enforcement verified
-- [ ] **[AI Tasks]** Audit logging verified (no PII in logs)
-- [ ] Patient users can only see RAG chunks from their own clinical documents
-- [ ] Staff users can only see RAG chunks from documents of patients assigned to them
-- [ ] Admin users can see chunks from all documents
-- [ ] Access-denied chunks never appear in re-ranked context or AI prompt
-- [ ] Harmful medical advice patterns (unqualified dosage) are blocked with safe fallback
-- [ ] Discriminatory language in AI responses is blocked with safe fallback
-- [ ] Blocked responses include `X-Content-Filtered: true` header
-- [ ] Safe fallback message directs user to healthcare provider
+- [x] `dotnet build` completes with zero errors for UPACIP.Service and UPACIP.Api projects
+- [x] **[AI Tasks]** Guardrails tested for input sanitization and output validation
+- [x] **[AI Tasks]** Fallback logic tested with low-confidence/error scenarios
+- [x] **[AI Tasks]** Token budget enforcement verified
+- [x] **[AI Tasks]** Audit logging verified (no PII in logs)
+- [x] Patient users can only see RAG chunks from their own clinical documents
+- [x] Staff users can only see RAG chunks from documents of patients assigned to them
+- [x] Admin users can see chunks from all documents
+- [x] Access-denied chunks never appear in re-ranked context or AI prompt
+- [x] Harmful medical advice patterns (unqualified dosage) are blocked with safe fallback
+- [x] Discriminatory language in AI responses is blocked with safe fallback
+- [x] Blocked responses include `X-Content-Filtered: true` header
+- [x] Safe fallback message directs user to healthcare provider
 
 ## Implementation Checklist
 
-- [ ] Create `AccessControlResult`, `ContentFilterResult`, and `ContentFilterCategory` models in `src/UPACIP.Service/AiSafety/Models/`
-- [ ] Define `IRagAccessControlFilter` interface with `FilterByAccessAsync` method
-- [ ] Implement `RagAccessControlFilter` with role-based document permission checks (Patient → own docs, Staff → assigned patients, Admin → all)
-- [ ] Integrate access control filter into `RagRetrievalService` post-retrieval pipeline
-- [ ] Define `IContentFilterService` interface with `FilterResponseAsync` method
-- [ ] Implement `ContentFilterService` with compiled regex scanning against harmful, discriminatory, and dangerous content patterns
-- [ ] Create `config/content-filter-rules.json` with pattern definitions for all three categories
-- [ ] Implement `ContentFilterMiddleware` for AI Gateway response pipeline
+- [x] Create `AccessControlResult`, `ContentFilterResult`, and `ContentFilterCategory` models in `src/UPACIP.Service/AiSafety/Models/`
+- [x] Define `IRagAccessControlFilter` interface with `FilterByAccessAsync` method
+- [x] Implement `RagAccessControlFilter` with role-based document permission checks (Patient → own docs, Staff → assigned patients, Admin → all)
+- [x] Integrate access control filter into `RagRetrievalService` post-retrieval pipeline
+- [x] Define `IContentFilterService` interface with `FilterResponseAsync` method
+- [x] Implement `ContentFilterService` with compiled regex scanning against harmful, discriminatory, and dangerous content patterns
+- [x] Create `config/content-filter-rules.json` with pattern definitions for all three categories
+- [x] Implement `ContentFilterMiddleware` for AI Gateway response pipeline
 - **[AI Tasks - MANDATORY]** Reference prompt templates from AI References table during implementation
 - **[AI Tasks - MANDATORY]** Implement and test guardrails before marking task complete
 - **[AI Tasks - MANDATORY]** Verify AIR-S05, AIR-S07, and AIR-S04 requirements are met (content filtering, access control, audit logging)
+
+## Evaluation Report
+
+| Criterion | Result | Notes |
+|-----------|--------|-------|
+| T1: Build Zero Errors | PASS | Both UPACIP.Service and UPACIP.Api build with zero errors (warnings only, pre-existing) |
+| T2: Access Control Coverage | PASS | Patient → own docs, Staff → assigned patients' docs, Admin → all, Unknown → deny all document chunks; system KB chunks always pass |
+| T3: Content Filter Coverage | PASS | 12 rules across 3 categories (HarmfulMedicalAdvice ×4, DiscriminatoryLanguage ×3, DangerousClinicalSuggestion ×5); hot-reloadable via IOptionsMonitor |
+| T4: Audit Compliance (AIR-S04) | PASS | RagAccessControlFilter logs Warning per denial; ContentFilterService logs Warning with CorrelationId + Categories + SHA-256 hash (never raw content); safe fallback returned to caller |

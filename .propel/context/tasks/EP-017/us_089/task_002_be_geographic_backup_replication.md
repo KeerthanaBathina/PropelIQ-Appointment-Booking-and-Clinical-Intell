@@ -237,24 +237,25 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Encrypted backup file is copied to the configured remote UNC path (AC-2)
-- [ ] SHA-256 checksum of remote copy matches local source file
-- [ ] Transient network failure triggers retry with exponential backoff (30s, 120s, 480s)
-- [ ] All retries exhausted results in critical alert but primary backup preserved (edge case 1)
-- [ ] Replication failure is non-fatal — backup cycle still succeeds
-- [ ] Only encrypted `.dump.enc` files are replicated (plaintext never leaves primary server)
-- [ ] BackupLog records replication status (Replicated / ReplicationFailed)
-- [ ] Disabled replication (`Enabled = false`) skips the step without error
-- [ ] Transfer timeout is enforced per `TransferTimeoutMinutes` configuration
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Encrypted backup file is copied to the configured remote UNC path (AC-2)
+- [x] SHA-256 checksum of remote copy matches local source file
+- [x] Transient network failure triggers retry with exponential backoff (30s, 120s, 480s)
+- [x] All retries exhausted results in critical alert but primary backup preserved (edge case 1)
+- [x] Replication failure is non-fatal — backup cycle still succeeds
+- [x] Only encrypted `.dump.enc` files are replicated (plaintext never leaves primary server)
+- [x] BackupLog records replication status (Replicated / ReplicationFailed)
+- [x] Disabled replication (`Enabled = false`) skips the step without error
+- [x] Transfer timeout is enforced per `TransferTimeoutMinutes` configuration
 
 ## Implementation Checklist
 
-- [ ] Create `ReplicationOptions` with remote UNC path, retry count, backoff delay, verification
-- [ ] Implement `IBackupReplicationService` with file copy and Polly retry pipeline
-- [ ] Implement post-transfer SHA-256 checksum verification
-- [ ] Create `ReplicationResult` DTO with transfer status and metadata
-- [ ] Handle all-retries-exhausted scenario with critical alert and primary backup preservation
-- [ ] Integrate replication into `DatabaseBackupService` after encryption step
-- [ ] Persist replication metadata to BackupLog table
-- [ ] Register ReplicationOptions and IBackupReplicationService in Program.cs
+- [x] Create `ReplicationOptions` with remote UNC path, retry count, backoff delay, verification
+- [x] Implement `IBackupReplicationService` with file copy and Polly retry pipeline
+- [x] Implement post-transfer SHA-256 checksum verification
+- [x] Create `ReplicationResult` DTO with transfer status and metadata
+- [x] Handle all-retries-exhausted scenario with critical alert and primary backup preservation
+- [x] Integrate replication into `DatabaseBackupService` after encryption step
+- [x] Persist replication metadata to BackupLog table
+- [x] Register ReplicationOptions and IBackupReplicationService in Program.cs
+

@@ -216,11 +216,11 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj
 
 ## Implementation Checklist
 
-- [ ] Create `PerformanceOptions`, `OperationMetric`, and `SlaAlert` models in `src/UPACIP.Service/Performance/Models/`
-- [ ] Define `IPerformanceTracker` interface with operation and span lifecycle methods
-- [ ] Implement `PerformanceTracker` with `ActivitySource`, `Meter`, and thread-safe circular buffer histogram
-- [ ] Define `ISlaMonitorService` interface with evaluation and query methods
-- [ ] Implement `SlaMonitorService` with P95 nearest-rank computation, threshold evaluation, and trend tracking
-- [ ] Implement `PerformanceMonitoringService` BackgroundService with periodic SLA evaluation
-- [ ] Implement `PerformanceInstrumentationMiddleware` with route-based operation classification
-- [ ] Add `PerformanceMonitoring` configuration section to `appsettings.json` and register all services in DI
+- [x] Create `PerformanceOptions`, `OperationMetric`, and `SlaAlert` models in `src/UPACIP.Service/Performance/Models/`
+- [x] Define `IPerformanceTracker` interface with operation and span lifecycle methods
+- [x] Implement `PerformanceTracker` with `ActivitySource`, `Meter`, and thread-safe circular buffer histogram
+- [x] Define `ISlaMonitorService` interface with evaluation and query methods
+- [x] Implement `SlaMonitorService` with P95 nearest-rank computation, threshold evaluation, and trend tracking
+- [x] Implement `PerformanceMonitoringService` BackgroundService with periodic SLA evaluation
+- [x] Implement `PerformanceInstrumentationMiddleware` with route-based operation classification
+- [x] Add `PerformanceMonitoring` configuration section to `appsettings.json` and register all services in DI

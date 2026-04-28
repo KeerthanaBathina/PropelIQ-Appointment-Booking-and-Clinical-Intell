@@ -222,26 +222,27 @@ dotnet build UPACIP.sln
 
 ## Implementation Validation Strategy
 
-- [ ] `dotnet build` completes with zero errors for all projects
-- [ ] Archive schema migration creates `archive` schema and `archive.appointments` table
-- [ ] Completed appointments older than 3 years are moved to `archive.appointments` (AC-3)
-- [ ] `ArchivedAppointmentReference` record is retained in main table with original ID (AC-3)
-- [ ] Patient history query can find archived appointment references via patient_id
-- [ ] Archived appointment full details retrievable from `archive.appointments` by ID
-- [ ] Cancelled appointments older than 1 year are archived with reference record (AC-5)
-- [ ] Appointment referenced by audit log within 7-year window is NOT archived (edge case 2)
-- [ ] Archival skipped records are counted and logged as audit-protected
-- [ ] Changing `AppointmentRetentionYears` takes effect on next nightly cycle (edge case 1)
-- [ ] Archival runs in batched transactions — single batch failure does not abort entire operation
-- [ ] Appointments with active notification log references are deferred with log message
+- [x] `dotnet build` completes with zero errors for all projects
+- [x] Archive schema migration creates `archive` schema and `archive.appointments` table
+- [x] Completed appointments older than 3 years are moved to `archive.appointments` (AC-3)
+- [x] `ArchivedAppointmentReference` record is retained in main table with original ID (AC-3)
+- [x] Patient history query can find archived appointment references via patient_id
+- [x] Archived appointment full details retrievable from `archive.appointments` by ID
+- [x] Cancelled appointments older than 1 year are archived with reference record (AC-5)
+- [x] Appointment referenced by audit log within 7-year window is NOT archived (edge case 2)
+- [x] Archival skipped records are counted and logged as audit-protected
+- [x] Changing `AppointmentRetentionYears` takes effect on next nightly cycle (edge case 1)
+- [x] Archival runs in batched transactions — single batch failure does not abort entire operation
+- [x] Appointments with active notification log references are deferred with log message
 
 ## Implementation Checklist
 
-- [ ] Create `ArchivedAppointmentReference` entity with original ID, patient ID, appointment time, status, archive timestamp
-- [ ] Create archive schema migration with `archive.appointments` table and indexes
-- [ ] Create `ArchivalResult` model with archived count, skipped count, dates, duration
-- [ ] Implement `IAppointmentArchivalService` with completed appointment archival (3-year threshold)
-- [ ] Implement cancelled appointment archival (1-year threshold) in the same service
-- [ ] Add audit-log reference protection check before archiving each appointment
-- [ ] Extend `DataRetentionService` to call archival service after notification purge
-- [ ] Register IAppointmentArchivalService and add DbSet<ArchivedAppointmentReference> to ApplicationDbContext
+- [x] Create `ArchivedAppointmentReference` entity with original ID, patient ID, appointment time, status, archive timestamp
+- [x] Create archive schema migration with `archive.appointments` table and indexes
+- [x] Create `ArchivalResult` model with archived count, skipped count, dates, duration
+- [x] Implement `IAppointmentArchivalService` with completed appointment archival (3-year threshold)
+- [x] Implement cancelled appointment archival (1-year threshold) in the same service
+- [x] Add audit-log reference protection check before archiving each appointment
+- [x] Extend `DataRetentionService` to call archival service after notification purge
+- [x] Register IAppointmentArchivalService and add DbSet<ArchivedAppointmentReference> to ApplicationDbContext
+

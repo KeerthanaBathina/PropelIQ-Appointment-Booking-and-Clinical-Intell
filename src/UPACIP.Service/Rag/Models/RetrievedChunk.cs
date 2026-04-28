@@ -26,4 +26,13 @@ public sealed class RetrievedChunk
     /// Populated from the content column via <see cref="VectorSearch.VectorSearchResult"/>.
     /// </summary>
     public required string SourceAttribution { get; init; }
+
+    /// <summary>
+    /// FK to the <c>ClinicalDocument</c> this chunk originated from.
+    /// <see langword="null"/> for system knowledge-base chunks (MedicalTerminology,
+    /// IntakeTemplate, CodingGuideline) that are not tied to a patient document.
+    /// Used by <c>IRagAccessControlFilter</c> for document-level permission checks
+    /// (US_079 task_002, AIR-S07).
+    /// </summary>
+    public Guid? SourceDocumentId { get; init; }
 }
