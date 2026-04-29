@@ -154,4 +154,45 @@ public enum AuditAction
     /// (US_069 AC-4, AIR-O05). Audit entry records provider, before/after model versions, reason.
     /// </summary>
     AiModelVersionRollback,
+
+    // ── US_093 — HIPAA Technical Safeguards Verification (AC-1, NFR-041, NFR-042) ──
+
+    /// <summary>
+    /// Admin triggered a HIPAA technical safeguard verification run (US_093 AC-1).
+    /// Audit entry records who triggered the run and the resulting ComplianceVerificationLog ID.
+    /// </summary>
+    ComplianceVerification,
+
+    // ── US_093 task_003 — HIPAA Administrative Safeguards (AC-2, edge case 2) ─
+
+    /// <summary>
+    /// Admin created a new compliance policy version (US_093 AC-2).
+    /// Audit entry records policy type, title, version, and creator.
+    /// </summary>
+    CompliancePolicyCreated,
+
+    /// <summary>
+    /// Compliance officer approved a compliance policy, transitioning it to Active (US_093 AC-2).
+    /// </summary>
+    CompliancePolicyApproved,
+
+    /// <summary>
+    /// Admin created or updated a compliance evaluation rule (US_093 AC-2, edge case 2).
+    /// </summary>
+    ComplianceRuleUpserted,
+
+    /// <summary>
+    /// Admin triggered a compliance rule evaluation run (US_093 AC-2, edge case 2).
+    /// </summary>
+    ComplianceRulesEvaluated,
+
+    /// <summary>
+    /// Admin ran the pre-migration PHI protection check (US_093 AC-4, DR-031).
+    /// </summary>
+    PhiMigrationPreCheck,
+
+    /// <summary>
+    /// Admin ran the post-migration PHI accessibility verification (US_093 AC-4, DR-031).
+    /// </summary>
+    PhiMigrationPostVerify,
 }

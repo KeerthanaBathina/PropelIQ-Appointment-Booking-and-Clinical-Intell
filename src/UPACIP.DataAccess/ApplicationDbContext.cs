@@ -434,6 +434,37 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<ImportLog> ImportLogs => Set<ImportLog>();
 
+    // ── HIPAA Compliance Verification (US_093) ─────────────────────────────────
+
+    /// <summary>
+    /// Audit trail for each HIPAA technical safeguard verification run (US_093, AC-1, NFR-041, NFR-042).
+    /// Each row records which admin triggered the run, pass/fail counts per control, and the
+    /// full JSON-serialized report for audit evidence.
+    /// </summary>
+    public DbSet<ComplianceVerificationLog> ComplianceVerificationLogs => Set<ComplianceVerificationLog>();
+
+    /// <summary>
+    /// Compliance gaps created when a technical safeguard check fails (US_093, edge case 1).
+    /// Each row tracks the gap lifecycle (Open → InProgress → Remediated) with a 30-day
+    /// remediation deadline enforced at creation time.
+    /// </summary>
+    public DbSet<ComplianceGap> ComplianceGaps => Set<ComplianceGap>();
+
+    /// <summary>
+    /// Versioned compliance policy documents for HIPAA administrative safeguards (US_093, AC-2).
+    /// Supports SecurityPolicy, TrainingRequirement, and IncidentResponseProcedure types.
+    /// Each policy version is retained for the full audit trail; only one version per
+    /// (PolicyType, Title) may have Status = "Active" at any time.
+    /// </summary>
+    public DbSet<CompliancePolicy> CompliancePolicies => Set<CompliancePolicy>();
+
+    /// <summary>
+    /// Configurable compliance evaluation rules with JSON criteria (US_093, AC-2 edge case 2).
+    /// Rules can be added or updated by compliance officers via API without code changes.
+    /// Supports config_check, db_query, and service_check evaluation types.
+    /// </summary>
+    public DbSet<ComplianceRule> ComplianceRules => Set<ComplianceRule>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to

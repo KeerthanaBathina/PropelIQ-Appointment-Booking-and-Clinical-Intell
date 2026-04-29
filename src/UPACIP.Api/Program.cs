@@ -93,6 +93,10 @@ builder.WebHost.ConfigureKestrel(kestrelOptions =>
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add<ValidateModelAttribute>();
+    // SecurityValidationFilter: inspects all model-bound string arguments for SQL injection,
+    // XSS, and command injection patterns (US_093 task_002, AC-3, NFR-018, OWASP A03).
+    // Runs after model binding but before the controller action — defense-in-depth layer 3.
+    options.Filters.AddService<UPACIP.Api.Filters.SecurityValidationFilter>();
 });
 builder.Services.AddEndpointsApiExplorer();
 
@@ -1288,6 +1292,59 @@ builder.Services.AddHostedService<UPACIP.Service.Import.CsvImportBackgroundServi
 builder.Services.Configure<Microsoft.AspNetCore.Http.Features.FormOptions>(o =>
     o.MultipartBodyLengthLimit = 55_000_000L);
 
+// ── EP-018 Input Sanitization & Security Headers (US_093 task_002, AC-3, NFR-018, OWASP A03) ─
+// IInputSanitizer (Scoped): centralized SQL injection, XSS, and command injection detection.
+//   Uses compiled regex patterns for performance. DetectSqlInjection is a secondary layer —
+//   EF Core parameterized queries remain the primary SQL injection defense (NFR-018).
+// SecurityValidationFilter (Scoped): action filter registered globally above — uses
+//   IInputSanitizer to inspect all model-bound arguments at depth ≤ 3.
+// SecurityOptions: bound from "InputSanitization" section — CSP directives, max input
+//   lengths, enable/disable flag, and LogBlockedRequests for incident tracing.
+builder.Services.Configure<UPACIP.Service.Security.Models.SecurityOptions>(
+    builder.Configuration.GetSection(
+        UPACIP.Service.Security.Models.SecurityOptions.SectionName));
+builder.Services.AddScoped<UPACIP.Service.Security.IInputSanitizer,
+    UPACIP.Service.Security.InputSanitizer>();
+builder.Services.AddScoped<UPACIP.Api.Filters.SecurityValidationFilter>();
+
+// ── EP-018 HIPAA Technical Safeguards Verification (US_093, AC-1, NFR-041, NFR-042) ──────────
+// IComplianceCheck implementations (Scoped): three technical safeguard checks executed on demand.
+//   EncryptionAtRestCheck  — verifies pgcrypto extension, application AES-256 EncryptionOptions,
+//     and that the latest backup is encrypted (.enc suffix) per TR-019.
+//   EncryptionInTransitCheck — verifies TLS 1.2+ via pg_stat_ssl and HTTPS Kestrel binding per TR-018.
+//   RbacEnforcementCheck — verifies Patient/Staff/Admin roles exist, no conflicting role assignments,
+//     and controller endpoints carry [Authorize] attributes per NFR-011.
+// IHipaaComplianceVerificationService (Scoped): orchestrates all checks, persists
+//   ComplianceVerificationLog, creates ComplianceGap records with 30-day remediation deadlines
+//   (edge case 1), and logs HIPAA_COMPLIANCE_GAP critical events on any failure.
+builder.Services.AddScoped<UPACIP.Service.Compliance.IComplianceCheck,
+    UPACIP.Service.Compliance.Checks.EncryptionAtRestCheck>();
+builder.Services.AddScoped<UPACIP.Service.Compliance.IComplianceCheck,
+    UPACIP.Service.Compliance.Checks.EncryptionInTransitCheck>();
+builder.Services.AddScoped<UPACIP.Service.Compliance.IComplianceCheck,
+    UPACIP.Service.Compliance.Checks.RbacEnforcementCheck>();
+builder.Services.AddScoped<UPACIP.Service.Compliance.IHipaaComplianceVerificationService,
+    UPACIP.Service.Compliance.HipaaComplianceVerificationService>();
+
+// ── EP-018 HIPAA Administrative Safeguards (US_093 task_003, AC-2, AC-4, edge case 2) ──────
+// ICompliancePolicyService (Scoped): CRUD for versioned policy documents (SecurityPolicy,
+//   TrainingRequirement, IncidentResponseProcedure). Supersedes prior active versions on
+//   approval and retains all versions for the HIPAA audit trail (AC-2).
+// IComplianceRuleEngine (Scoped): evaluates JSON-criteria compliance rules (config_check,
+//   db_query, service_check). Rules can be added/updated by compliance officers via API
+//   without code deployments (edge case 2).
+// IPhiMigrationGuard (Scoped): pre/post migration PHI protection verification — checks SSL,
+//   PHI column existence, and potentially unsafe DDL operations (AC-4, DR-031).
+// ComplianceSeedService (IHostedService): idempotently seeds 3 default policy documents
+//   and 5 default configurable rules at startup if they do not yet exist.
+builder.Services.AddScoped<UPACIP.Service.Compliance.ICompliancePolicyService,
+    UPACIP.Service.Compliance.CompliancePolicyService>();
+builder.Services.AddScoped<UPACIP.Service.Compliance.IComplianceRuleEngine,
+    UPACIP.Service.Compliance.ComplianceRuleEngine>();
+builder.Services.AddScoped<UPACIP.Service.Compliance.IPhiMigrationGuard,
+    UPACIP.Service.Compliance.PhiMigrationGuard>();
+builder.Services.AddHostedService<UPACIP.Service.Compliance.ComplianceSeedService>();
+
 // ── EP-016 Graceful Degradation & AI Fallback Routing (US_083 task_002, AC-1, AC-2, AC-3) ──
 // DegradationOptions: bound from "Degradation" — FeatureDependencyMap maps feature names to
 //   the DependencyCategory values they depend on. StaffNotificationEnabled controls Serilog
@@ -1656,6 +1713,11 @@ if (app.Environment.IsDevelopment())
 }
 
 // 4–7. Standard ASP.NET Core pipeline order
+// SecurityHeadersMiddleware: adds CSP, X-Frame-Options, X-Content-Type-Options,
+// Referrer-Policy, Permissions-Policy, and HSTS headers to every response
+// (US_093 task_002, AC-3, TR-018, OWASP A03/A05). Registered first so headers apply
+// to ALL responses including error pages and redirects.
+app.UseSecurityHeaders();
 // HSTS — inject Strict-Transport-Security header on HTTPS responses (AC-3).
 // Skipped in Development so local HTTP tooling is unaffected.
 if (!app.Environment.IsDevelopment())
