@@ -7,6 +7,7 @@ using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess;
 using UPACIP.Service.Profile;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -33,6 +34,7 @@ namespace UPACIP.Api.Controllers;
 ///   <c>extractedDataId</c> belongs to the given <c>patientId</c> via a server-side join —
 ///   it is never trusted from the URL alone.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/patients/{patientId:guid}/profile")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

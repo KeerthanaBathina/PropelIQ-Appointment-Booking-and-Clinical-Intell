@@ -7,6 +7,7 @@ using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess;
 using UPACIP.Service.Appointments;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -35,6 +36,7 @@ namespace UPACIP.Api.Controllers;
 ///   reachable. The FE hook catches 503 and sets <c>aiAvailable = false</c> to disable
 ///   the button (UXR-605).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.PatientOnly)]
 [Produces("application/json")]

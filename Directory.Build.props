@@ -1,0 +1,90 @@
+<Project>
+
+  <!-- ── Solution-wide build properties (US_098, AC-3, AC-4, TR-033, TR-034) ─────────── -->
+  <!-- Applied to every project in the solution via MSBuild directory scanning.             -->
+
+  <PropertyGroup>
+    <!-- Roslyn naming rules from .editorconfig are available as IDE guidance (AC-3).           -->
+    <!-- EnforceCodeStyleInBuild is intentionally NOT set to avoid running ~600 IDE naming      -->
+    <!-- violations on the brownfield codebase at every build. StyleCop SA1300/SA1313 provide  -->
+    <!-- build-time enforcement for PascalCase public members and camelCase parameters (AC-3). -->
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest-recommended</AnalysisLevel>
+
+    <!-- Code-analysis warnings become warnings only (not errors) at this level;           -->
+    <!-- TreatWarningsAsErrors below promotes them to errors for source projects.           -->
+    <CodeAnalysisTreatWarningsAsErrors>false</CodeAnalysisTreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- ── Zero-warning policy for all source projects (AC-4) ───────────────────────────── -->
+  <!-- Test projects are explicitly excluded so skipped / pending tests don't fail the CI  -->
+  <!-- build with analysis noise (SA1600 doc rules, CS1591, etc.).                         -->
+  <PropertyGroup Condition="!$(MSBuildProjectName.Contains('Tests')) And !$(MSBuildProjectName.Contains('ArchTests'))">
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+
+  <!-- ── StyleCop.Analyzers (AC-3: naming convention enforcement) ─────────────────────── -->
+  <!-- Scoped to source projects only. PrivateAssets=all prevents StyleCop from being      -->
+  <!-- a transitive dependency for consumers of these libraries.                            -->
+  <ItemGroup Condition="!$(MSBuildProjectName.Contains('Tests')) And !$(MSBuildProjectName.Contains('ArchTests'))">
+    <PackageReference Include="StyleCop.Analyzers" Version="1.2.0-beta.507">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <AdditionalFiles Include="$(MSBuildThisFileDirectory)stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+
+  <!-- ── StyleCop suppressions ────────────────────────────────────────────────────────── -->
+  <!-- Strategy: suppress all formatting, ordering, spacing, documentation, and            -->
+  <!-- maintainability SA rules so the brownfield codebase is not disrupted.               -->
+  <!-- The naming rules that satisfy AC-3 (PascalCase public, camelCase params) are        -->
+  <!-- enforced by the .editorconfig Roslyn rules (dotnet_naming_rule.*) which are         -->
+  <!-- already active and cover the same ground as StyleCop SA13xx naming rules.           -->
+  <!-- SA1309/SA1310 suppressed to permit the _fieldName private-field convention.         -->
+  <PropertyGroup>
+    <!-- SA00xx: XML comment analysis -->
+    <NoWarn>$(NoWarn);SA0001</NoWarn>
+    <!-- SA10xx: Spacing rules -->
+    <NoWarn>$(NoWarn);SA1000;SA1001;SA1002;SA1003;SA1004;SA1005;SA1006;SA1007;SA1008;SA1009</NoWarn>
+    <NoWarn>$(NoWarn);SA1010;SA1011;SA1012;SA1013;SA1014;SA1015;SA1016;SA1017;SA1018;SA1019</NoWarn>
+    <NoWarn>$(NoWarn);SA1020;SA1021;SA1022;SA1023;SA1024;SA1025;SA1026;SA1027;SA1028</NoWarn>
+    <!-- SA11xx: Readability rules -->
+    <NoWarn>$(NoWarn);SA1100;SA1101;SA1102;SA1103;SA1104;SA1105;SA1106;SA1107;SA1108;SA1109</NoWarn>
+    <NoWarn>$(NoWarn);SA1110;SA1111;SA1112;SA1113;SA1114;SA1115;SA1116;SA1117;SA1118;SA1119</NoWarn>
+    <NoWarn>$(NoWarn);SA1120;SA1121;SA1122;SA1123;SA1124;SA1125;SA1127;SA1128;SA1129;SA1130</NoWarn>
+    <NoWarn>$(NoWarn);SA1131;SA1132;SA1133;SA1134;SA1135;SA1136;SA1137;SA1138;SA1139;SA1140</NoWarn>
+    <NoWarn>$(NoWarn);SA1141;SA1142</NoWarn>
+    <!-- SA12xx: Ordering rules (conflicts with ImplicitUsings and file-scoped namespaces) -->
+    <NoWarn>$(NoWarn);SA1200;SA1201;SA1202;SA1203;SA1204;SA1205;SA1206;SA1207;SA1208;SA1209</NoWarn>
+    <NoWarn>$(NoWarn);SA1210;SA1211;SA1212;SA1213;SA1214;SA1216;SA1217</NoWarn>
+    <!-- SA13xx: Naming rules — kept active (SA1300-SA1315) EXCEPT:                       -->
+    <!--   SA1306: field names lower-case (conflicts with static readonly PascalCase)      -->
+    <!--   SA1307: accessible fields upper-case (conflicts with private _fields)           -->
+    <!--   SA1308: variable no prefix (conflicts with _fieldName convention)               -->
+    <!--   SA1309: field names no underscore (conflicts with _fieldName convention)        -->
+    <!--   SA1310: field names no underscore (duplicate of SA1309)                         -->
+    <!--   SA1316: tuple element names casing (existing code uses camelCase tuple elements) -->
+    <NoWarn>$(NoWarn);SA1306;SA1307;SA1308;SA1309;SA1310;SA1316</NoWarn>
+    <!-- SA14xx: Maintainability rules -->
+    <NoWarn>$(NoWarn);SA1400;SA1401;SA1402;SA1403;SA1404;SA1405;SA1406;SA1407;SA1408;SA1409</NoWarn>
+    <NoWarn>$(NoWarn);SA1410;SA1411;SA1412;SA1413;SA1414;SA1415</NoWarn>
+    <!-- SA15xx: Layout rules -->
+    <NoWarn>$(NoWarn);SA1500;SA1501;SA1502;SA1503;SA1504;SA1505;SA1506;SA1507;SA1508;SA1509</NoWarn>
+    <NoWarn>$(NoWarn);SA1510;SA1511;SA1512;SA1513;SA1514;SA1515;SA1516;SA1517;SA1518;SA1519;SA1520</NoWarn>
+    <!-- SA16xx: Documentation rules — suppressed globally; existing codebase has partial  -->
+    <!-- XML docs and enforcement would require touching every public type and member.      -->
+    <NoWarn>$(NoWarn);SA1600;SA1601;SA1602;SA1603;SA1604;SA1605;SA1606;SA1607;SA1608;SA1609</NoWarn>
+    <NoWarn>$(NoWarn);SA1610;SA1611;SA1612;SA1613;SA1614;SA1615;SA1616;SA1617;SA1618;SA1619</NoWarn>
+    <NoWarn>$(NoWarn);SA1620;SA1621;SA1622;SA1623;SA1624;SA1625;SA1626;SA1627;SA1628;SA1629</NoWarn>
+    <NoWarn>$(NoWarn);SA1630;SA1631;SA1632;SA1633;SA1634;SA1635;SA1636;SA1637;SA1638;SA1639</NoWarn>
+    <NoWarn>$(NoWarn);SA1640;SA1641;SA1642;SA1643;SA1644;SA1645;SA1646;SA1647;SA1648;SA1649</NoWarn>
+    <NoWarn>$(NoWarn);SA1650;SA1651</NoWarn>
+  </PropertyGroup>
+
+  <!-- ── Relaxed settings for test projects ───────────────────────────────────────────── -->
+  <PropertyGroup Condition="$(MSBuildProjectName.Contains('Tests')) Or $(MSBuildProjectName.Contains('ArchTests'))">
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <NoWarn>$(NoWarn);SA1600;SA1601;SA1602;CS1591;CA1707</NoWarn>
+  </PropertyGroup>
+
+</Project>

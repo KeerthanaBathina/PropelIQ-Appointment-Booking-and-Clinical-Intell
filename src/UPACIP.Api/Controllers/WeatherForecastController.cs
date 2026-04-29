@@ -4,6 +4,7 @@ using Microsoft.FeatureManagement.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Configuration;
 using UPACIP.Service.Caching;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -11,6 +12,7 @@ namespace UPACIP.Api.Controllers;
 /// Demo / health-check controller. Protected with StaffOrAdmin to demonstrate RBAC
 /// enforcement — Patient users will receive 403 Forbidden (AC-1).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("[controller]")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

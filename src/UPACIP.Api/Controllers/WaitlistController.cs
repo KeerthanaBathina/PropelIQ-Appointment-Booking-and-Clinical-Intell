@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Models;
 using UPACIP.Service.Appointments;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -19,6 +20,7 @@ namespace UPACIP.Api.Controllers;
 ///   PatientId is always resolved server-side from the JWT email claim (OWASP A01).
 ///   Claim tokens are validated for ownership before the hold is acquired.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/waitlist")]
 [Authorize(Policy = RbacPolicies.PatientOnly)]

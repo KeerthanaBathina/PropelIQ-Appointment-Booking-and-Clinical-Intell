@@ -5,6 +5,7 @@ using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Coding;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -31,6 +32,7 @@ namespace UPACIP.Api.Controllers;
 ///   <see cref="KeyNotFoundException"/>    → 404 Not Found.
 ///   <see cref="ArgumentException"/>       → 400 Bad Request (validation failures).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]
 [Produces("application/json")]

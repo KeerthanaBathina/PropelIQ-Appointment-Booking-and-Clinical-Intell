@@ -387,11 +387,11 @@ Invoke-RestMethod -Uri http://localhost:5341/api -Method Get
 
 ## Implementation Checklist
 
-- [ ] Add Serilog NuGet packages to UPACIP.Api.csproj
-- [ ] Configure Serilog section in appsettings.json with Seq, File, Console sinks
-- [ ] Configure Seq durable buffer with bufferBaseFilename for outage resilience
-- [ ] Create SerilogConfiguration extension with AddSerilogLogging and UseSerilogRequestLogging
-- [ ] Integrate UseSerilog() in Program.cs with bootstrap logger and CloseAndFlush
-- [ ] Add development-specific log level overrides in appsettings.Development.json
-- [ ] Create LogContextExtensions for structured operation context enrichment
-- [ ] Configure log retention (30 days file, 100MB Seq buffer)
+- [x] Add Serilog NuGet packages to UPACIP.Api.csproj
+- [x] Configure Serilog section in appsettings.json with Seq, File, Console sinks
+- [x] Configure Seq durable buffer with bufferBaseFilename for outage resilience
+- [x] Create SerilogConfiguration extension with AddSerilogLogging and UseSerilogRequestLogging
+- [x] Integrate UseSerilog() in Program.cs with bootstrap logger and CloseAndFlush
+- [x] Add development-specific log level overrides in appsettings.Development.json
+- [x] Create LogContextExtensions for structured operation context enrichment
+- [x] Configure log retention (30 days file, 100MB Seq buffer)

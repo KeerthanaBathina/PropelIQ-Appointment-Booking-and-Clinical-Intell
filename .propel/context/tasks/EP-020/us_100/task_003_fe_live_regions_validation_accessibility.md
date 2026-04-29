@@ -461,11 +461,11 @@ cd app; npm run dev
 
 ## Implementation Checklist
 
-- [ ] Create LiveAnnouncerProvider with polite + assertive visually hidden live regions
-- [ ] Create useLiveAnnouncer hook with announce(message, priority) API
-- [ ] Create AccessibleFormField with aria-invalid, aria-describedby, role="alert" on errors
-- [ ] Create DynamicContentRegion wrapper with configurable aria-live/aria-relevant
-- [ ] Wrap App.tsx in LiveAnnouncerProvider
-- [ ] Apply AccessibleFormField to forms on SCR-003, SCR-008, SCR-009
-- [ ] Apply DynamicContentRegion to AI chat (SCR-008), queue (SCR-011), notifications
-- [ ] Reference wireframes from Design References table during implementation
+- [x] Create LiveAnnouncerProvider with polite + assertive visually hidden live regions
+- [x] Create useLiveAnnouncer hook with announce(message, priority) API
+- [x] Create AccessibleFormField with aria-invalid, aria-describedby, role="alert" on errors
+- [x] Create DynamicContentRegion wrapper with configurable aria-live/aria-relevant
+- [x] Wrap App.tsx in LiveAnnouncerProvider
+- [x] Apply AccessibleFormField to forms on SCR-003, SCR-008, SCR-009
+- [x] Apply DynamicContentRegion to AI chat (SCR-008), queue (SCR-011), notifications
+- [x] Reference wireframes from Design References table during implementation

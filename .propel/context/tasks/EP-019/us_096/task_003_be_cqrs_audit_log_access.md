@@ -411,11 +411,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Define AuditLogEntry write command DTO in UPACIP.Contracts
-- [ ] Define AuditLogReadModel read projection DTO in UPACIP.Contracts
-- [ ] Define AuditLogQueryFilter with date range, entity, user, pagination fields
-- [ ] Define IAuditLogCommandService interface (append-only, no update/delete)
-- [ ] Define IAuditLogQueryService interface (query, getById, getByEntity, count)
-- [ ] Create AuditLogReadDbContext with NoTracking and dedicated indexes
-- [ ] Implement AuditLogCommandService with immutability enforcement
-- [ ] Implement AuditLogQueryService with composable filtered queries
+- [x] Define AuditLogEntry write command DTO in UPACIP.Contracts
+- [x] Define AuditLogReadModel read projection DTO in UPACIP.Contracts
+- [x] Define AuditLogQueryFilter with date range, entity, user, pagination fields
+- [x] Define IAuditLogCommandService interface (append-only, no update/delete)
+- [x] Define IAuditLogQueryService interface (query, getById, getByEntity, count)
+- [x] Create AuditLogReadDbContext with NoTracking and dedicated indexes
+- [x] Implement AuditLogCommandService with immutability enforcement
+- [x] Implement AuditLogQueryService with composable filtered queries

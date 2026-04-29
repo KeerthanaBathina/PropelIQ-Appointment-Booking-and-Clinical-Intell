@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Models;
 using UPACIP.Service.Documents;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -23,6 +24,7 @@ namespace UPACIP.Api.Controllers;
 /// Access control is enforced at the policy layer; staff callers can only preview documents
 /// that exist and are in a parsed state. Missing or unparsed documents return 404.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/documents")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

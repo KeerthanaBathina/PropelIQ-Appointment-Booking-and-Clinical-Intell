@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using UPACIP.Api.Authorization;
 using UPACIP.DataAccess.Entities;
 using UPACIP.Service.Auth;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -13,6 +14,7 @@ namespace UPACIP.Api.Controllers;
 /// Session management endpoints — extend active session and query session status.
 /// All endpoints require a valid JWT (AnyAuthenticated policy).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/session")]
 [Authorize(Policy = RbacPolicies.AnyAuthenticated)]

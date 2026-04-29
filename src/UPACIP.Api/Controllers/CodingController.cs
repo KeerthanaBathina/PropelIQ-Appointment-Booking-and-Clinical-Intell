@@ -7,6 +7,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Coding;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -33,6 +34,7 @@ namespace UPACIP.Api.Controllers;
 ///   The generate endpoint is guarded by the <c>icd10-generate-limit</c> policy:
 ///   100 requests per authenticated user per hour using a sliding-window limiter.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]
 [Produces("application/json")]

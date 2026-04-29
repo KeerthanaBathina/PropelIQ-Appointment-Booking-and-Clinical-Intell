@@ -8,6 +8,7 @@ using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Auth;
 using UPACIP.Service.Documents;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -27,6 +28,7 @@ namespace UPACIP.Api.Controllers;
 ///   Verification actions are logged with verifier identity and row ID.
 ///   PHI-rich DataContent is excluded from all log payloads.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/extracted-data")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using UPACIP.Contracts.MultiTenancy;
 using UPACIP.DataAccess.Entities;
+using UPACIP.DataAccess.MultiTenancy;
 
 namespace UPACIP.DataAccess;
 
@@ -14,9 +16,14 @@ namespace UPACIP.DataAccess;
 public sealed class ApplicationDbContext
     : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
 {
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
+    private readonly TenantContext _tenantContext;
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        TenantContext tenantContext)
         : base(options)
     {
+        _tenantContext = tenantContext;
     }
 
     // -------------------------------------------------------------------------
@@ -465,6 +472,31 @@ public sealed class ApplicationDbContext
     /// </summary>
     public DbSet<ComplianceRule> ComplianceRules => Set<ComplianceRule>();
 
+    // ── Patient Rights / HIPAA Right of Access (US_094) ───────────────────────
+
+    /// <summary>
+    /// HIPAA Right of Access export requests submitted by patients or on their behalf (US_094, NFR-044).
+    /// Each row tracks the request lifecycle (Submitted → Processing → Completed | Failed)
+    /// with a 30-day SLA deadline.  Indexed on PatientId and Status for pending-request queries.
+    /// </summary>
+    public DbSet<DataAccessRequest> DataAccessRequests => Set<DataAccessRequest>();
+
+    // ── RPO/RTO Recovery Targets (US_095 task_003) ─────────────────────────────
+
+    /// <summary>
+    /// Quarterly disaster recovery restoration test execution history (US_095, AC-3, DR-026).
+    /// Each row records test type, actual recovery time (compared against RTO), rows verified,
+    /// and the calendar quarter the test satisfies.
+    /// </summary>
+    public DbSet<RecoveryTestRecord> RecoveryTestRecords => Set<RecoveryTestRecord>();
+
+    /// <summary>
+    /// Versioned, step-by-step disaster recovery procedure documents (US_095, AC-3, NFR-025).
+    /// Each runbook covers a specific failure scenario with per-step time estimates.
+    /// TotalEstimatedMinutes must be ≤ the RTO target (240 minutes / 4 hours).
+    /// </summary>
+    public DbSet<DisasterRecoveryRunbook> DisasterRecoveryRunbooks => Set<DisasterRecoveryRunbook>();
+
     // NOTE: Embedding entity types (MedicalTerminologyEmbedding, IntakeTemplateEmbedding,
     // CodingGuidelineEmbedding) are intentionally excluded from the EF Core model.
     // These tables are provisioned by scripts/provision-pgvector.sql (requires superuser to
@@ -503,6 +535,131 @@ public sealed class ApplicationDbContext
         // implementations in this assembly. No manual registration needed when a new configuration
         // class is added to the Configurations/ folder.
         modelBuilder.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
+
+        // ── Multi-tenant partitioning preparation (NFR-027, AC-4) ────────────
+        // Apply global query filter and composite index on (TenantId, Id) to every
+        // entity that implements ITenantEntity. The filter runs at model-build time
+        // so it is transparent to all LINQ queries — no manual filtering needed.
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (!typeof(ITenantEntity).IsAssignableFrom(entityType.ClrType))
+                continue;
+
+            // Default value for backward compatibility — existing rows are assigned the
+            // Phase 1 default tenant ID by the migration's column default expression.
+            // Value matches DefaultTenantProvider.DefaultTenantId in UPACIP.Service.
+            modelBuilder.Entity(entityType.ClrType)
+                .Property(nameof(ITenantEntity.TenantId))
+                .IsRequired()
+                .HasDefaultValue(new Guid("00000000-0000-0000-0000-000000000001"));
+
+            // Composite index (TenantId, <PrimaryKey>) aligns with the PostgreSQL LIST partition
+            // key that will be added in Phase 2. Leading TenantId ensures partition pruning.
+            // Use the entity's actual primary key property name (e.g. Id or NotificationId).
+            var pkPropertyName = modelBuilder.Entity(entityType.ClrType).Metadata
+                .FindPrimaryKey()?.Properties.FirstOrDefault()?.Name;
+            if (pkPropertyName is not null)
+            {
+                modelBuilder.Entity(entityType.ClrType)
+                    .HasIndex(nameof(ITenantEntity.TenantId), pkPropertyName)
+                    .HasDatabaseName($"IX_{entityType.ClrType.Name}_TenantId_{pkPropertyName}");
+            }
+
+            // Apply global query filter via the generic helper so EF Core gets a typed
+            // lambda (required — HasQueryFilter does not accept non-generic expressions).
+            var applyMethod = typeof(ApplicationDbContext)
+                .GetMethod(
+                    nameof(ApplyTenantQueryFilter),
+                    BindingFlags.NonPublic | BindingFlags.Static)!
+                .MakeGenericMethod(entityType.ClrType);
+
+            applyMethod.Invoke(null, new object[] { modelBuilder, _tenantContext });
+        }
+
+        // ── Seed default disaster recovery runbook (US_095, AC-3, DR-026) ──────
+        // Full Database Loss scenario — 8 phases, total 220 minutes (within 240-min RTO).
+        // Stable ID ensures idempotent migrations — changing the JSON content only requires
+        // a new migration, not a new seed record.
+        const string defaultRunbookSteps = """
+            [
+              {"stepNumber":1,"action":"Identify failure scope and escalate to DBA and DevOps","estimatedMinutes":15,"responsible":"Admin"},
+              {"stepNumber":2,"action":"Locate most recent completed backup in backup storage","estimatedMinutes":10,"responsible":"DBA"},
+              {"stepNumber":3,"action":"Decrypt and restore base backup via pg_restore to recovery host","estimatedMinutes":60,"responsible":"DBA"},
+              {"stepNumber":4,"action":"Replay WAL archive segments to latest consistent point","estimatedMinutes":30,"responsible":"DBA"},
+              {"stepNumber":5,"action":"Verify data integrity: row counts, FK constraints, checksums","estimatedMinutes":30,"responsible":"DBA"},
+              {"stepNumber":6,"action":"Restart Windows Services (UPACIP.Api, background jobs)","estimatedMinutes":30,"responsible":"DevOps"},
+              {"stepNumber":7,"action":"Validate end-to-end functionality via health checks and sample queries","estimatedMinutes":30,"responsible":"QA"},
+              {"stepNumber":8,"action":"Notify stakeholders and document incident in audit log","estimatedMinutes":15,"responsible":"Admin"}
+            ]
+            """;
+
+        modelBuilder.Entity<DisasterRecoveryRunbook>().HasData(
+            new DisasterRecoveryRunbook
+            {
+                Id                    = new Guid("d1000000-0000-0000-0000-000000000001"),
+                Title                 = "Full Database Recovery Procedure",
+                ScenarioType          = "FullDatabaseLoss",
+                StepsJson             = defaultRunbookSteps.Trim(),
+                TotalEstimatedMinutes = 220,
+                Status                = "Active",
+                Version               = 1,
+                CreatedBy             = "system",
+                CreatedAtUtc          = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAtUtc          = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+            });
+    }
+
+    // ── Immutability guard (US_096, AC-3, DR-016) ─────────────────────────────────────────
+    // Prevents any EF Core-tracked AuditLog entries from being modified or deleted.
+    // Database-level triggers (AddAuditLogPartitionAndImmutability migration) enforce this
+    // at the PostgreSQL layer; this application-level guard provides defence-in-depth.
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        EnforceAuditLogImmutability();
+        SetTenantId();
+        return await base.SaveChangesAsync(cancellationToken);
+    }
+
+    public override int SaveChanges()
+    {
+        EnforceAuditLogImmutability();
+        SetTenantId();
+        return base.SaveChanges();
+    }
+
+    private void EnforceAuditLogImmutability()
+    {
+        var violations = ChangeTracker.Entries<Entities.AuditLog>()
+            .Where(e => e.State is Microsoft.EntityFrameworkCore.EntityState.Modified
+                            or Microsoft.EntityFrameworkCore.EntityState.Deleted)
+            .ToList();
+
+        if (violations.Count > 0)
+            throw new InvalidOperationException(
+                "Audit log entries are immutable. Updates and deletes are prohibited per HIPAA (DR-016, NFR-012). " +
+                $"Attempted operation on {violations.Count} AuditLog entry/entries.");
+    }
+
+    // ── Multi-tenant partitioning preparation (NFR-027, AC-4) ────────────────────────────
+    // Ensures all newly added ITenantEntity records are stamped with the current tenant ID.
+    // Prevents accidental creation of cross-tenant data if the caller omits TenantId.
+    private void SetTenantId()
+    {
+        foreach (var entry in ChangeTracker.Entries<ITenantEntity>()
+            .Where(e => e.State == EntityState.Added))
+        {
+            if (entry.Entity.TenantId == Guid.Empty)
+                entry.Entity.TenantId = _tenantContext.TenantId;
+        }
+    }
+
+    // Reflection-called generic helper — applies HasQueryFilter per entity type so EF Core
+    // receives a strongly-typed lambda (non-generic expressions are not supported).
+    private static void ApplyTenantQueryFilter<T>(
+        ModelBuilder modelBuilder,
+        TenantContext tenantContext) where T : class, ITenantEntity
+    {
+        modelBuilder.Entity<T>().HasQueryFilter(e => e.TenantId == tenantContext.TenantId);
     }
 }
-

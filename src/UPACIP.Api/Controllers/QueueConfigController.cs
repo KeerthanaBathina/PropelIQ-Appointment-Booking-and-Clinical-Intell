@@ -7,6 +7,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Queue;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -23,6 +24,7 @@ namespace UPACIP.Api.Controllers;
 /// GET is accessible to Staff and Admin so the frontend polling hook (<c>useWaitThreshold</c>)
 /// works for all queue dashboard users. PUT is restricted to Admin role (AC-3).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/queue/config")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

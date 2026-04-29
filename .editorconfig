@@ -1,0 +1,154 @@
+root = true
+
+# ── All files ─────────────────────────────────────────────────────────────────
+[*]
+charset                  = utf-8
+end_of_line              = crlf
+indent_style             = space
+indent_size              = 4
+trim_trailing_whitespace = true
+insert_final_newline     = true
+
+# ── C# files ──────────────────────────────────────────────────────────────────
+[*.cs]
+
+# Language version
+csharp_language_version = latest
+
+# ── Naming conventions by layer (AC-1, TR-009, US_096 edge case 1) ────────────
+
+# Controllers: PascalCase, must end with "Controller", reside in UPACIP.Api.Controllers
+dotnet_naming_rule.controllers_rule.symbols               = controller_types
+dotnet_naming_rule.controllers_rule.style                 = pascal_case_style
+dotnet_naming_rule.controllers_rule.severity              = warning
+
+dotnet_naming_symbols.controller_types.applicable_kinds   = class
+dotnet_naming_symbols.controller_types.required_modifiers = public
+
+# Services: PascalCase, must end with "Service" or start with "I" for interfaces
+dotnet_naming_rule.service_classes_rule.symbols           = service_types
+dotnet_naming_rule.service_classes_rule.style             = pascal_case_style
+dotnet_naming_rule.service_classes_rule.severity          = warning
+
+dotnet_naming_symbols.service_types.applicable_kinds      = class
+dotnet_naming_symbols.service_types.applicable_accessibilities = public, internal
+
+# Shared PascalCase style
+dotnet_naming_style.pascal_case_style.capitalization      = pascal_case
+
+# ── Public member naming (PascalCase) ─────────────────────────────────────────
+dotnet_naming_rule.public_members_rule.symbols            = public_members
+dotnet_naming_rule.public_members_rule.style              = pascal_case_style
+dotnet_naming_rule.public_members_rule.severity           = warning
+
+dotnet_naming_symbols.public_members.applicable_kinds     = property, method, event, field
+dotnet_naming_symbols.public_members.applicable_accessibilities = public, protected, internal, protected_internal
+
+# ── Private field naming (_camelCase) ─────────────────────────────────────────
+dotnet_naming_rule.private_fields_rule.symbols            = private_fields
+dotnet_naming_rule.private_fields_rule.style              = underscore_camel_style
+dotnet_naming_rule.private_fields_rule.severity           = warning
+
+dotnet_naming_symbols.private_fields.applicable_kinds     = field
+dotnet_naming_symbols.private_fields.applicable_accessibilities = private, private_protected
+
+dotnet_naming_style.underscore_camel_style.required_prefix    = _
+dotnet_naming_style.underscore_camel_style.capitalization     = camel_case
+
+# Private static readonly fields use PascalCase (treated as constants — AC-3 exception).
+# More specific than private_fields_rule (has required_modifiers), so wins on conflict.
+dotnet_naming_rule.private_static_readonly_pascal.symbols  = private_static_readonly
+dotnet_naming_rule.private_static_readonly_pascal.style    = pascal_case_style
+dotnet_naming_rule.private_static_readonly_pascal.severity = warning
+
+dotnet_naming_symbols.private_static_readonly.applicable_kinds          = field
+dotnet_naming_symbols.private_static_readonly.applicable_accessibilities = private, private_protected
+dotnet_naming_symbols.private_static_readonly.required_modifiers         = static, readonly
+
+# ── Interface naming (IPrefix) ────────────────────────────────────────────────
+dotnet_naming_rule.interface_rule.symbols                 = interfaces
+dotnet_naming_rule.interface_rule.style                   = interface_style
+dotnet_naming_rule.interface_rule.severity                = warning
+
+dotnet_naming_symbols.interfaces.applicable_kinds         = interface
+dotnet_naming_style.interface_style.required_prefix       = I
+dotnet_naming_style.interface_style.capitalization        = pascal_case
+
+# ── Type parameter naming (TPrefix) ──────────────────────────────────────────
+dotnet_naming_rule.type_parameter_rule.symbols            = type_parameters
+dotnet_naming_rule.type_parameter_rule.style              = type_parameter_style
+dotnet_naming_rule.type_parameter_rule.severity           = warning
+
+dotnet_naming_symbols.type_parameters.applicable_kinds    = type_parameter
+dotnet_naming_style.type_parameter_style.required_prefix  = T
+dotnet_naming_style.type_parameter_style.capitalization   = pascal_case
+
+# ── Async method naming (Suffix) ─────────────────────────────────────────────
+# Async methods should end with "Async" (AC-3). Set to suggestion so controller
+# action methods that follow REST naming conventions are not flagged as errors.
+dotnet_naming_rule.async_methods_suffix.symbols           = async_methods
+dotnet_naming_rule.async_methods_suffix.style             = async_suffix_style
+dotnet_naming_rule.async_methods_suffix.severity          = suggestion
+
+dotnet_naming_symbols.async_methods.applicable_kinds      = method
+dotnet_naming_symbols.async_methods.required_modifiers    = async
+
+dotnet_naming_style.async_suffix_style.required_suffix    = Async
+dotnet_naming_style.async_suffix_style.capitalization     = pascal_case
+
+# ── Parameter naming (camelCase) — AC-3 ──────────────────────────────────────
+dotnet_naming_rule.parameters_camel_case.symbols          = all_parameters
+dotnet_naming_rule.parameters_camel_case.style            = camel_case_style
+dotnet_naming_rule.parameters_camel_case.severity         = warning
+
+dotnet_naming_symbols.all_parameters.applicable_kinds     = parameter
+
+dotnet_naming_style.camel_case_style.capitalization       = camel_case
+
+# ── Code style ────────────────────────────────────────────────────────────────
+csharp_style_var_for_built_in_types                       = false : suggestion
+csharp_style_var_when_type_is_apparent                    = true  : suggestion
+csharp_style_var_elsewhere                                = false : suggestion
+csharp_prefer_simple_using_statement                      = true  : suggestion
+csharp_style_expression_bodied_methods                    = when_on_single_line : suggestion
+csharp_style_expression_bodied_properties                 = true  : suggestion
+csharp_prefer_braces                                      = when_multiline : suggestion
+csharp_style_namespace_declarations                       = file_scoped : suggestion
+csharp_style_prefer_primary_constructors                  = false : suggestion
+
+# ── Diagnostic severity overrides ────────────────────────────────────────────
+# CA1707: Identifiers should not contain underscores — suppressed for test methods.
+[*Tests.cs]
+dotnet_diagnostic.CA1707.severity = none
+
+[*.cs]
+# CA2007: Do not directly await a Task — not enforced in application projects.
+dotnet_diagnostic.CA2007.severity = none
+
+# CS8618: Non-nullable field not initialized — suggestion only (use required or init)
+dotnet_diagnostic.CS8618.severity = suggestion
+
+# IDE1006: Naming rule violations — warning level; promoted to error by TreatWarningsAsErrors
+# in Directory.Build.props for source projects (AC-3).
+dotnet_diagnostic.IDE1006.severity = warning
+
+# CA1822: Mark members as static — suggestion only; too noisy in services.
+dotnet_diagnostic.CA1822.severity = suggestion
+
+# CA1848: Use LoggerMessage delegates — suggestion; not required for all log calls.
+dotnet_diagnostic.CA1848.severity = suggestion
+
+# CA1716: Identifiers should not match keywords — warning; catching reserved-word names.
+dotnet_diagnostic.CA1716.severity = warning
+
+# IDE0005: Remove unnecessary using directives — set to none; requires GenerateDocumentationFile
+# to work on build (https://github.com/dotnet/roslyn/issues/41640). IDE cleanup is IDE-only.
+dotnet_diagnostic.IDE0005.severity = none
+
+# ── JSON / YAML ───────────────────────────────────────────────────────────────
+[*.{json,yaml,yml}]
+indent_size = 2
+
+# ── Markdown ──────────────────────────────────────────────────────────────────
+[*.md]
+trim_trailing_whitespace = false

@@ -9,6 +9,7 @@ using UPACIP.Api.Models;
 using UPACIP.Service.Rag.Refresh;
 using UPACIP.Service.Rag.Refresh.Models;
 using UPACIP.Service.VectorSearch;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -89,6 +90,7 @@ public sealed record KbRefreshResultDto
 ///   On service failure (Status = Failed) the endpoint returns 422 Unprocessable Entity
 ///   with the error message.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Route("api/admin/knowledge-base")]

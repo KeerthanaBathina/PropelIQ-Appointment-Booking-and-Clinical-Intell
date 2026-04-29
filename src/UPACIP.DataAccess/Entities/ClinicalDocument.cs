@@ -1,3 +1,4 @@
+using UPACIP.Contracts.MultiTenancy;
 using UPACIP.DataAccess.Enums;
 
 namespace UPACIP.DataAccess.Entities;
@@ -7,8 +8,14 @@ namespace UPACIP.DataAccess.Entities;
 /// uploaded by a staff member or patient.  Document content is stored on the file system
 /// at <see cref="FilePath"/>; only metadata is persisted in PostgreSQL.
 /// </summary>
-public sealed class ClinicalDocument : BaseEntity
+public sealed class ClinicalDocument : BaseEntity, ITenantEntity
 {
+    /// <summary>
+    /// Tenant identifier for multi-tenant partitioning preparation (NFR-027, AC-4).
+    /// Defaults to the Phase 1 default tenant; used by the EF Core global query filter.
+    /// </summary>
+    public Guid TenantId { get; set; }
+
     /// <summary>FK to the <see cref="Patient"/> this document belongs to.</summary>
     public Guid PatientId { get; set; }
 

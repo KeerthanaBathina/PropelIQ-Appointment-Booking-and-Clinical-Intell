@@ -5,6 +5,7 @@ using System.Security.Claims;
 using UPACIP.Api.Authorization;
 using UPACIP.Service.AiMetrics;
 using UPACIP.Service.AiMetrics.Dtos;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -24,6 +25,7 @@ namespace UPACIP.Api.Controllers;
 ///
 /// <para>Validation: <c>startDate</c> must precede <c>endDate</c>; range must not exceed 365 days.</para>
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Produces("application/json")]

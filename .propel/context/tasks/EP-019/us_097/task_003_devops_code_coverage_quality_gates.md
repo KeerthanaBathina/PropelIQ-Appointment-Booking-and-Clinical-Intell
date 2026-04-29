@@ -487,11 +487,12 @@ Start-Process coverage-results/report/index.html
 
 ## Implementation Checklist
 
-- [ ] Create .config/dotnet-tools.json with ReportGenerator tool manifest
-- [ ] Enhance tests/.runsettings with ExcludeByAttribute and refined exclusions
-- [ ] Create scripts/run-tests.ps1 orchestrating test execution and coverage merge
-- [ ] Create scripts/enforce-quality-gates.ps1 parsing Cobertura and enforcing 80%
-- [ ] Create scripts/run-e2e-tests.ps1 with Playwright execution and flaky reporting
-- [ ] Verify non-zero exit codes propagate for test failures and coverage gaps
-- [ ] Define critical vs non-critical assembly classification for threshold
-- [ ] Document CI integration pattern for quality gate scripts
+- [x] Create .config/dotnet-tools.json with ReportGenerator tool manifest
+- [x] Enhance tests/.runsettings with ExcludeByAttribute and refined exclusions
+- [x] Create scripts/run-tests.ps1 orchestrating test execution and coverage merge
+- [x] Create scripts/enforce-quality-gates.ps1 parsing Cobertura and enforcing 80%
+- [x] Create scripts/run-e2e-tests.ps1 with Playwright execution and flaky reporting
+- [x] Verify non-zero exit codes propagate for test failures and coverage gaps
+- [x] Define critical vs non-critical assembly classification for threshold
+- [x] Document CI integration pattern for quality gate scripts
+- [x] dotnet tool restore installs ReportGenerator 5.3.0; all 3 scripts parse with 0 syntax errors

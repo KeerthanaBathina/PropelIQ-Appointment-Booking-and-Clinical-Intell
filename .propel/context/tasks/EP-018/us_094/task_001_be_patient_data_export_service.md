@@ -312,11 +312,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create DataAccessRequest entity with 30-day SLA deadline and DbSet registration
-- [ ] Create PatientDataPackage DTO with sub-DTOs for all six entity categories
-- [ ] Implement PatientProfileCollector, AppointmentCollector, ClinicalDataCollector
-- [ ] Implement JsonExportGenerator with labeled categories and indented formatting
-- [ ] Implement PdfExportGenerator with QuestPDF (cover page, TOC, five sections)
-- [ ] Implement PatientDataExportService with submit, process, and download operations
-- [ ] Implement PatientRightsController with patient and admin endpoints
-- [ ] Register all services and configure QuestPDF community license in Program.cs
+- [X] Create DataAccessRequest entity with 30-day SLA deadline and DbSet registration
+- [X] Create PatientDataPackage DTO with sub-DTOs for all six entity categories
+- [X] Implement PatientProfileCollector, AppointmentCollector, ClinicalDataCollector
+- [X] Implement JsonExportGenerator with labeled categories and indented formatting
+- [X] Implement PdfExportGenerator with QuestPDF (cover page, TOC, five sections)
+- [X] Implement PatientDataExportService with submit, process, and download operations
+- [X] Implement PatientRightsController with patient and admin endpoints
+- [X] Register all services and configure QuestPDF community license in Program.cs

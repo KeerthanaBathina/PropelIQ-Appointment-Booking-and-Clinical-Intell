@@ -437,11 +437,11 @@ cd app; npm run dev
 
 ## Implementation Checklist
 
-- [ ] Audit all design system color pairings against WCAG AA contrast thresholds
-- [ ] Configure MUI createTheme with AA-compliant palette (fix warning.contrastText, text.secondary)
-- [ ] Add :focus-visible outline overrides for all interactive MUI components
-- [ ] Create contrastUtils.ts with relativeLuminance, contrastRatio, meetsWcagAA functions
-- [ ] Integrate @axe-core/react in App.tsx (development mode only, dynamic import)
-- [ ] Configure eslint-plugin-jsx-a11y with recommended rules at error severity
-- [ ] Document known MUI accessibility gaps and applied overrides
-- [ ] Reference wireframes from Design References table during implementation
+- [x] Audit all design system color pairings against WCAG AA contrast thresholds
+- [x] Configure MUI createTheme with AA-compliant palette (fix warning.contrastText, text.secondary)
+- [x] Add :focus-visible outline overrides for all interactive MUI components
+- [x] Create contrastUtils.ts with relativeLuminance, contrastRatio, meetsWcagAA functions
+- [x] Integrate @axe-core/react in main.tsx (development mode only, dynamic import)
+- [x] Configure eslint-plugin-jsx-a11y with recommended rules at error severity
+- [x] Document known MUI accessibility gaps and applied overrides
+- [x] Reference wireframes from Design References table during implementation

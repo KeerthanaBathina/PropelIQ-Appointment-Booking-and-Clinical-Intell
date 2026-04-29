@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using UPACIP.Api.Authorization;
 using UPACIP.Service.Admin;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -27,6 +28,7 @@ namespace UPACIP.Api.Controllers;
 ///   Each request is logged with the admin user ID and correlation ID from
 ///   <see cref="HttpContext.TraceIdentifier"/> for audit trail purposes (NFR-012).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Produces("application/json")]

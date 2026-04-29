@@ -293,11 +293,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create LoggingOptions configuration with Seq URL, file path, and fallback settings
-- [ ] Implement ICorrelationIdAccessor with AsyncLocal storage for cross-async propagation
-- [ ] Implement CorrelationIdMiddleware generating/reading X-Correlation-ID header
-- [ ] Implement StructuredLogEnricher adding UserId, OperationName, ClientIp to all entries
-- [ ] Implement OperationLoggingMiddleware capturing duration and outcome per request
-- [ ] Implement FallbackLogQueue monitoring Seq health with console/file fallback
-- [ ] Configure Serilog pipeline with Seq, file, and console sinks in Program.cs
-- [ ] Document correlation ID propagation pattern for background jobs
+- [X] Create LoggingOptions configuration with Seq URL, file path, and fallback settings
+- [X] Implement ICorrelationIdAccessor with AsyncLocal storage for cross-async propagation
+- [X] Implement CorrelationIdMiddleware generating/reading X-Correlation-ID header
+- [X] Implement StructuredLogEnricher adding UserId, OperationName, ClientIp to all entries
+- [X] Implement OperationLoggingMiddleware capturing duration and outcome per request
+- [X] Implement FallbackLogQueue monitoring Seq health with console/file fallback
+- [X] Configure Serilog pipeline with Seq, file, and console sinks in Program.cs
+- [X] Document correlation ID propagation pattern for background jobs

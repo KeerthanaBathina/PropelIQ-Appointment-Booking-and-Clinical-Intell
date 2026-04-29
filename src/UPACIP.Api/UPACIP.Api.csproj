@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UPACIP.Service\UPACIP.Service.csproj" />
+    <ProjectReference Include="..\UPACIP.Contracts\UPACIP.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -22,8 +23,17 @@
     <PackageReference Include="OpenAI" Version="2.1.0" />
     <PackageReference Include="Polly" Version="8.5.2" />
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
+    <PackageReference Include="Serilog.Sinks.Seq" Version="8.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
+    <PackageReference Include="Serilog.Enrichers.Environment" Version="2.3.0" />
+    <PackageReference Include="Serilog.Enrichers.Thread" Version="3.1.0" />
+    <PackageReference Include="Serilog.Expressions" Version="4.0.0" />
     <PackageReference Include="SharpToken" Version="2.0.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.9.0" />
+    <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.9.0" />
+    <PackageReference Include="Asp.Versioning.Mvc" Version="8.1.0" />
+    <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" Version="8.1.0" />
   </ItemGroup>
 
   <PropertyGroup>
@@ -31,6 +41,23 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>upacip-api-dev</UserSecretsId>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);0419;1570;1571;1572;1573;1574;1580;1581;1584;1587;1589;1590;1591;1592</NoWarn>
   </PropertyGroup>
+
+  <!-- Feature-flag JSON files live in /config at the solution root.
+       Copy them into the output's config/ subfolder so AppContext.BaseDirectory
+       resolution in FeatureFlagConfiguration.AddFeatureFlagConfiguration() works
+       for both local debug and IIS publish (US_101). -->
+  <ItemGroup>
+    <None Update="..\..\config\featureflags.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>config\featureflags.json</Link>
+    </None>
+    <None Update="..\..\config\featureflags.Development.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>config\featureflags.Development.json</Link>
+    </None>
+  </ItemGroup>
 
 </Project>

@@ -6,6 +6,7 @@ using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Patients;
 using UPACIP.Service.Patients.Models;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -33,6 +34,7 @@ namespace UPACIP.Api.Controllers;
 ///   (US_064) in the same database transaction as the patient update, guaranteeing that the
 ///   audit trail is consistent with the state of the record.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/patients")]
 [Produces("application/json")]

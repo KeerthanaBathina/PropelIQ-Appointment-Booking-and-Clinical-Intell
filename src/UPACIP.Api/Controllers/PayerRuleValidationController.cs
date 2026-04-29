@@ -5,6 +5,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Coding;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -31,6 +32,7 @@ namespace UPACIP.Api.Controllers;
 ///   POST /api/coding/multi-assign accepts an optional <c>idempotency_key</c> header.
 ///   Duplicate requests with the same key within a 24-hour window receive the original result.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]
 [Produces("application/json")]

@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +7,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.DataAccess;
 using UPACIP.Service.Monitoring;
 using UPACIP.Service.Monitoring.Models;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -44,6 +45,7 @@ public sealed record SystemStatusOverrideRequest
 ///   Override actions log admin user ID, target category, and new health value at
 ///   Information level.  No PII is logged.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/admin/system-status")]
 [Produces("application/json")]

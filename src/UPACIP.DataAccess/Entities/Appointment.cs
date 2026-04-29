@@ -1,3 +1,4 @@
+using UPACIP.Contracts.MultiTenancy;
 using UPACIP.DataAccess.Entities.OwnedTypes;
 using UPACIP.DataAccess.Enums;
 
@@ -8,8 +9,14 @@ namespace UPACIP.DataAccess.Entities;
 /// <see cref="Version"/> is used as an EF Core optimistic-concurrency token to prevent
 /// lost-update anomalies when two staff members edit the same slot simultaneously.
 /// </summary>
-public sealed class Appointment : BaseEntity
+public sealed class Appointment : BaseEntity, ITenantEntity
 {
+    /// <summary>
+    /// Tenant identifier for multi-tenant partitioning preparation (NFR-027, AC-4).
+    /// Defaults to the Phase 1 default tenant; used by the EF Core global query filter.
+    /// </summary>
+    public Guid TenantId { get; set; }
+
     /// <summary>FK to the owning <see cref="Patient"/>.</summary>
     public Guid PatientId { get; set; }
 

@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Security.Claims;
 using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +12,7 @@ using UPACIP.DataAccess.Entities;
 using UPACIP.Service.Import;
 using UPACIP.Service.Import.Models;
 using UPACIP.Service.Import.Profiles;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -34,6 +35,7 @@ namespace UPACIP.Api.Controllers;
 ///   Temporary files are stored in <see cref="Path.GetTempPath"/> and deleted after processing.
 ///   No user-controlled strings reach SQL — all DB access goes through EF Core.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Route("api/admin/import")]

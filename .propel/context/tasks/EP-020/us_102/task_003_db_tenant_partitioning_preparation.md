@@ -378,11 +378,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create ITenantEntity interface with TenantId property in UPACIP.Contracts
-- [ ] Create ITenantProvider interface and DefaultTenantProvider with deterministic GUID
-- [ ] Create TenantContext with constructor-injected ITenantProvider
-- [ ] Add TenantId to all tenant-scoped entities (Patient, Appointment, Provider, etc.)
-- [ ] Configure ApplicationDbContext with global query filter for ITenantEntity
-- [ ] Add SaveChanges interceptor to auto-set TenantId on new entities
-- [ ] Generate and apply EF Core migration with default value and composite indexes
-- [ ] Register ITenantProvider and TenantContext as Scoped in Program.cs
+- [x] Create ITenantEntity interface with TenantId property in UPACIP.Contracts
+- [x] Create ITenantProvider interface and DefaultTenantProvider with deterministic GUID
+- [x] Create TenantContext with constructor-injected ITenantProvider
+- [x] Add TenantId to all tenant-scoped entities (Patient, Appointment, ClinicalDocument, IntakeData, NotificationLog, WaitlistEntry)
+- [x] Configure ApplicationDbContext with global query filter for ITenantEntity
+- [x] Add SaveChanges interceptor to auto-set TenantId on new entities
+- [x] Generate and apply EF Core migration with default value and composite indexes
+- [x] Register ITenantProvider and TenantContext as Scoped in Program.cs

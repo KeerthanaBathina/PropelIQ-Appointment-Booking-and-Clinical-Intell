@@ -50,6 +50,18 @@ using UPACIP.Service.Profile;
 using UPACIP.Service.AI;
 using UPACIP.Service.Audit;
 using UPACIP.Api.Filters;
+using UPACIP.Api.Swagger;
+
+// Bootstrap logger captures startup errors (e.g. misconfigured appsettings) before the
+// DI-configured Serilog pipeline is available. Replaced by the full pipeline once
+// builder.Host.UseSerilog() completes (US_098, AC-1).
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Override("Microsoft", Serilog.Events.LogEventLevel.Warning)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .CreateBootstrapLogger();
+
+Log.Information("UPACIP API starting up");
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,13 +76,19 @@ builder.Host.UseWindowsService(options =>
 // ── Serilog logging pipeline with PII redaction (US_066 AC-2, NFR-017) ──────────────────────
 // UseSerilog three-parameter overload receives the IServiceProvider *after* all services are
 // registered, so PiiRedactionEnricher and PiiDestructuringPolicy can be resolved from DI.
-// ReadFrom.Configuration picks up the "Serilog" section in appsettings.json for minimum levels.
+// ReadFrom.Configuration picks up the "Serilog" section in appsettings.json for minimum levels,
+// sinks (Console, File, Seq), and enricher names.
 // ReadFrom.Services wires any Serilog components registered in the container (EC-2 extensibility).
+// StructuredLogEnricher adds UserId, OperationName, ClientIp, UserAgent fields to every entry
+// satisfying US_095 AC-4 structured log fields.
 builder.Host.UseSerilog((ctx, services, cfg) =>
     cfg.ReadFrom.Configuration(ctx.Configuration)
        .ReadFrom.Services(services)
        .Enrich.FromLogContext()
+       .Enrich.WithProperty("MachineName", Environment.MachineName)
+       .Enrich.WithProperty("EnvironmentName", ctx.HostingEnvironment.EnvironmentName)
        .Enrich.With(services.GetRequiredService<PiiRedactionEnricher>())
+       .Enrich.With(services.GetRequiredService<UPACIP.Api.Logging.StructuredLogEnricher>())
        .Destructure.With(services.GetRequiredService<PiiDestructuringPolicy>()));
 
 // Enforce TLS 1.2 and TLS 1.3 on all Kestrel HTTPS endpoints (AC-3, defense-in-depth).
@@ -156,32 +174,11 @@ builder.Services.Configure<ApiBehaviorOptions>(options =>
     };
 });
 
-builder.Services.AddSwaggerGen(options =>
-{
-    options.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "UPACIP API",
-        Version = "v1",
-        Description = "Unified Patient Access & Clinical Intelligence Platform – Backend API"
-    });
-
-    // JWT Bearer security definition — enables the Authorize button in Swagger UI (NFR-038).
-    var jwtScheme = new OpenApiSecurityScheme
-    {
-        Name         = "Authorization",
-        Type         = SecuritySchemeType.Http,
-        Scheme       = "bearer",
-        BearerFormat = "JWT",
-        In           = ParameterLocation.Header,
-        Description  = "Enter your JWT access token (without the 'Bearer' prefix).",
-        Reference    = new OpenApiReference { Type = ReferenceType.SecurityScheme, Id = "Bearer" },
-    };
-    options.AddSecurityDefinition("Bearer", jwtScheme);
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        { jwtScheme, Array.Empty<string>() },
-    });
-});
+// ── Swagger / OpenAPI documentation (US_098, AC-2, TR-032, NFR-038) ──────────────────────────
+// Registers API versioning (v1 default, header + query-string + URL-segment readers) and
+// Swashbuckle with per-version OpenAPI documents, JWT Bearer security scheme, XML comments,
+// and example schema values. ConfigureSwaggerOptions adds one SwaggerDoc per discovered version.
+builder.Services.AddSwaggerDocumentation();
 
 builder.Services.AddCors(options =>
 {
@@ -213,11 +210,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         .UseNpgsql(
             npgsqlDataSource,
             npgsql => npgsql
-                // Retry up to 3 times with 10-second delay for transient faults (NFR-032)
+                // Retry up to 3 times with 15-second delay for transient faults (NFR-032, US_095 AC-2).
+                // errorCodesToAdd: PostgreSQL-specific transient codes not covered by Npgsql's default list.
+                //   57014 = query_canceled (lock_timeout / statement_timeout)
+                //   40001 = serialization_failure
+                //   40P01 = deadlock_detected
                 .EnableRetryOnFailure(
                     maxRetryCount: 3,
-                    maxRetryDelay: TimeSpan.FromSeconds(10),
-                    errorCodesToAdd: null)
+                    maxRetryDelay: TimeSpan.FromSeconds(15),
+                    errorCodesToAdd: new[] { "57014", "40001", "40P01" })
                 // Lock to the installed PostgreSQL major version to avoid runtime negotiation overhead
                 .SetPostgresVersion(new Version(16, 0)))
         // Custom migration history table: extends __EFMigrationsHistory with AppliedAtUtc
@@ -535,6 +536,55 @@ builder.Services
 builder.Services.AddSingleton<PiiRedactionEnricher>();
 builder.Services.AddSingleton<PiiDestructuringPolicy>();
 
+// ── US_095 — Correlation ID and Structured Logging Pipeline ─────────────────────────────────
+// LoggingOptions: strongly-typed config for Seq URL, file path, retention, and fallback settings.
+// ICorrelationIdAccessor: AsyncLocal-based accessor; Scoped so each HTTP request has its own
+//   instance; the AsyncLocal flows into background jobs spawned from the request context (edge case 2).
+// StructuredLogEnricher: Singleton ILogEventEnricher — adds UserId, OperationName, ClientIp,
+//   UserAgent to every log entry (AC-4). Singleton is safe because IHttpContextAccessor uses
+//   AsyncLocal internally (no per-instance state).
+// IFallbackLogQueue / FallbackLogQueue: Singleton IHostedService — monitors Seq health every 60 s;
+//   logs structured warnings when Seq is unavailable; drains to file/console fallback (edge case 1).
+// IHttpContextAccessor: Required by StructuredLogEnricher to access the current HTTP context.
+builder.Services
+    .AddOptions<UPACIP.Service.Logging.Models.LoggingOptions>()
+    .Bind(builder.Configuration.GetSection(UPACIP.Service.Logging.Models.LoggingOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<UPACIP.Service.Logging.ICorrelationIdAccessor,
+    UPACIP.Service.Logging.CorrelationIdAccessor>();
+builder.Services.AddSingleton<UPACIP.Api.Logging.StructuredLogEnricher>();
+builder.Services.AddSingleton<UPACIP.Service.Logging.IFallbackLogQueue,
+    UPACIP.Service.Logging.FallbackLogQueue>();
+builder.Services.AddHostedService(sp =>
+    (UPACIP.Service.Logging.FallbackLogQueue)sp.GetRequiredService<UPACIP.Service.Logging.IFallbackLogQueue>());
+// Named HttpClient for Seq health checks (no base address — FallbackLogQueue builds the URL).
+builder.Services.AddHttpClient("seq-health");
+
+// ── EP-019 HATEOAS Link Generation (US_096, AC-2, TR-011) ────────────────────────────────────
+// IHateoasLinkGenerator: Scoped — uses ASP.NET Core LinkGenerator + IHttpContextAccessor to
+//   produce absolute, reverse-proxy-aware URLs from named routes (X-Forwarded-Host/Proto).
+// HateoasResponseWrapper: Scoped — wraps ApiResponse<T> and PagedResult<T> with HATEOAS
+//   Links collections; controllers inject this to produce self/related/pagination links.
+// Note: AddHttpContextAccessor() is already called above (US_095 block).
+builder.Services.AddScoped<UPACIP.Service.Hateoas.IHateoasLinkGenerator,
+    UPACIP.Service.Hateoas.HateoasLinkGenerator>();
+builder.Services.AddScoped<UPACIP.Service.Hateoas.HateoasResponseWrapper>();
+
+// ── EP-019 CQRS Audit Log Access (US_096, AC-3, TR-013) ──────────────────────────────────────
+// AuditLogReadDbContext: Scoped read-only DbContext for the CQRS query path.
+//   Global NoTracking — no change-tracker overhead for compliance queries.
+//   Same underlying audit_logs table as ApplicationDbContext (single source of truth).
+// IAuditLogCommandService (Contracts): Scoped write service — append-only via ApplicationDbContext.
+// IAuditLogQueryService (Contracts): Scoped read service — uses AuditLogReadDbContext with
+//   offset pagination and composable filters; separate from UPACIP.Service.Audit version.
+builder.Services.AddDbContext<UPACIP.DataAccess.AuditLogReadDbContext>(options =>
+    options.UseNpgsql(connectionString));
+builder.Services.AddScoped<UPACIP.Contracts.Services.IAuditLogCommandService,
+    UPACIP.Service.AuditLogManagement.AuditLogCommandService>();
+builder.Services.AddScoped<UPACIP.Contracts.Services.IAuditLogQueryService,
+    UPACIP.Service.AuditLogManagement.AuditLogQueryService>();
+
 // ── EP-011 Audit Log Query API (US_064) ──────────────────────────────────────────────────────// AuditSettings: configured query page limits and retention period (NFR-040, NFR-043).
 // AuditLogQueryService: CQRS read-side — filtered, paginated, AsNoTracking reads (AC-3, TR-013).
 // IClientInfoAccessor: extracts client IP (X-Forwarded-For-aware) and User-Agent (AC-1, NFR-018).
@@ -731,6 +781,11 @@ builder.Services.AddAIGateway(builder.Configuration);
 builder.Services.Configure<AiGatewaySettings>(
     builder.Configuration.GetSection(AiGatewaySettings.SectionName));
 
+// TransientResilienceHttpHandler: Transient DelegatingHandler — wraps outbound HTTP calls in
+// the "http-retry" Polly V8 pipeline (retry + circuit breaker) for all named HttpClients (US_095 AC-2).
+// Transient lifetime is required by IHttpMessageHandlerFactory — each handler chain instance is independent.
+builder.Services.AddTransient<UPACIP.Api.Http.TransientResilienceHttpHandler>();
+
 // Named HttpClient for OpenAI — base address + auth header preset; timeout from config.
 var aiSettings = builder.Configuration.GetSection(AiGatewaySettings.SectionName).Get<AiGatewaySettings>() ?? new AiGatewaySettings();
 builder.Services.AddHttpClient("openai", client =>
@@ -740,7 +795,7 @@ builder.Services.AddHttpClient("openai", client =>
         new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", aiSettings.OpenAiApiKey);
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(aiSettings.TimeoutSeconds > 0 ? aiSettings.TimeoutSeconds : 10);
-});
+}).AddHttpMessageHandler<UPACIP.Api.Http.TransientResilienceHttpHandler>();
 
 // Named HttpClient for Anthropic Claude (fallback provider).
 builder.Services.AddHttpClient("anthropic", client =>
@@ -750,7 +805,7 @@ builder.Services.AddHttpClient("anthropic", client =>
     client.DefaultRequestHeaders.Add("anthropic-version", "2023-06-01");
     client.DefaultRequestHeaders.Add("Accept", "application/json");
     client.Timeout = TimeSpan.FromSeconds(aiSettings.TimeoutSeconds > 0 ? aiSettings.TimeoutSeconds : 10);
-});
+}).AddHttpMessageHandler<UPACIP.Api.Http.TransientResilienceHttpHandler>();
 
 // Intake service components — scoped so they share the per-request DI scope.
 builder.Services.AddScoped<IntakeRagRetriever>();
@@ -1233,6 +1288,32 @@ builder.Services
 builder.Services.AddScoped<UPACIP.Service.Backup.IPointInTimeRecoveryService,
     UPACIP.Service.Backup.PointInTimeRecoveryService>();
 
+// ── US_095 task_003 — RPO/RTO Recovery Target Monitoring (AC-3, NFR-024, NFR-025, DR-026) ──
+// RecoveryTargetOptions: bound from "RecoveryTargets" section — RPO=60min, RTO=240min,
+//   WalArchiveIntervalMinutes=15, BackupFrequencyHours=24, MonitoringCheckIntervalMinutes=30,
+//   QuarterlyTestAlertDaysBefore=14.
+// RecoveryTargetMonitoringService: HostedService + Singleton — checks RPO/RTO compliance
+//   every 30 minutes; emits RPO_VIOLATION (Critical) and RTO_READINESS_GAP (Warning) events;
+//   caches the latest RecoveryTargetStatus snapshot for zero-latency API reads.
+// QuarterlyRecoveryTestScheduler: HostedService — wakes daily at midnight UTC; emits
+//   RECOVERY_TEST_DUE (Warning) and RECOVERY_TEST_OVERDUE (Critical) when DR-026 obligations
+//   are approaching or past due; compares ActualRecoveryTime against RTO for each new test.
+builder.Services
+    .Configure<UPACIP.Service.Recovery.Models.RecoveryTargetOptions>(
+        builder.Configuration.GetSection(
+            UPACIP.Service.Recovery.Models.RecoveryTargetOptions.SectionName));
+
+builder.Services.AddHostedService<UPACIP.Service.Recovery.RecoveryTargetMonitoringService>();
+
+// Also register RecoveryTargetMonitoringService as a Singleton by concrete type so that
+// RecoveryController can inject it directly to read LatestStatus (zero DB round-trip).
+builder.Services.AddSingleton(sp =>
+    (UPACIP.Service.Recovery.RecoveryTargetMonitoringService)sp
+        .GetServices<Microsoft.Extensions.Hosting.IHostedService>()
+        .First(s => s is UPACIP.Service.Recovery.RecoveryTargetMonitoringService));
+
+builder.Services.AddHostedService<UPACIP.Service.Recovery.QuarterlyRecoveryTestScheduler>();
+
 // ── EP-017 Migration Pipeline Engine (US_091 task_001, AC-2, AC-3, DR-028, DR-029) ───────
 // CustomHistoryRepository: registered via ReplaceService in AddDbContext above — extends
 //   __EFMigrationsHistory with AppliedAtUtc and MigrationChecksum columns (AC-3).
@@ -1374,6 +1455,23 @@ builder.Services
 builder.Services.AddSingleton<UPACIP.Service.Resilience.IExternalServiceResilienceProvider,
     UPACIP.Service.Resilience.ExternalServiceResilienceProvider>();
 builder.Services.AddHostedService<UPACIP.Service.Notifications.NotificationRetryService>();
+
+// ── US_095 task_002 — Centralized Retry Policies with Exponential Backoff ─────────────────
+// ResilienceOptions: strongly-typed config bound from "Resilience" section.
+//   MaxRetries=3, RetryDelaysSeconds=[1,5,15] (AC-2), circuit breaker thresholds (NFR-023).
+// ITransientFaultClassifier: Singleton — pure-function exception classifier for DB, HTTP, IO.
+//   Separates transient (retryable) from permanent failures (unique violations, 404, etc.).
+// TransientResiliencePipelineRegistry: Singleton — holds the three named ResiliencePipeline
+//   instances built once at startup and resolved by consumers via DI.
+builder.Services
+    .AddOptions<UPACIP.Service.Resilience.Models.ResilienceOptions>()
+    .Bind(builder.Configuration.GetSection(UPACIP.Service.Resilience.Models.ResilienceOptions.SectionName))
+    .ValidateOnStart();
+builder.Services.AddSingleton<UPACIP.Service.Resilience.ITransientFaultClassifier,
+    UPACIP.Service.Resilience.TransientFaultClassifier>();
+// Register the named pipeline registry as a Singleton. Pipelines are long-lived and
+// thread-safe per Polly V8 design — Singleton is the correct lifetime.
+builder.Services.AddSingleton<UPACIP.Service.Resilience.TransientResiliencePipelineRegistry>();
 
 // ── EP-013 Hallucination Tracking (US_074 task_002, AC-1, AC-2, AIR-Q06) ────────────────────
 // IHallucinationTrackingService: Scoped — records staff verification outcomes (Supported /
@@ -1609,6 +1707,35 @@ builder.Services
     .ValidateDataAnnotations()
     .ValidateOnStart();
 
+// ── EP-018 Patient Rights — HIPAA Right of Access (US_094, NFR-044, AC-1, AC-2) ──────────────
+// PatientProfileCollector:  Scoped — queries Patient entity excluding sensitive fields.
+// AppointmentCollector:     Scoped — queries Appointments + QueueEntry + Notifications.
+// ClinicalDataCollector:    Scoped — queries IntakeData, ClinicalDocuments, MedicalCodes.
+// JsonExportGenerator:      Scoped — serializes PatientDataPackage to labeled indented JSON.
+// PdfExportGenerator:       Scoped — builds QuestPDF document with cover page + 5 sections.
+// IPatientDataExportService: Scoped — orchestrates data collection, ZIP packaging, and download.
+// QuestPDF Community license is declared here so it applies before any PDF generation call.
+// Note: PdfConfirmationService also sets this — duplicate declarations are harmless (idempotent).
+QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
+builder.Services.AddScoped<UPACIP.Service.PatientRights.DataCollectors.PatientProfileCollector>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.DataCollectors.AppointmentCollector>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.DataCollectors.ClinicalDataCollector>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Export.JsonExportGenerator>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Export.PdfExportGenerator>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.IPatientDataExportService,
+    UPACIP.Service.PatientRights.PatientDataExportService>();
+
+// PatientRights — deletion pipeline (US_094, NFR-045)
+// Six-phase pipeline: cancel appointments, anonymize shared data, hard-delete entities,
+// soft-delete patient, purge cache + files, anonymize audit logs.
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Deletion.PendingAppointmentHandler>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Deletion.SharedDataAnonymizer>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Deletion.CacheCleanupService>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Deletion.FileCleanupService>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.Deletion.DeletionVerificationService>();
+builder.Services.AddScoped<UPACIP.Service.PatientRights.IPatientDataDeletionService,
+    UPACIP.Service.PatientRights.PatientDataDeletionService>();
+
 // Feature management — reads the FeatureManagement section from appsettings.json.
 // Participates in the reloadOnChange pipeline so toggling a flag takes effect
 // without restart (TR-021 / AC-4). DisabledFeaturesHandler returns a structured
@@ -1640,11 +1767,12 @@ builder.Services.AddHsts(options =>
 });
 
 // Health checks — registered here so both DB and Redis connection strings are in scope.
-// /health → liveness: Predicate = _ => false means no dependency probes; always 200 if the
-//           process is alive and can serve requests.
-// /ready  → readiness: only checks tagged "ready" (database + redis); returns 503 when any
-//           dependency is unhealthy so the load balancer removes the instance from rotation.
+// DatabaseHealthCheck / RedisHealthCheck / AiGatewayHealthCheck: custom dependency checks
+//   with per-check 400 ms timeouts (US_099, AC-1, AC-3, edge case 1).
+// /health → all dependency checks, detailed JSON (HealthCheckConfiguration).
+// /ready  → "ready"-tagged checks (startup gate + database + redis); 503 when Unhealthy.
 builder.Services.AddHealthChecks()
+    .AddDependencyChecks()                 // US_099: postgresql, redis (custom), ai-gateway
     .AddDbContextCheck<ApplicationDbContext>(
         name: "database",
         tags: new[] { "ready" })
@@ -1663,6 +1791,47 @@ builder.Services.AddHealthChecks()
     .AddCheck<AuditQueueHealthCheck>(
         name: "audit-queue",
         tags: new[] { "audit" });
+
+// Readiness probe — startup gate that returns 503 until ApplicationStarted fires (US_099, AC-2).
+// Singleton so Program.cs can resolve the same instance to call MarkReady() below.
+builder.Services.AddReadinessCheck();
+
+// State-change monitor — BackgroundService that polls health checks every 60 s and logs
+// structured transition events (US_099, AC-4).
+builder.Services.AddHealthStateMonitoring();
+
+// Feature flag service (US_101, AC-1, AC-2).
+// Adds config/featureflags.json + config/featureflags.{Env}.json as hot-reload sources,
+// then registers IFeatureFlagService as a singleton backed by IOptionsMonitor<FeatureFlagOptions>.
+builder.Configuration.AddFeatureFlagConfiguration(builder.Environment);
+builder.Services.AddFeatureFlagServices(builder.Configuration);
+
+// Centralized configuration management (US_101, AC-3, AC-4).
+// Adds UPACIP_-prefixed env vars as a high-priority override layer, then binds all
+// subsystem options (Database, Redis, AiGateway, Email, Sms) via Configure<T>.
+builder.Configuration.AddHierarchicalConfiguration(builder.Environment);
+builder.Services.AddConfigurationOptions(builder.Configuration);
+
+// Startup configuration validation — fails fast if required settings are missing (AC-4).
+builder.Services.AddHostedService<ConfigurationValidationService>();
+
+// Runtime configuration change monitor — logs CONFIGURATION_CHANGED events for audit (AC-3).
+builder.Services.AddSingleton<ConfigurationChangeLogger>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<ConfigurationChangeLogger>());
+
+// Idempotency middleware — Redis-backed idempotency store for [IdempotentEndpoint] actions
+// (US_102, AC-1). Prevents duplicate state changes when clients retry on network failures.
+builder.Services.Configure<UPACIP.Service.Idempotency.IdempotencyOptions>(
+    builder.Configuration.GetSection(UPACIP.Service.Idempotency.IdempotencyOptions.SectionName));
+builder.Services.AddSingleton<UPACIP.Service.Idempotency.IIdempotencyStore,
+    UPACIP.Service.Idempotency.RedisIdempotencyStore>();
+
+// Multi-tenancy partitioning preparation (US_102, AC-4, NFR-027).
+// Phase 1: DefaultTenantProvider returns the single static default tenant GUID.
+// Phase 2: Replace DefaultTenantProvider with HttpContextTenantProvider (reads JWT claim).
+builder.Services.AddScoped<UPACIP.Contracts.MultiTenancy.ITenantProvider,
+    UPACIP.Service.MultiTenancy.DefaultTenantProvider>();
+builder.Services.AddScoped<UPACIP.DataAccess.MultiTenancy.TenantContext>();
 
 // ---------- Pipeline ----------
 var app = builder.Build();
@@ -1692,8 +1861,31 @@ if (args.Contains("--seed"))
 // 1. Correlation ID — must be first so all subsequent middleware can use it
 app.UseCorrelationId();
 
+// 1b. Operation logging — wraps each request to capture duration and outcome (US_095 AC-4).
+//     Placed immediately after UseCorrelationId so the CorrelationId is already in LogContext
+//     when the request summary entry is written.
+app.UseOperationLogging();
+
 // 2. Global exception handler — wraps everything below so errors carry a correlation ID
 app.UseGlobalExceptionHandler();
+
+// Serilog HTTP request logging — one structured event per request instead of the default
+// verbose ASP.NET Core multi-line output. Placed after the global exception handler so
+// logged status codes reflect the final error response (US_098, AC-1, AC-2).
+app.UseSerilogRequestLogging(options =>
+{
+    options.MessageTemplate =
+        "HTTP {RequestMethod} {RequestPath} responded {StatusCode} in {Elapsed:0.0000}ms";
+
+    options.EnrichDiagnosticContext = (diagnosticContext, httpContext) =>
+    {
+        diagnosticContext.Set("RequestHost",   httpContext.Request.Host.Value ?? string.Empty);
+        diagnosticContext.Set("RequestScheme", httpContext.Request.Scheme);
+        diagnosticContext.Set("UserAgent",     httpContext.Request.Headers.UserAgent.ToString());
+        diagnosticContext.Set("ClientIp",
+            httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown");
+    };
+});
 
 // 3. Error rate tracking — captures all response codes (including those from middleware)
 // for the sliding-window 0.1% error rate monitor.  Placed after the global exception handler
@@ -1701,16 +1893,16 @@ app.UseGlobalExceptionHandler();
 // the status code.  Health check endpoints (/health, /ready) are excluded from tracking.
 app.UseMiddleware<UPACIP.Api.Middleware.ErrorRateTrackingMiddleware>();
 
-// 3. Swagger — developer tooling, registered early so exceptions are caught
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI(options =>
-    {
-        options.SwaggerEndpoint("/swagger/v1/swagger.json", "UPACIP API v1");
-        options.RoutePrefix = "swagger";
-    });
-}
+// Version deprecation middleware — appends Sunset, Deprecation, and Link headers on
+// responses from deprecated API versions (US_102, AC-2, edge case 2).
+// Placed early (before Swagger, before authentication) so the headers appear on all
+// responses including 401/403 errors, giving version-unaware clients immediate notice.
+app.UseMiddleware<UPACIP.Api.Middleware.VersionDeprecationMiddleware>();
+
+// 3. Swagger — OpenAPI docs at /swagger (all environments, AC-2, TR-032, NFR-038).
+// UseSwaggerDocumentation builds a version dropdown from IApiVersionDescriptionProvider so
+// every declared API version has its own swagger.json document (edge case 2).
+app.UseSwaggerDocumentation();
 
 // 4–7. Standard ASP.NET Core pipeline order
 // SecurityHeadersMiddleware: adds CSP, X-Frame-Options, X-Content-Type-Options,
@@ -1758,6 +1950,11 @@ app.UseSessionManagement(); // Sliding 15-min TTL reset + expired session 401 (N
 app.UseInputSanitization();
 app.UseAuthorization();
 
+// Idempotency middleware — intercepts POST/PUT/DELETE/PATCH requests on [IdempotentEndpoint]
+// actions. Runs after UseAuthorization (so endpoint metadata is resolved) and before
+// performance instrumentation (so replayed requests are still measured correctly) (US_102, AC-1).
+app.UseMiddleware<UPACIP.Api.Middleware.IdempotencyMiddleware>();
+
 // Performance instrumentation: starts Activity span, records end-to-end latency per operation
 // type, and appends X-Request-Duration-Ms + X-Correlation-Id response headers (US_081 task_001).
 app.UseMiddleware<UPACIP.Api.Middleware.PerformanceInstrumentationMiddleware>();
@@ -1773,25 +1970,10 @@ app.MapControllers();
 // Requires AdminOnly authorization policy (set in RequireAuthorization inside MapModelVersionEndpoints).
 app.MapModelVersionEndpoints();
 
-// Liveness — process-level check; no external dependency probes.
-// Returns 200 as long as the application is running and able to accept requests.
-app.MapHealthChecks("/health", new HealthCheckOptions
-{
-    Predicate      = _ => false,
-    ResponseWriter = HealthCheckResponseWriter.WriteAsync,
-}).AllowAnonymous();
-
-// Readiness — dependency-level check; only runs checks tagged "ready" (database + redis).
-// Returns 503 if any dependency is unhealthy so upstream load balancers stop routing traffic.
-var readyOptions = new HealthCheckOptions
-{
-    Predicate      = check => check.Tags.Contains("ready"),
-    ResponseWriter = HealthCheckResponseWriter.WriteAsync,
-};
-readyOptions.ResultStatusCodes[HealthStatus.Healthy]   = StatusCodes.Status200OK;
-readyOptions.ResultStatusCodes[HealthStatus.Degraded]  = StatusCodes.Status200OK;
-readyOptions.ResultStatusCodes[HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable;
-app.MapHealthChecks("/ready", readyOptions).AllowAnonymous();
+// /health — all dependency checks, detailed JSON (US_099, AC-1, AC-3, edge case 1).
+// /ready  — "ready"-tagged checks only (database + Redis); 503 when Unhealthy (load balancer).
+// Both endpoints are publicly accessible (no authentication).
+app.MapHealthCheckEndpoints();
 
 // ---------- Startup DB health check ----------
 // Probe the database connection before accepting traffic.
@@ -1849,11 +2031,34 @@ using (var scope = app.Services.CreateScope())
 var lifetime = app.Services.GetRequiredService<IHostApplicationLifetime>();
 var appLogger = app.Services.GetRequiredService<ILogger<Program>>();
 
+// Mark the application as ready to accept traffic once the host is fully started.
+// ApplicationStarted fires after the HTTP server is listening and all hosted services
+// have initialised — ensures /ready returns 200 only when the app is fully operational
+// (US_099, AC-2, edge case 2: rolling deployment).
+lifetime.ApplicationStarted.Register(() =>
+{
+    var readinessCheck = app.Services.GetRequiredService<ReadinessCheck>();
+    readinessCheck.MarkReady();
+});
+
 lifetime.ApplicationStopping.Register(() =>
     appLogger.LogInformation("Application stopping — draining in-flight requests."));
 
 lifetime.ApplicationStopped.Register(() =>
     appLogger.LogInformation("Application stopped."));
 
-app.Run();
+try
+{
+    app.Run();
+    Log.Information("UPACIP API shut down cleanly");
+}
+catch (Exception ex) when (ex is not HostAbortedException)
+{
+    Log.Fatal(ex, "UPACIP API terminated unexpectedly");
+    throw;
+}
+finally
+{
+    Log.CloseAndFlush();
+}
 

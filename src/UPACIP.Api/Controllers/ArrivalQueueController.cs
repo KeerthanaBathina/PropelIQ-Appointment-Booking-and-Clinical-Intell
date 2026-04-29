@@ -7,6 +7,7 @@ using UPACIP.Api.Models;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Appointments;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -27,6 +28,7 @@ namespace UPACIP.Api.Controllers;
 /// Queue ordering: by arrival timestamp (oldest first) within the same priority band;
 ///   Urgent entries are sorted before Normal entries regardless of arrival time.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/staff/queue")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

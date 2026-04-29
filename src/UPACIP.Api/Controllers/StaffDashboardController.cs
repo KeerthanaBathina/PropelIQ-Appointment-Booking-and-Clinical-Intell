@@ -9,6 +9,7 @@ using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Appointments;
 using UPACIP.Service.Dashboard;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -31,6 +32,7 @@ namespace UPACIP.Api.Controllers;
 ///   Patient name/email is returned for display purposes only (staff operational need).
 ///   Raw patient history counts are never included in responses.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/staff/appointments")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]
