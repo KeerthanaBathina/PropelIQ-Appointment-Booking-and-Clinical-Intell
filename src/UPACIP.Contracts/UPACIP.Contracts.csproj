@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+  </PropertyGroup>
+
+  <!-- UPACIP.Contracts is the leaf dependency: it has NO project references.
+       All other projects (Api, Service, DataAccess) may reference this project
+       to consume shared DTOs, enums, and service interfaces without introducing
+       circular dependencies (AC-1, AC-4, TR-009). -->
+
+</Project>

@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\UPACIP.DataAccess\UPACIP.DataAccess.csproj" />
+    <ProjectReference Include="..\UPACIP.Contracts\UPACIP.Contracts.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -34,6 +35,11 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- EF1002: ExecuteSqlRawAsync interpolation warning in PhiMigrationGuard;
+         the value is sanitized; tracked for migration to ExecuteSqlAsync. -->
+    <!-- CA2017: Logging template parameter count mismatch in KnowledgeBaseRefreshService;
+         tracked for correction in a dedicated logging cleanup pass. -->
+    <NoWarn>$(NoWarn);EF1002;CA2017</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

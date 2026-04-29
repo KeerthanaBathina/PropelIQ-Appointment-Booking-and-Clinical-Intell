@@ -291,11 +291,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create HateoasLink DTO with href, rel, method properties
-- [ ] Create HateoasResponse<T> for single-resource responses with Links
-- [ ] Create PagedHateoasResponse<T> with pagination links and metadata
-- [ ] Define IHateoasLinkGenerator interface with resource and pagination methods
-- [ ] Implement HateoasLinkGenerator using ASP.NET Core LinkGenerator
-- [ ] Implement HateoasResponseWrapper with WrapResource and WrapCollection
+- [x] Create HateoasLink DTO with href, rel, method properties
+- [x] Create HateoasResponse<T> for single-resource responses with Links
+- [x] Create PagedHateoasResponse<T> with pagination links and metadata
+- [x] Define IHateoasLinkGenerator interface with resource and pagination methods
+- [x] Implement HateoasLinkGenerator using ASP.NET Core LinkGenerator
+- [x] Implement HateoasResponseWrapper with WrapResource and WrapCollection
 - [ ] Add named routes to existing controllers for link generation
-- [ ] Register HATEOAS services in DI container
+- [x] Register HATEOAS services in DI container

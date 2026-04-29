@@ -6,6 +6,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.DataAccess.Entities;
 using UPACIP.Service.Backup;
 using UPACIP.Service.Backup.Models;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -22,6 +23,7 @@ namespace UPACIP.Api.Controllers;
 ///
 /// Authorization (OWASP A01, NFR-011): All endpoints require the Admin role.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Route("api/admin/backup")]

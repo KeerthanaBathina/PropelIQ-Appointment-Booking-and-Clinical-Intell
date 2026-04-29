@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat Code Coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          <!-- Exclude test assemblies from coverage metrics (AC-3) -->
+          <Exclude>
+            [UPACIP.*.Tests]*,
+            [UPACIP.Tests.Common]*,
+            [UPACIP.ArchTests]*
+          </Exclude>
+          <!-- Exclude auto-generated and bootstrap files -->
+          <ExcludeByFile>
+            **/Migrations/**,
+            **/Program.cs,
+            **/bin/**,
+            **/obj/**
+          </ExcludeByFile>
+          <!-- Exclude types decorated with [ExcludeFromCodeCoverage] or [GeneratedCode] -->
+          <ExcludeByAttribute>
+            System.Diagnostics.CodeAnalysis.ExcludeFromCodeCoverageAttribute,
+            System.CodeDom.Compiler.GeneratedCodeAttribute
+          </ExcludeByAttribute>
+          <!-- Auto-properties on DTOs/records are excluded from line count -->
+          <SkipAutoProps>true</SkipAutoProps>
+          <!-- Deterministic output enables reproducible diffs in CI -->
+          <DeterministicReport>true</DeterministicReport>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>

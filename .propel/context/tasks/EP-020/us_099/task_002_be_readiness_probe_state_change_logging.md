@@ -458,11 +458,11 @@ Invoke-RestMethod -Uri http://localhost:5000/health -Method Get
 
 ## Implementation Checklist
 
-- [ ] Implement ReadinessCheck with volatile _isReady flag and MarkReady()
-- [ ] Register ReadinessCheck as singleton with "ready" tag
-- [ ] Map /ready endpoint with 503 for Unhealthy, 200 for Healthy
-- [ ] Call MarkReady() via ApplicationStarted lifetime event in Program.cs
-- [ ] Create HealthStateRecord DTO for per-dependency state tracking
-- [ ] Implement HealthStateMonitorService with 60-second polling and ConcurrentDictionary
-- [ ] Log state transitions with structured fields (dependency, status, timestamp)
-- [ ] Document rolling deployment pattern with IIS Application Initialization
+- [x] Implement ReadinessCheck with volatile _isReady flag and MarkReady()
+- [x] Register ReadinessCheck as singleton with "ready" tag
+- [x] Map /ready endpoint with 503 for Unhealthy, 200 for Healthy
+- [x] Call MarkReady() via ApplicationStarted lifetime event in Program.cs
+- [x] Create HealthStateRecord DTO for per-dependency state tracking
+- [x] Implement HealthStateMonitorService with 60-second polling and ConcurrentDictionary
+- [x] Log state transitions with structured fields (dependency, status, timestamp)
+- [x] Document rolling deployment pattern with IIS Application Initialization

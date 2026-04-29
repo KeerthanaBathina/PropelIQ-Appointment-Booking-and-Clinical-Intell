@@ -1,0 +1,21 @@
+{
+  "FeatureFlags": {
+    "Flags": {
+      "AiConversationalIntake": {
+        "Name": "AiConversationalIntake",
+        "IsEnabled": true,
+        "Description": "Development override — AI conversational intake enabled for local testing."
+      },
+      "AiDocumentParsing": {
+        "Name": "AiDocumentParsing",
+        "IsEnabled": true,
+        "Description": "Development override — AI document parsing enabled for local testing."
+      },
+      "AiMedicalCoding": {
+        "Name": "AiMedicalCoding",
+        "IsEnabled": true,
+        "Description": "Development override — AI medical coding enabled for local testing."
+      }
+    }
+  }
+}

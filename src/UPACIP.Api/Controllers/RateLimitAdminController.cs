@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Service.AiSafety;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -71,6 +72,7 @@ public sealed record SetOverrideResponse
 ///   Every write logs admin user ID, target user ID, override limit, and duration
 ///   at Information level. No PII or sensitive data is logged.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/admin/rate-limits")]
 [Authorize(Policy = RbacPolicies.AdminOnly)]

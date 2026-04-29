@@ -487,11 +487,14 @@ dotnet test --settings tests/.runsettings --collect:"XPlat Code Coverage"
 
 ## Implementation Checklist
 
-- [ ] Create UPACIP.Tests.Common project with Moq, FluentAssertions, Bogus, EF InMemory
-- [ ] Implement DbContextFixture with in-memory database factory
-- [ ] Create MockAiGatewayFactory with default/failure/low-confidence variants
-- [ ] Create MockExternalServiceFactory with SMS, email, Redis mock builders
-- [ ] Create UPACIP.Service.Tests project with xUnit, Moq, coverlet
-- [ ] Write sample AuditLogCommandServiceTests with Fact, Theory, FluentAssertions
-- [ ] Create UPACIP.Api.Tests project with xUnit, Moq, MVC Testing
-- [ ] Write sample AuditLogControllerTests with Moq Setup/Verify patterns
+- [x] Create UPACIP.Tests.Common project with Moq, FluentAssertions, Bogus, EF InMemory
+- [x] Implement DbContextFixture with in-memory database factory
+- [x] Create MockAiGatewayFactory with default/failure/low-confidence variants
+- [x] Create MockExternalServiceFactory with SMS, email, Redis mock builders
+- [x] Create UPACIP.Service.Tests project with xUnit, Moq, coverlet
+- [x] Write sample AuditLogCommandServiceTests with Fact, Theory, FluentAssertions
+- [x] Create UPACIP.Api.Tests project with xUnit, Moq, MVC Testing
+- [x] Write sample AuditLogControllerTests with Moq Setup/Verify patterns
+- [x] Add tests/.runsettings (Cobertura coverage, exclusion patterns)
+- [x] Register all 3 new projects in UPACIP.sln with correct NestedProjects
+- [x] Solution builds: 0 errors; Service.Tests: 5 pass / 2 skip (Postgres-only); Api.Tests: 3 pass

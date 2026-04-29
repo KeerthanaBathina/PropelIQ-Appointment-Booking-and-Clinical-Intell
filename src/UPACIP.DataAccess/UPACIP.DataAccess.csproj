@@ -4,7 +4,16 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- CS0618: RelationalEntityTypeBuilderExtensions.HasCheckConstraint is obsolete;
+         suppress until migration to ToTable(t => t.HasCheckConstraint()) is scheduled. -->
+    <!-- EF1001: Npgsql internal migration API (NpgsqlHistoryRepository) required for
+         custom schema history; no public replacement available in this EF Core version. -->
+    <NoWarn>$(NoWarn);CS0618;EF1001</NoWarn>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\UPACIP.Contracts\UPACIP.Contracts.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.12" />

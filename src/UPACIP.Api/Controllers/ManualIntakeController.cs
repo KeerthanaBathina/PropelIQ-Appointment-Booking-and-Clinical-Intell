@@ -7,6 +7,7 @@ using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess;
 using UPACIP.Service.Appointments;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -32,6 +33,7 @@ namespace UPACIP.Api.Controllers;
 ///   using the shared ErrorResponse.ValidationErrors dictionary so the UI can render
 ///   inline error messages from the same structure used by FluentValidation 400 responses.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/intake/manual")]
 [Authorize(Policy = RbacPolicies.PatientOnly)]

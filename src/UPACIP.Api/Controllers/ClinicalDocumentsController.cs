@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,6 +9,7 @@ using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Auth;
 using UPACIP.Service.Documents;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -34,6 +35,7 @@ namespace UPACIP.Api.Controllers;
 ///   - If the database write fails after encryption, the encrypted artifact is deleted.
 ///   - No partial records are created on upload failure.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/documents")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

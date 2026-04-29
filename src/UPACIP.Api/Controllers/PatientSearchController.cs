@@ -5,6 +5,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Profile;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -22,6 +23,7 @@ namespace UPACIP.Api.Controllers;
 ///   <see cref="IPatientSearchService"/>. Audit entries are always written
 ///   regardless of cache hit (NFR-012).
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/staff")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

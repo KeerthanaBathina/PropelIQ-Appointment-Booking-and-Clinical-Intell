@@ -614,11 +614,11 @@ dotnet run --project src/UPACIP.Api/UPACIP.Api.csproj --environment Staging
 
 ## Implementation Checklist
 
-- [ ] Create DatabaseOptions, RedisOptions, AiGatewayOptions, EmailOptions, SmsOptions classes
-- [ ] Create AppConfigurationSetup with hierarchical config sources and reloadOnChange
-- [ ] Register all options classes via Configure<T> in AddConfigurationOptions
-- [ ] Implement ConfigurationValidationService with fail-fast startup validation
-- [ ] Implement ConfigurationChangeLogger with IOptionsMonitor change subscriptions
-- [ ] Update appsettings.json with structured sections (empty credentials)
-- [ ] Create appsettings.Staging.json with staging-specific overrides
-- [ ] Register configuration services in Program.cs
+- [x] Create DatabaseOptions, RedisOptions, AiGatewayOptions, EmailOptions, SmsOptions classes
+- [x] Create AppConfigurationSetup with hierarchical config sources and reloadOnChange
+- [x] Register all options classes via Configure<T> in AddConfigurationOptions
+- [x] Implement ConfigurationValidationService with fail-fast startup validation
+- [x] Implement ConfigurationChangeLogger with IOptionsMonitor change subscriptions
+- [x] Update appsettings.json with structured sections (empty credentials)
+- [x] Create appsettings.Staging.json with staging-specific overrides
+- [x] Register configuration services in Program.cs

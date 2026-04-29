@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Models;
 using UPACIP.Service.AgreementRate;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -25,6 +26,7 @@ namespace UPACIP.Api.Controllers;
 ///   Date range exceeding 90 days returns 422 Unprocessable Entity (NFR-038).
 ///   Invalid <c>from</c> / <c>to</c> date strings return 400 Bad Request.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Produces("application/json")]

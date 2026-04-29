@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 using Npgsql;
 using Pgvector;
+using UPACIP.DataAccess.MultiTenancy;
 
 namespace UPACIP.DataAccess;
 
@@ -35,6 +36,16 @@ internal sealed class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<A
             dataSource,
             npgsql => npgsql.SetPostgresVersion(new Version(16, 0)));
 
-        return new ApplicationDbContext(optionsBuilder.Options);
+        // At design time, use the Phase 1 default tenant provider so migrations scaffold
+        // correctly without a running HTTP context.
+        var tenantContext = new TenantContext(new DesignTimeTenantProvider());
+        return new ApplicationDbContext(optionsBuilder.Options, tenantContext);
+    }
+
+    // Minimal Phase 1 tenant provider for design-time scaffold — mirrors DefaultTenantProvider.
+    private sealed class DesignTimeTenantProvider : UPACIP.Contracts.MultiTenancy.ITenantProvider
+    {
+        public Guid GetCurrentTenantId() =>
+            new Guid("00000000-0000-0000-0000-000000000001");
     }
 }

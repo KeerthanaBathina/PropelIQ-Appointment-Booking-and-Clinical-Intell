@@ -458,11 +458,11 @@ Invoke-RestMethod -Uri http://localhost:5000/health -Method Get
 
 ## Implementation Checklist
 
-- [ ] Add health check NuGet packages to UPACIP.Api.csproj
-- [ ] Implement DatabaseHealthCheck with CanConnectAsync and SELECT 1
-- [ ] Implement RedisHealthCheck with PING and latency degradation threshold
-- [ ] Implement AiGatewayHealthCheck with HEAD request to OpenAI
-- [ ] Create HealthCheckResponseWriter with detailed JSON output
-- [ ] Create HealthCheckConfiguration with per-check timeouts and failure statuses
-- [ ] Register named HttpClient for AI gateway with 400ms timeout
-- [ ] Map /health endpoint in Program.cs without authentication
+- [x] Add health check NuGet packages to UPACIP.Api.csproj
+- [x] Implement DatabaseHealthCheck with CanConnectAsync and SELECT 1
+- [x] Implement RedisHealthCheck with PING and latency degradation threshold
+- [x] Implement AiGatewayHealthCheck with IAiHealthCheckService (cached status)
+- [x] Create HealthCheckResponseWriter with detailed JSON output (timestamp, data, exception)
+- [x] Create HealthCheckConfiguration with per-check timeouts and failure statuses
+- [x] Register named HttpClient for AI gateway with 400ms timeout
+- [x] Map /health endpoint in Program.cs without authentication

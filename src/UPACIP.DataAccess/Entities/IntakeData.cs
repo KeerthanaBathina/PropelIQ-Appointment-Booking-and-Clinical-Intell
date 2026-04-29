@@ -1,3 +1,4 @@
+using UPACIP.Contracts.MultiTenancy;
 using UPACIP.DataAccess.Entities.OwnedTypes;
 using UPACIP.DataAccess.Enums;
 
@@ -9,8 +10,14 @@ namespace UPACIP.DataAccess.Entities;
 /// <see cref="InsuranceInfo"/>) are stored as strongly-typed owned types serialized to
 /// JSONB by EF Core / Npgsql.
 /// </summary>
-public sealed class IntakeData : BaseEntity
+public sealed class IntakeData : BaseEntity, ITenantEntity
 {
+    /// <summary>
+    /// Tenant identifier for multi-tenant partitioning preparation (NFR-027, AC-4).
+    /// Defaults to the Phase 1 default tenant; used by the EF Core global query filter.
+    /// </summary>
+    public Guid TenantId { get; set; }
+
     /// <summary>FK to the <see cref="Patient"/> who submitted this intake record.</summary>
     public Guid PatientId { get; set; }
 

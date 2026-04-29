@@ -490,11 +490,11 @@ cd app; npm run dev
 
 ## Implementation Checklist
 
-- [ ] Create SkipToContent component (visually hidden, visible on focus, navigates to main)
-- [ ] Create FocusTrap component (Tab cycling, auto-focus first, restore focus on close)
-- [ ] Create AccessibleSelect wrapper with aria-required and aria-label via inputProps
-- [ ] Create AccessibleDatePicker wrapper with calendar aria-label via slotProps
-- [ ] Create AccessibleAutocomplete wrapper with listbox aria-label
-- [ ] Add landmark roles (banner, navigation, main) and SkipToContent to App.tsx
-- [ ] Add arrow key navigation and roving tabindex to Sidebar
-- [ ] Reference wireframes from Design References table during implementation
+- [x] Create SkipToContent component (visually hidden, visible on focus, navigates to main)
+- [x] Create FocusTrap component (Tab cycling, auto-focus first, restore focus on close)
+- [x] Create AccessibleSelect wrapper with aria-required and aria-label via inputProps
+- [x] Create AccessibleDatePicker wrapper with calendar aria-label via slotProps
+- [x] Create AccessibleAutocomplete wrapper with listbox aria-label
+- [x] Add landmark roles (banner, navigation, main) and SkipToContent to App.tsx
+- [x] Add arrow key navigation and roving tabindex to Sidebar
+- [x] Reference wireframes from Design References table during implementation

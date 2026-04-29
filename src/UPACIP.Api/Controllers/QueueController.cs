@@ -7,6 +7,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Queue;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -28,6 +29,7 @@ namespace UPACIP.Api.Controllers;
 /// <see cref="CorrelationIdMiddleware"/> and forwarded to the service layer for structured
 /// log tracing.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/queue")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

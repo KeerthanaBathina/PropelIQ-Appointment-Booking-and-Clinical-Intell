@@ -4,6 +4,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Notifications;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -24,6 +25,7 @@ namespace UPACIP.Api.Controllers;
 /// All endpoints are paginated and filter-driven so they remain usable for future
 /// admin UI screens without coupling to a specific layout.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/admin/notifications")]
 [Authorize(Policy = RbacPolicies.AdminOnly)]

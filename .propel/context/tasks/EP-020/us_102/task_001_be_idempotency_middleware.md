@@ -592,11 +592,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Create IdempotencyRecord model with key, body hash, status code, response body
-- [ ] Create IdempotencyOptions with configurable TTL, header name, max body size
-- [ ] Define IIdempotencyStore interface with atomic TryCreate
-- [ ] Implement RedisIdempotencyStore with SET NX, TTL, key prefix
-- [ ] Create IdempotentEndpointAttribute with Required property
-- [ ] Implement IdempotencyMiddleware with hash comparison and response caching
-- [ ] Create IdempotencyKeyOperationFilter for Swagger documentation
-- [ ] Register middleware, store, and Swagger filter in Program.cs
+- [x] Create IdempotencyRecord model with key, body hash, status code, response body
+- [x] Create IdempotencyOptions with configurable TTL, header name, max body size
+- [x] Define IIdempotencyStore interface with atomic TryCreate
+- [x] Implement RedisIdempotencyStore with SET NX, TTL, key prefix
+- [x] Create IdempotentEndpointAttribute with Required property
+- [x] Implement IdempotencyMiddleware with hash comparison and response caching
+- [x] Create IdempotencyKeyOperationFilter for Swagger documentation
+- [x] Register middleware, store, and Swagger filter in Program.cs

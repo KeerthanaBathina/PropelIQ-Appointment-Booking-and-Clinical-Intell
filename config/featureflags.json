@@ -1,0 +1,46 @@
+{
+  "FeatureFlags": {
+    "Flags": {
+      "AiConversationalIntake": {
+        "Name": "AiConversationalIntake",
+        "IsEnabled": false,
+        "Description": "AI-powered conversational patient intake flow — natural language symptom collection and triage.",
+        "CreatedUtc": "2025-01-01T00:00:00Z",
+        "IsPercentageBased": false,
+        "RolloutPercentage": 0
+      },
+      "AiDocumentParsing": {
+        "Name": "AiDocumentParsing",
+        "IsEnabled": false,
+        "Description": "AI-powered document parsing pipeline — extracts structured data from uploaded clinical documents.",
+        "CreatedUtc": "2025-01-01T00:00:00Z",
+        "IsPercentageBased": false,
+        "RolloutPercentage": 0
+      },
+      "AiMedicalCoding": {
+        "Name": "AiMedicalCoding",
+        "IsEnabled": false,
+        "Description": "AI-assisted ICD-10 and CPT medical code suggestion from clinical notes.",
+        "CreatedUtc": "2025-01-01T00:00:00Z",
+        "IsPercentageBased": false,
+        "RolloutPercentage": 0
+      },
+      "SmsReminders": {
+        "Name": "SmsReminders",
+        "IsEnabled": true,
+        "Description": "SMS appointment reminders sent to patients via Twilio 24 hours before the appointment.",
+        "CreatedUtc": "2025-01-01T00:00:00Z",
+        "IsPercentageBased": false,
+        "RolloutPercentage": 0
+      },
+      "EmailReminders": {
+        "Name": "EmailReminders",
+        "IsEnabled": true,
+        "Description": "Email appointment reminders sent to patients via SendGrid 48 hours before the appointment.",
+        "CreatedUtc": "2025-01-01T00:00:00Z",
+        "IsPercentageBased": false,
+        "RolloutPercentage": 0
+      }
+    }
+  }
+}

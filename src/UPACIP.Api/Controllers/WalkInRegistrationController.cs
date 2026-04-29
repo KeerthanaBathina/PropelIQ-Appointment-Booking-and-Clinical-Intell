@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Models;
 using UPACIP.Service.Appointments;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -23,6 +24,7 @@ namespace UPACIP.Api.Controllers;
 /// Correlation IDs (NFR-012, NFR-035):
 ///   All log events include the CorrelationId injected by <c>CorrelationIdMiddleware</c>.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/staff/walkin")]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]

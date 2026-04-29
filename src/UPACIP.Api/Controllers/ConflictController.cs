@@ -8,6 +8,7 @@ using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Conflict;
 using ServiceConflictResolutionRequest = UPACIP.Service.Conflict.ConflictResolutionRequest;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -36,6 +37,7 @@ namespace UPACIP.Api.Controllers;
 ///   database query — ownership is validated server-side and never trusted from the URL alone.
 ///   The current user ID for staff attribution is read from the JWT, never from request body.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]
 [Produces("application/json")]

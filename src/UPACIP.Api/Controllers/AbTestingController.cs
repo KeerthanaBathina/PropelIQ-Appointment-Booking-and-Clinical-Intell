@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using UPACIP.Api.Authorization;
 using UPACIP.Service.AiTesting;
 using UPACIP.Service.AiTesting.Models;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -68,6 +69,7 @@ public sealed record AbExperimentResponse
 ///   Lifecycle operations (create, terminate, pause) log admin user ID, experiment ID,
 ///   and operation at Information level. No PII is logged.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/admin/ab-tests")]
 [Authorize(Policy = RbacPolicies.AdminOnly)]

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using UPACIP.Api.Models;
 using UPACIP.Service.Auth;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -21,6 +22,7 @@ namespace UPACIP.Api.Controllers;
 ///   - Input is validated by DataAnnotation on the request DTOs; additional password
 ///     complexity validation is handled by <see cref="IPasswordResetService"/>.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/auth")]
 public sealed class PasswordResetController : ControllerBase

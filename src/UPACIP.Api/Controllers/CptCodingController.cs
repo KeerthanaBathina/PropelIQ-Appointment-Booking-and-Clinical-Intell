@@ -7,6 +7,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.Coding;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -32,6 +33,7 @@ namespace UPACIP.Api.Controllers;
 ///   IpAddress uses the last hop (<c>RemoteIpAddress</c>); reverse-proxy forwarded headers are
 ///   handled by ASP.NET Core's ForwardedHeaders middleware configured in Program.cs.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.StaffOrAdmin)]
 [Produces("application/json")]

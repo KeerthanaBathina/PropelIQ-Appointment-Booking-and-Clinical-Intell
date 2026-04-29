@@ -487,11 +487,11 @@ pwsh scripts/build-quality-check.ps1 -SkipTests -SkipCoverage
 
 ## Implementation Checklist
 
-- [ ] Create Directory.Build.props with TreatWarningsAsErrors and StyleCop reference
-- [ ] Create stylecop.json with documentation, ordering, naming configuration
-- [ ] Create .editorconfig with PascalCase, camelCase, async suffix naming rules
-- [ ] Configure relaxed settings for test projects in Directory.Build.props
-- [ ] Create scripts/build-quality-check.ps1 orchestrating all quality gates
-- [ ] Verify CS1591 suppression in Api and Contracts projects
-- [ ] Audit existing async methods for Async suffix compliance
-- [ ] Document CI integration pattern for quality gate script
+- [x] Create Directory.Build.props with TreatWarningsAsErrors and StyleCop reference
+- [x] Create stylecop.json with documentation, ordering, naming configuration
+- [x] Create .editorconfig with PascalCase, camelCase, async suffix naming rules
+- [x] Configure relaxed settings for test projects in Directory.Build.props
+- [x] Create scripts/build-quality-check.ps1 orchestrating all quality gates
+- [x] Verify CS1591 suppression in Api and Contracts projects
+- [x] Audit existing async methods for Async suffix compliance
+- [x] Document CI integration pattern for quality gate script

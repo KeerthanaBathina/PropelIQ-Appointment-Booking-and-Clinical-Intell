@@ -5,6 +5,7 @@ using System.Security.Claims;
 using FluentValidation;
 using UPACIP.Api.Authorization;
 using UPACIP.Service.Admin;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -36,6 +37,7 @@ namespace UPACIP.Api.Controllers;
 /// Audit logging (NFR-012, NFR-035):
 ///   Every write appends an AuditLog entry with admin user ID and correlation ID.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Authorize(Policy = RbacPolicies.AdminOnly)]
 [Produces("application/json")]

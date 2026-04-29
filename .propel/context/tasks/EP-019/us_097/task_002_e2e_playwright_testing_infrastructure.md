@@ -379,11 +379,12 @@ npm run report
 
 ## Implementation Checklist
 
-- [ ] Create e2e/package.json with @playwright/test dependency and npm scripts
-- [ ] Configure playwright.config.ts with Chromium, Firefox, WebKit projects
-- [ ] Set retries to 2 in CI with trace/video/screenshot on retry
-- [ ] Create auth.setup.ts for one-time login and session storage
-- [ ] Create base-fixtures.ts with apiBaseUrl and re-exported expect
-- [ ] Write health-check.spec.ts sample test (API + frontend)
-- [ ] Write login.spec.ts sample test (success + invalid credentials)
-- [ ] Create .gitignore for test artifacts and auth state
+- [x] Create e2e/package.json with @playwright/test dependency and npm scripts
+- [x] Configure playwright.config.ts with Chromium, Firefox, WebKit projects
+- [x] Set retries to 2 in CI with trace/video/screenshot on retry
+- [x] Create auth.setup.ts for one-time login and session storage
+- [x] Create base-fixtures.ts with apiBaseUrl and re-exported expect
+- [x] Write health-check.spec.ts sample test (API + frontend)
+- [x] Write login.spec.ts sample test (success + invalid credentials)
+- [x] Create .gitignore for test artifacts and auth state
+- [x] npm install succeeds; npx playwright test --list discovers 12 tests (4 per browser × 3 browsers)

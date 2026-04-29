@@ -1,4 +1,4 @@
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +7,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.DataAccess;
 using UPACIP.Service.AiAudit;
 using UPACIP.Service.AiAudit.Models;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -92,6 +93,7 @@ public sealed record AiAuditSummaryResponse
 /// text only.  Raw patient identifiers MUST NOT appear in audit records.
 /// </para>
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/admin/ai-audit")]
 [Authorize(Policy = RbacPolicies.AdminOnly)]

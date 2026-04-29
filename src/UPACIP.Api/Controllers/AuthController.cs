@@ -9,6 +9,7 @@ using UPACIP.Api.Models;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Auth;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -22,6 +23,7 @@ namespace UPACIP.Api.Controllers;
 ///   - Account lockout: 5 failed attempts → 30-minute lock (NFR-016). Returns 423 + lockedUntil.
 ///   - MFA tokens: short-lived JWTs (5 min) with purpose=mfa-verification; no role claims.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/auth")]
 public sealed class AuthController : ControllerBase

@@ -1,3 +1,4 @@
+using UPACIP.Contracts.MultiTenancy;
 using UPACIP.DataAccess.Enums;
 
 namespace UPACIP.DataAccess.Entities;
@@ -9,10 +10,16 @@ namespace UPACIP.DataAccess.Entities;
 /// — notification records have only a <c>CreatedAt</c> timestamp; they are not updated
 ///   in place (each retry creates a new row).
 /// </summary>
-public sealed class NotificationLog
+public sealed class NotificationLog : ITenantEntity
 {
     /// <summary>Surrogate UUID primary key.</summary>
     public Guid NotificationId { get; set; } = Guid.NewGuid();
+
+    /// <summary>
+    /// Tenant identifier for multi-tenant partitioning preparation (NFR-027, AC-4).
+    /// Defaults to the Phase 1 default tenant; used by the EF Core global query filter.
+    /// </summary>
+    public Guid TenantId { get; set; }
 
     /// <summary>FK to the <see cref="Appointment"/> this notification relates to.</summary>
     public Guid AppointmentId { get; set; }

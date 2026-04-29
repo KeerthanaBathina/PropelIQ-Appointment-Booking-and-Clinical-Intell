@@ -6,6 +6,7 @@ using UPACIP.Api.Authorization;
 using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.DataAccess;
+using Asp.Versioning;
 using UPACIP.Service.Appointments; // includes AI intake DTOs (AIIntakeDtos.cs)
 
 namespace UPACIP.Api.Controllers;
@@ -37,6 +38,7 @@ namespace UPACIP.Api.Controllers;
 ///   Target: AI exchange round-trip ≤ 1 second P50. The AI layer has its own timeout
 ///   (10 s by default in AiGatewaySettings) which enforces an upper-bound.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Route("api/intake/sessions")]
 [Authorize(Policy = RbacPolicies.PatientOnly)]

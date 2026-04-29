@@ -421,11 +421,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Add Swashbuckle and Asp.Versioning NuGet packages to UPACIP.Api.csproj
-- [ ] Enable GenerateDocumentationFile in Api and Contracts projects
-- [ ] Create ConfigureSwaggerOptions for versioned document generation
-- [ ] Create SwaggerExampleSchemaFilter with DTO example values
-- [ ] Create SwaggerConfiguration with AddSwaggerDocumentation and UseSwaggerDocumentation
-- [ ] Add JWT Bearer security scheme definition for authenticated endpoint testing
+- [x] Add Swashbuckle and Asp.Versioning NuGet packages to UPACIP.Api.csproj
+- [x] Enable GenerateDocumentationFile in Api and Contracts projects
+- [x] Create ConfigureSwaggerOptions for versioned document generation
+- [x] Create SwaggerExampleSchemaFilter with DTO example values
+- [x] Create SwaggerConfiguration with AddSwaggerDocumentation and UseSwaggerDocumentation
+- [x] Add JWT Bearer security scheme definition for authenticated endpoint testing
 - [ ] Add ApiVersion attributes and versioned routes to controllers
-- [ ] Integrate Swagger registration and middleware in Program.cs
+- [x] Integrate Swagger registration and middleware in Program.cs

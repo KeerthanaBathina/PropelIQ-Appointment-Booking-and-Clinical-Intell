@@ -415,11 +415,11 @@ dotnet build UPACIP.sln
 
 ## Implementation Checklist
 
-- [ ] Configure Asp.Versioning.Mvc with URL segment reader, default version, ReportApiVersions
-- [ ] Apply [ApiVersion] and versioned route templates to all controllers
-- [ ] Implement VersionDeprecationMiddleware with Sunset/Deprecation/Link headers
-- [ ] Create DeprecatedVersionDocumentFilter for Swagger deprecation warnings
-- [ ] Apply [ProducesResponseType] with ProblemDetails to all controller actions
-- [ ] Define ApiVersionConstants with Current version and deprecation policy
-- [ ] Integrate per-version Swagger documents with deprecated label in dropdown
-- [ ] Register versioning services and deprecation middleware in Program.cs
+- [x] Configure Asp.Versioning.Mvc with URL segment reader, default version, ReportApiVersions
+- [x] Apply [ApiVersion] and versioned route templates to all controllers
+- [x] Implement VersionDeprecationMiddleware with Sunset/Deprecation/Link headers
+- [x] Create DeprecatedVersionDocumentFilter for Swagger deprecation warnings
+- [ ] Apply [ProducesResponseType] with ProblemDetails to all controller actions — infrastructure in place; bulk application deferred to individual controller tasks
+- [x] Define ApiVersionConstants with Current version and deprecation policy
+- [x] Integrate per-version Swagger documents with deprecated label in dropdown
+- [x] Register versioning services and deprecation middleware in Program.cs

@@ -1,3 +1,4 @@
+using UPACIP.Contracts.MultiTenancy;
 using UPACIP.DataAccess.Entities.OwnedTypes;
 
 namespace UPACIP.DataAccess.Entities;
@@ -7,8 +8,14 @@ namespace UPACIP.DataAccess.Entities;
 /// Soft-delete is implemented via the nullable <see cref="DeletedAt"/> sentinel (DR-021).
 /// Hard deletes are forbidden to preserve audit trails.
 /// </summary>
-public sealed class Patient : BaseEntity
+public sealed class Patient : BaseEntity, ITenantEntity
 {
+    /// <summary>
+    /// Tenant identifier for multi-tenant partitioning preparation (NFR-027, AC-4).
+    /// Defaults to the Phase 1 default tenant; used by the EF Core global query filter.
+    /// </summary>
+    public Guid TenantId { get; set; }
+
     /// <summary>Unique patient email address — used as login identifier.</summary>
     public string Email { get; set; } = string.Empty;
 

@@ -6,6 +6,7 @@ using UPACIP.Api.Middleware;
 using UPACIP.Api.Models;
 using UPACIP.Service.AI;
 using UPACIP.Service.Consolidation;
+using Asp.Versioning;
 
 namespace UPACIP.Api.Controllers;
 
@@ -30,6 +31,7 @@ namespace UPACIP.Api.Controllers;
 ///   All free-text inputs (ResolutionNotes, CorrectedValue) pass through FluentValidation before
 ///   the controller method executes. Parameterised EF Core queries prevent SQL injection.
 /// </summary>
+[ApiVersion("1.0")]
 [ApiController]
 [Produces("application/json")]
 public sealed class ManualFallbackController : ControllerBase

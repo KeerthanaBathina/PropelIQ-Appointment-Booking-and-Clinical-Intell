@@ -349,7 +349,7 @@ public sealed class ClinicalExtractionResultValidator
         _                    => ExtractionOutcome.InvalidResponse,
     };
 
-    private static ClinicalExtractionResult Invalid(Guid _, string reason) =>
+    private static ClinicalExtractionResult Invalid(Guid id, string reason) =>
         new() { Outcome = ExtractionOutcome.InvalidResponse, Confidence = 0, OutcomeReason = reason, Items = [] };
 
     private static string? SafeString(JsonElement el, string key) =>
