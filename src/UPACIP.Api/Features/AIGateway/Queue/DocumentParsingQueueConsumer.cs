@@ -162,12 +162,38 @@ public sealed class DocumentParsingQueueConsumer : BackgroundService
 
     private async Task DrainAvailableSlotsAsync(CancellationToken stoppingToken)
     {
-        var db = _redis.GetDatabase();
+        // Graceful degradation — if Redis is unavailable, skip this tick (NFR-023).
+        if (!_redis.IsConnected)
+        {
+            _logger.LogDebug("AI Queue consumer: Redis not connected. Skipping drain tick.");
+            return;
+        }
+
+        IDatabase db;
+        try
+        {
+            db = _redis.GetDatabase();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "AI Queue consumer: Redis unavailable. Skipping drain tick.");
+            return;
+        }
 
         // Pop as many jobs as there are available worker slots.
         while (_semaphore.CurrentCount > 0 && !stoppingToken.IsCancellationRequested)
         {
-            var rawValue = await db.ListLeftPopAsync(_options.QueueKey);
+            RedisValue rawValue;
+            try
+            {
+                rawValue = await db.ListLeftPopAsync(_options.QueueKey);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "AI Queue consumer: Redis error during queue pop. Skipping drain tick.");
+                return;
+            }
+
             if (!rawValue.HasValue)
                 break; // Queue is empty — stop popping until next tick.
 

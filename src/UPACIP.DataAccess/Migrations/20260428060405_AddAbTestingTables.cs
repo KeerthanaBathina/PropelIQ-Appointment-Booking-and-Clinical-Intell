@@ -13,37 +13,13 @@ namespace UPACIP.DataAccess.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<float>(
-                name: "CalibratedConfidenceScore",
-                table: "extracted_data",
-                type: "real",
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "CalibrationStatus",
-                table: "extracted_data",
-                type: "character varying(20)",
-                maxLength: 20,
-                nullable: false,
-                defaultValue: "Uncalibrated");
-
-            migrationBuilder.AddColumn<DateTimeOffset>(
-                name: "DeactivatedAt",
-                table: "asp_net_users",
-                type: "timestamp with time zone",
-                nullable: true);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "DeactivatedBy",
-                table: "asp_net_users",
-                type: "uuid",
-                nullable: true);
-
-            migrationBuilder.AddColumn<Guid>(
-                name: "SlotTemplateId",
-                table: "appointments",
-                type: "uuid",
-                nullable: true);
+            // Use conditional DDL so this migration is idempotent when the database was
+            // provisioned via the SQL script (which already added these columns).
+            migrationBuilder.Sql(@"ALTER TABLE extracted_data ADD COLUMN IF NOT EXISTS ""CalibratedConfidenceScore"" real;");
+            migrationBuilder.Sql(@"ALTER TABLE extracted_data ADD COLUMN IF NOT EXISTS ""CalibrationStatus"" character varying(20) NOT NULL DEFAULT 'Uncalibrated';");
+            migrationBuilder.Sql(@"ALTER TABLE asp_net_users ADD COLUMN IF NOT EXISTS ""DeactivatedAt"" timestamp with time zone;");
+            migrationBuilder.Sql(@"ALTER TABLE asp_net_users ADD COLUMN IF NOT EXISTS ""DeactivatedBy"" uuid;");
+            migrationBuilder.Sql(@"ALTER TABLE appointments ADD COLUMN IF NOT EXISTS ""SlotTemplateId"" uuid;");
 
             migrationBuilder.CreateTable(
                 name: "ab_experiments",

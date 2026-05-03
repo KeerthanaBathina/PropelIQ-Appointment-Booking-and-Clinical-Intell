@@ -94,6 +94,16 @@ public sealed class RedisSessionService : ISessionService
     /// <inheritdoc/>
     public async Task<bool> IsSessionActiveAsync(string userId, CancellationToken cancellationToken = default)
     {
+        // Fail-open: if Redis is not connected, allow the request to proceed so that a Redis
+        // outage does not lock all authenticated users out (NFR-023 graceful degradation).
+        if (!_redis.IsConnected)
+        {
+            _logger.LogWarning(
+                "IsSessionActiveAsync: Redis not connected. Treating session as active for user {UserId}.",
+                userId);
+            return true;
+        }
+
         var session = await _cache.GetAsync<SessionData>(BuildKey(userId), cancellationToken);
         return session is not null;
     }

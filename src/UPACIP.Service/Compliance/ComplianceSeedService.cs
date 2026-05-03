@@ -48,11 +48,26 @@ public sealed class ComplianceSeedService : IHostedService
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        await using var scope = _scopeFactory.CreateAsyncScope();
-        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        try
+        {
+            await using var scope = _scopeFactory.CreateAsyncScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-        await SeedPoliciesAsync(db, cancellationToken);
-        await SeedRulesAsync(db, cancellationToken);
+            await SeedPoliciesAsync(db, cancellationToken);
+            await SeedRulesAsync(db, cancellationToken);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            // Startup was cancelled — no action needed.
+        }
+        catch (Exception ex)
+        {
+            // Log and continue — missing tables are expected in dev environments
+            // where database migrations have not been fully applied.
+            _logger.LogWarning(ex,
+                "ComplianceSeedService: seeding skipped because an error occurred. " +
+                "Run 'dotnet ef database update' to apply pending migrations.");
+        }
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;

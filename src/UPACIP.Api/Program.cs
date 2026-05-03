@@ -65,6 +65,14 @@ Log.Information("UPACIP API starting up");
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Prevent a crashing BackgroundService (e.g. Redis-dependent workers during dev when Redis
+// is not running) from bringing down the entire host process (NFR-023 graceful degradation).
+// Individual services log their own errors and retry; the HTTP endpoints remain available.
+builder.Services.Configure<HostOptions>(opts =>
+{
+    opts.BackgroundServiceExceptionBehavior = BackgroundServiceExceptionBehavior.Ignore;
+});
+
 // Enable Windows Service lifecycle integration (start/stop/graceful shutdown signals).
 // This is a no-op when running in console mode (dotnet run / development), so it does
 // not affect the local developer workflow.
@@ -188,7 +196,10 @@ builder.Services.AddCors(options =>
                 builder.Configuration.GetSection("CorsSettings:AllowedOrigins").Get<string[]>()
                 ?? new[] { "http://localhost:3000" })
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              // Required for HttpOnly refresh-token cookies (credentials: 'include') to work
+              // across origins in production. Safe because WithOrigins() is used (not AllowAnyOrigin).
+              .AllowCredentials();
     });
 });
 
@@ -430,10 +441,11 @@ builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 // Registration service — scoped per-request (depends on scoped DbContext and UserManager).
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
-// Email service — Scoped. SmtpEmailService is also registered as its concrete type so
-// NotificationRetryService can inject it directly (bypassing the resilient decorator to
-// avoid re-queuing loops). ResilientEmailService is the primary IEmailService (US_084).
-builder.Services.AddScoped<SmtpEmailService>();
+// Email service — SmtpEmailService registered as Singleton so NotificationRetryService
+// (BackgroundService = Singleton) can inject it directly without a captive dependency error.
+// SmtpEmailService is stateless (creates a MailKit SmtpClient per-send) so Singleton is safe.
+// ResilientEmailService is the primary IEmailService (US_084).
+builder.Services.AddSingleton<SmtpEmailService>();
 builder.Services.AddScoped<IEmailService, UPACIP.Service.Auth.ResilientEmailService>();
 
 // ── EP-005 SMTP transport layer (task_001_be_smtp_provider_integration) ─────────────────
@@ -476,7 +488,9 @@ builder.Services.AddScoped<INotificationLogQueryService, NotificationLogQuerySer
 // ── EP-005 SMS transport layer (US_033 task_001_be_twilio_provider_integration) ────────────────
 // Binds the SmsProvider configuration section (Twilio credentials, US-number scope, gateway toggle).
 // ValidateDataAnnotations ensures required fields are present at startup (fail-fast).
-// TwilioSmsTransport is registered as Scoped — consistent with the email transport lifetime.
+// TwilioSmsTransport is registered as Singleton — it is a stateless HTTP wrapper around the
+// Twilio REST API with no per-request state, so Singleton is safe. This also allows
+// NotificationRetryService (BackgroundService = Singleton) to inject it directly.
 builder.Services
     .AddOptions<SmsProviderOptions>()
     .Bind(builder.Configuration.GetSection(SmsProviderOptions.SectionName))
@@ -486,7 +500,7 @@ builder.Services
 // TwilioSmsTransport is also registered as its concrete type so NotificationRetryService
 // can inject it directly (bypassing ResilientSmsService to avoid re-queuing loops).
 // ResilientSmsService is the primary ISmsTransport (US_084 task_001, AC-2).
-builder.Services.AddScoped<TwilioSmsTransport>();
+builder.Services.AddSingleton<TwilioSmsTransport>();
 builder.Services.AddScoped<ISmsTransport, UPACIP.Service.Notifications.ResilientSmsService>();
 
 // ── EP-005 SMS orchestration layer (US_033 task_002_be_notification_sms_orchestration_and_logging) ──
@@ -538,8 +552,10 @@ builder.Services.AddSingleton<PiiDestructuringPolicy>();
 
 // ── US_095 — Correlation ID and Structured Logging Pipeline ─────────────────────────────────
 // LoggingOptions: strongly-typed config for Seq URL, file path, retention, and fallback settings.
-// ICorrelationIdAccessor: AsyncLocal-based accessor; Scoped so each HTTP request has its own
-//   instance; the AsyncLocal flows into background jobs spawned from the request context (edge case 2).
+// ICorrelationIdAccessor: AsyncLocal-based accessor registered as Singleton — safe because
+//   CorrelationIdAccessor uses a static AsyncLocal<string?> (shared across all instances).
+//   The AsyncLocal still isolates values per async execution context (per-request isolation is
+//   preserved by the AsyncLocal semantics, not by DI lifetime).
 // StructuredLogEnricher: Singleton ILogEventEnricher — adds UserId, OperationName, ClientIp,
 //   UserAgent to every log entry (AC-4). Singleton is safe because IHttpContextAccessor uses
 //   AsyncLocal internally (no per-instance state).
@@ -551,7 +567,7 @@ builder.Services
     .Bind(builder.Configuration.GetSection(UPACIP.Service.Logging.Models.LoggingOptions.SectionName))
     .ValidateOnStart();
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<UPACIP.Service.Logging.ICorrelationIdAccessor,
+builder.Services.AddSingleton<UPACIP.Service.Logging.ICorrelationIdAccessor,
     UPACIP.Service.Logging.CorrelationIdAccessor>();
 builder.Services.AddSingleton<UPACIP.Api.Logging.StructuredLogEnricher>();
 builder.Services.AddSingleton<UPACIP.Service.Logging.IFallbackLogQueue,
@@ -1264,16 +1280,13 @@ builder.Services
         builder.Configuration.GetSection(
             UPACIP.Service.Backup.Models.WalArchivalOptions.SectionName));
 
-builder.Services.AddHostedService<UPACIP.Service.Backup.WalArchivalMonitoringService>();
-
-// Also register WalArchivalMonitoringService as a Singleton by concrete type so that
-// PointInTimeRecoveryService can inject it directly for live WAL status (GetArchivalStatus()).
-// AddHostedService registers only as IHostedService; we register a second entry that resolves
-// the same singleton instance from the DI container.
-builder.Services.AddSingleton(sp =>
-    (UPACIP.Service.Backup.WalArchivalMonitoringService)sp
-        .GetServices<Microsoft.Extensions.Hosting.IHostedService>()
-        .First(s => s is UPACIP.Service.Backup.WalArchivalMonitoringService));
+// Register WalArchivalMonitoringService as a Singleton by concrete type first, so that
+// PointInTimeRecoveryService and RecoveryTargetMonitoringService can inject it directly.
+// Then register the same instance as IHostedService to avoid the GetServices<IHostedService>()
+// circular-dependency deadlock that occurs when a hosted service needs this service.
+builder.Services.AddSingleton<UPACIP.Service.Backup.WalArchivalMonitoringService>();
+builder.Services.AddHostedService(sp =>
+    sp.GetRequiredService<UPACIP.Service.Backup.WalArchivalMonitoringService>());
 
 // PointInTimeRecoveryService: Scoped — five-phase PITR pipeline (US_090 task_002, AC-2, AC-3, AC-4, DR-027).
 //   Phases: pre-flight → decrypt base backup → pg_restore → WAL replay → integrity validation.
@@ -1303,14 +1316,13 @@ builder.Services
         builder.Configuration.GetSection(
             UPACIP.Service.Recovery.Models.RecoveryTargetOptions.SectionName));
 
-builder.Services.AddHostedService<UPACIP.Service.Recovery.RecoveryTargetMonitoringService>();
-
-// Also register RecoveryTargetMonitoringService as a Singleton by concrete type so that
+// Register RecoveryTargetMonitoringService as a Singleton by concrete type first, so that
 // RecoveryController can inject it directly to read LatestStatus (zero DB round-trip).
-builder.Services.AddSingleton(sp =>
-    (UPACIP.Service.Recovery.RecoveryTargetMonitoringService)sp
-        .GetServices<Microsoft.Extensions.Hosting.IHostedService>()
-        .First(s => s is UPACIP.Service.Recovery.RecoveryTargetMonitoringService));
+// Then register the same instance as IHostedService to avoid the GetServices<IHostedService>()
+// circular-dependency deadlock.
+builder.Services.AddSingleton<UPACIP.Service.Recovery.RecoveryTargetMonitoringService>();
+builder.Services.AddHostedService(sp =>
+    sp.GetRequiredService<UPACIP.Service.Recovery.RecoveryTargetMonitoringService>());
 
 builder.Services.AddHostedService<UPACIP.Service.Recovery.QuarterlyRecoveryTestScheduler>();
 
@@ -1776,11 +1788,6 @@ builder.Services.AddHealthChecks()
     .AddDbContextCheck<ApplicationDbContext>(
         name: "database",
         tags: new[] { "ready" })
-    .AddRedis(
-        redisConnectionString,
-        name: "redis",
-        tags: new[] { "ready" },
-        timeout: TimeSpan.FromSeconds(3))
     // TLS certificate expiry monitor — Degraded when < CertExpiryWarningDays remain,
     // Unhealthy when expired or unreachable (US_063 AC-3, edge case: cert expiry alert).
     .AddCheck<TlsCertificateHealthCheck>(
@@ -1915,8 +1922,8 @@ app.UseSecurityHeaders();
 if (!app.Environment.IsDevelopment())
 {
     app.UseHsts();
+    app.UseHttpsRedirection();
 }
-app.UseHttpsRedirection();
 app.UseCors("ReactFrontend");
 
 // Connection pool guard: wraps NpgsqlException pool-exhaustion timeouts in HTTP 503 with

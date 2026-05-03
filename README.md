@@ -1,3 +1,319 @@
+# UPACIP — Unified Patient Access & Clinical Intelligence Platform
+
+A full-stack healthcare appointment booking and clinical intelligence application built with:
+
+- **Backend**: ASP.NET Core 8 Web API · PostgreSQL 16 · Redis · EF Core · ASP.NET Identity
+- **Frontend**: React 18 · TypeScript · Vite · Material UI · Zustand · TanStack Query
+
+---
+
+## Running the Application
+
+### Prerequisites
+
+| Tool | Minimum Version | Notes |
+|------|----------------|-------|
+| [.NET SDK](https://dotnet.microsoft.com/download) | 8.0 | `dotnet --version` |
+| [Node.js](https://nodejs.org/) | 18.0 | `node --version` |
+| [PostgreSQL](https://www.postgresql.org/download/windows/) | 16 | Must be running locally |
+| [Redis](https://redis.io/docs/getting-started/installation/install-redis-on-windows/) | 7.x | Required for session management |
+
+---
+
+### Step 1 — Provision the Database
+
+Run the automated provisioning script (creates the `upacip` database and `upacip_app` role):
+
+```powershell
+.\scripts\provision-database.ps1 `
+  -AppDbPassword "upacip_dev_password" `
+  -PostgresPassword "<your-postgres-superuser-password>"
+```
+
+> **Manual install fallback**: Download the PostgreSQL 16 installer from https://www.postgresql.org/download/windows/ and pass `-InstallerPath "C:\Downloads\postgresql-16.x-windows-x64.exe"`.
+
+---
+
+### Step 2 — Backend Setup
+
+#### 2a — Configure User Secrets
+
+Run from the `src/UPACIP.Api` folder:
+
+```powershell
+cd src/UPACIP.Api
+
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" `
+  "Host=localhost;Port=5432;Database=upacip;Username=upacip_app;Password=upacip_dev_password;Maximum Pool Size=100;Timeout=30;SSL Mode=Prefer;Trust Server Certificate=true"
+
+dotnet user-secrets set "JwtSettings:SigningKey" "upacip-dev-jwt-signing-key-2026-secure!"
+
+dotnet user-secrets set "Mfa:TotpEncryptionKey" "upacip-dev-mfa-totp-encryption-key-2026!"
+```
+
+Verify:
+
+```powershell
+dotnet user-secrets list
+```
+
+#### 2b — Apply Database Migrations
+
+```powershell
+# From the solution root
+dotnet ef database update --project src/UPACIP.DataAccess --startup-project src/UPACIP.Api
+```
+
+If `dotnet-ef` is not installed:
+
+```powershell
+dotnet tool install --global dotnet-ef
+```
+
+#### 2c — Seed Development Data
+
+```powershell
+psql -U upacip_app -d upacip -f scripts/seed-data.sql
+```
+
+**Seed credentials** (development only):
+
+| Role | Email | Password |
+|------|-------|----------|
+| Admin | `admin@upacip.dev` | `SeedPassword1!` |
+| Staff | `staff1@upacip.dev` | `SeedPassword1!` |
+| Staff | `staff2@upacip.dev` | `SeedPassword1!` |
+| Patient | `patient1@upacip.dev` | `SeedPassword1!` |
+| Patient | `patient2@upacip.dev` | `SeedPassword1!` |
+
+#### 2d — Start Redis
+
+```powershell
+# If installed as a Windows service
+Start-Service Redis
+
+# Or start directly
+redis-server
+```
+
+#### 2e — Run the Backend
+
+```powershell
+# From the solution root
+dotnet run --project src/UPACIP.Api
+```
+
+The API starts at:
+- HTTP: **http://localhost:5000**
+- Swagger UI: **http://localhost:5000/swagger**
+- Health check: **http://localhost:5000/health**
+
+---
+
+### Step 3 — Frontend Setup
+
+#### 3a — Verify Environment File
+
+```powershell
+cd app
+Get-Content .env
+# Should show: VITE_API_BASE_URL=
+```
+
+`VITE_API_BASE_URL` must be **empty** in development. Vite automatically proxies all `/api/*`
+requests to `http://localhost:5000`. Set a full URL only for production builds.
+
+#### 3b — Install Dependencies
+
+```powershell
+npm install
+```
+
+#### 3c — Start the Frontend
+
+```powershell
+npm run dev
+```
+
+The app opens at **http://localhost:3000**.
+
+---
+
+## Application Pages
+
+### Public Pages (no login required)
+
+| Page | URL | Description |
+|------|-----|-------------|
+| Sign In | `/login` | Email + password; MFA TOTP on second step |
+| Create Account | `/register` | New patient registration |
+| Forgot Password | `/forgot-password` | Sends reset link to email |
+| Reset Password | `/reset-password?token=…&email=…` | Set new password via emailed link |
+| Email Verification | `/verify-email?token=…` | Activate newly registered account |
+
+### Authenticated Pages
+
+| Page | URL | Roles |
+|------|-----|-------|
+| Dashboard Router | `/dashboard` | All |
+| Patient Dashboard | `/patient/dashboard` | Patient |
+| Book Appointment | `/patient/appointments/book` | Patient |
+| Appointment History | `/patient/appointments/history` | Patient |
+| AI Intake | `/patient/intake/ai` | Patient |
+| Manual Intake | `/patient/intake/manual` | Patient |
+| Staff Dashboard | `/staff/dashboard` | Staff |
+| Arrival Queue | `/staff/queue` | Staff |
+| Patient Search | `/staff/patients/search` | Staff |
+| Patient Profile 360° | `/staff/patients/:id/profile` | Staff |
+| Document Upload | `/staff/documents/:patientId` | Staff |
+| Medical Coding Review | `/staff/patients/:id/coding` | Staff |
+| Admin Dashboard | `/admin/dashboard` | Admin |
+
+---
+
+## Auth Flow Details
+
+### Sign In
+
+1. Go to **http://localhost:3000/login**
+2. Enter email and password
+3. On success → redirected to `/dashboard` → auto-routed to role dashboard:
+   - **Patient** → `/patient/dashboard`
+   - **Staff** → `/staff/dashboard`
+   - **Admin** → `/admin/dashboard`
+4. If MFA is enabled, a TOTP code prompt appears before redirection
+
+### Create Account
+
+1. Go to **http://localhost:3000/register**
+2. Fill in: First Name, Last Name, Email, Phone, Date of Birth, Password
+3. A "Check your email" confirmation appears
+4. Click the verification link in the email to activate
+
+> **Development tip** — If email delivery is not configured, manually confirm the email:
+> ```sql
+> UPDATE "AspNetUsers" SET "EmailConfirmed" = true WHERE "Email" = 'your@email.com';
+> ```
+
+### Forgot Password
+
+1. Go to **http://localhost:3000/forgot-password**
+2. Enter the registered email and click "Send Reset Link"
+3. The response is always the same success message (anti-enumeration)
+4. Click the emailed link to reach `/reset-password?token=…&email=…`
+5. Set a new password meeting complexity requirements
+6. Click "Sign In" to return to login
+
+**Password requirements**: 8+ characters · uppercase · lowercase · digit · special character
+
+---
+
+## Troubleshooting
+
+### Login fails with "Unable to connect"
+
+- Confirm backend is running: `curl http://localhost:5000/health`
+- Confirm `app/.env` has `VITE_API_BASE_URL=` (empty, not set to a URL)
+- Confirm Vite dev server shows `Local: http://localhost:3000/`
+
+### 401 after correct credentials
+
+- Verify the database has been seeded: `psql -U upacip_app -d upacip -f scripts/seed-data.sql`
+- Verify `EmailConfirmed = true` for the user in `AspNetUsers`
+- Run `dotnet user-secrets list` from `src/UPACIP.Api` to confirm `JwtSettings:SigningKey` is set
+
+### Account locked
+
+5 failed login attempts trigger a 30-minute lockout. To manually unlock:
+
+```sql
+UPDATE "AspNetUsers"
+SET "LockoutEnd" = NULL, "AccessFailedCount" = 0
+WHERE "Email" = 'user@example.com';
+```
+
+### Database connection refused
+
+- Verify PostgreSQL service: `Get-Service postgresql*`
+- Confirm the password in user secrets matches `provision-database.ps1 -AppDbPassword`
+
+### Redis connection error on startup
+
+Start Redis (`redis-server`) or the API starts in degraded mode (session caching and slot
+caching will be unavailable but core auth and booking continue to function).
+
+### Frontend build fails: "Missing required environment variables"
+
+For `npm run build` (production), set `VITE_API_BASE_URL` to the backend URL in `app/.env`.
+For `npm run dev`, leave it empty.
+
+---
+
+## Running Tests
+
+```powershell
+# All backend tests
+dotnet test
+
+# Individual suites
+dotnet test tests/UPACIP.Service.Tests
+dotnet test tests/UPACIP.Api.Tests
+dotnet test tests/UPACIP.ArchTests
+
+# End-to-end (requires backend + frontend both running)
+cd e2e ; npm install ; npx playwright install ; npx playwright test
+```
+
+---
+
+## Build for Production
+
+```powershell
+# Backend
+dotnet publish src/UPACIP.Api -c Release -o publish/api
+
+# Frontend (set VITE_API_BASE_URL in app/.env first)
+cd app ; npm run build   # output: app/dist/
+```
+
+---
+
+## Project Structure
+
+```
+├── app/                        # React + TypeScript frontend (Vite)
+│   ├── src/
+│   │   ├── pages/              # Route-level page components
+│   │   ├── components/         # Shared UI components
+│   │   ├── hooks/              # React hooks (useAuth, useLogin, etc.)
+│   │   ├── guards/             # ProtectedRoute (role-based access control)
+│   │   ├── lib/                # apiClient.ts — fetch wrapper
+│   │   ├── context/            # SessionTimeoutProvider
+│   │   └── router.tsx          # All route definitions
+│   └── .env                    # Frontend environment (VITE_API_BASE_URL)
+├── src/
+│   ├── UPACIP.Api/             # ASP.NET Core Web API
+│   ├── UPACIP.DataAccess/      # EF Core DbContext, entities, migrations
+│   ├── UPACIP.Service/         # Business logic services
+│   └── UPACIP.Contracts/       # Shared interfaces and DTOs
+├── tests/                      # Unit, integration, architecture, load tests
+├── e2e/                        # Playwright end-to-end tests
+├── scripts/                    # PowerShell automation (provision, deploy, seed)
+└── config/                     # Feature flags, content filter rules
+```
+
+---
+
+## Security Notes
+
+- Refresh tokens: **HttpOnly, Secure, SameSite=Strict** cookies
+- Access tokens: **sessionStorage** (cleared on browser close)
+- Passwords hashed with **BCrypt** (work factor 10)
+- JWT signed with **HMAC-SHA256** (32+ char key, stored in user secrets)
+- Session inactivity timeout: **15 minutes** (13-minute warning modal)
+
+---
+
 # PropelIQ-Copilot
 
 ## Executive Summary

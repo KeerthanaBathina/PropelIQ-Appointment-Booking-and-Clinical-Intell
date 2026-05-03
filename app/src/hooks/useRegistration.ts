@@ -7,8 +7,9 @@ interface RegisterPayload {
   lastName: string;
   email: string;
   phone: string;
-  dob: string;
+  dateOfBirth: string;
   password: string;
+  acceptedTerms: boolean;
 }
 
 function buildRegisterPayload(data: RegistrationFormData): RegisterPayload {
@@ -17,8 +18,9 @@ function buildRegisterPayload(data: RegistrationFormData): RegisterPayload {
     lastName: data.lastName,
     email: data.email,
     phone: data.phone,
-    dob: data.dob,
+    dateOfBirth: data.dob,
     password: data.password,
+    acceptedTerms: data.termsAccepted,
   };
 }
 
