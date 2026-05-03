@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using UPACIP.DataAccess;
 using UPACIP.DataAccess.Enums;
@@ -31,17 +32,17 @@ public sealed class ExtractedDataPersistenceService : IExtractedDataPersistenceS
     internal const string OutcomeInvalidResponse     = "invalid-response";
 
     private readonly ApplicationDbContext                       _db;
-    private readonly IDocumentReplacementService               _replacementService;
+    private readonly IServiceProvider                          _serviceProvider;
     private readonly ILogger<ExtractedDataPersistenceService>  _logger;
 
     public ExtractedDataPersistenceService(
         ApplicationDbContext                      db,
-        IDocumentReplacementService              replacementService,
+        IServiceProvider                         serviceProvider,
         ILogger<ExtractedDataPersistenceService>  logger)
     {
-        _db                 = db;
-        _replacementService = replacementService;
-        _logger             = logger;
+        _db              = db;
+        _serviceProvider = serviceProvider;
+        _logger          = logger;
     }
 
     /// <inheritdoc />
@@ -151,7 +152,9 @@ public sealed class ExtractedDataPersistenceService : IExtractedDataPersistenceS
         {
             try
             {
-                await _replacementService.ActivateReplacementAsync(documentId, ct);
+                // Resolve lazily to avoid circular DI dependency at registration time.
+                var replacementService = _serviceProvider.GetRequiredService<IDocumentReplacementService>();
+                await replacementService.ActivateReplacementAsync(documentId, ct);
             }
             catch (Exception ex)
             {

@@ -4,8 +4,10 @@ import Button from '@mui/material/Button';
 import Container from '@mui/material/Container';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
+import { useNavigate } from 'react-router-dom';
 
 function PlaceholderPage() {
+  const navigate = useNavigate();
   return (
     <Box sx={{ flexGrow: 1 }}>
       <AppBar position="static">
@@ -23,7 +25,7 @@ function PlaceholderPage() {
         <Typography variant="body1" color="text.secondary" sx={{ mb: 4 }}>
           The frontend scaffold is ready. Feature development begins here.
         </Typography>
-        <Button variant="contained" color="primary" size="large">
+        <Button variant="contained" color="primary" size="large" onClick={() => navigate('/login')}>
           Get Started
         </Button>
       </Container>

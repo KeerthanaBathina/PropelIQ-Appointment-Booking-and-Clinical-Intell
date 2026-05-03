@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using UPACIP.DataAccess;
@@ -35,18 +36,18 @@ public sealed class DocumentParsingQueueService : IDocumentParsingQueueService
 
     private readonly ApplicationDbContext                    _db;
     private readonly IConnectionMultiplexer                  _redis;
-    private readonly IDocumentParserWorker                   _parserWorker;
+    private readonly IServiceScopeFactory                    _scopeFactory;
     private readonly ILogger<DocumentParsingQueueService>    _logger;
 
     public DocumentParsingQueueService(
         ApplicationDbContext                    db,
         IConnectionMultiplexer                  redis,
-        IDocumentParserWorker                   parserWorker,
+        IServiceScopeFactory                    scopeFactory,
         ILogger<DocumentParsingQueueService>    logger)
     {
         _db           = db;
         _redis        = redis;
-        _parserWorker = parserWorker;
+        _scopeFactory = scopeFactory;
         _logger       = logger;
     }
 
@@ -112,17 +113,24 @@ public sealed class DocumentParsingQueueService : IDocumentParsingQueueService
             // Fire-and-forget on a background thread so the HTTP upload response is not delayed.
             // CancellationToken.None is intentional — the upload request's token may be disposed
             // before parsing completes (fire-and-forget lifetime is independent of the HTTP request).
+            // IDocumentParserWorker is resolved from a fresh scope to avoid holding the request-scoped
+            // DbContext across the async boundary and to break the circular DI dependency (Scoped).
+            var capturedScopeFactory = _scopeFactory;
             _ = Task.Run(async () =>
             {
+                await using var scope = capturedScopeFactory.CreateAsyncScope();
+                var parserWorker = scope.ServiceProvider.GetRequiredService<IDocumentParserWorker>();
                 try
                 {
-                    await _parserWorker.ParseAsync(documentId, CancellationToken.None);
+                    await parserWorker.ParseAsync(documentId, CancellationToken.None);
                 }
                 catch (Exception workerEx)
                 {
-                    _logger.LogError(workerEx,
-                        "DocumentParsingQueueService: synchronous fallback parsing failed. DocumentId={DocumentId}",
-                        documentId);
+                    scope.ServiceProvider
+                        .GetRequiredService<ILogger<DocumentParsingQueueService>>()
+                        .LogError(workerEx,
+                            "DocumentParsingQueueService: synchronous fallback parsing failed. DocumentId={DocumentId}",
+                            documentId);
                 }
             });
         }

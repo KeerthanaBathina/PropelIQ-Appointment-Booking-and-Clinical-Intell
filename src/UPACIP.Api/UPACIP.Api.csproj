@@ -50,11 +50,11 @@
        resolution in FeatureFlagConfiguration.AddFeatureFlagConfiguration() works
        for both local debug and IIS publish (US_101). -->
   <ItemGroup>
-    <None Update="..\..\config\featureflags.json">
+    <None Include="..\..\config\featureflags.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>config\featureflags.json</Link>
     </None>
-    <None Update="..\..\config\featureflags.Development.json">
+    <None Include="..\..\config\featureflags.Development.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>config\featureflags.Development.json</Link>
     </None>

@@ -6,7 +6,7 @@ namespace UPACIP.Service.AI.ConversationalIntake;
 /// </summary>
 public sealed class AiGatewaySettings
 {
-    public const string SectionName = "AiGateway";
+    public const string SectionName = "AiGatewayCfg";
 
     /// <summary>OpenAI API key — loaded from configuration, never hardcoded.</summary>
     public string OpenAiApiKey { get; init; } = string.Empty;

@@ -12,7 +12,7 @@ namespace UPACIP.Service.Configuration;
 public sealed class AiGatewayOptions
 {
     /// <summary>Configuration section name used for <c>IOptions&lt;T&gt;</c> binding.</summary>
-    public const string SectionName = "AiGateway";
+    public const string SectionName = "AiGatewayCfg";
 
     /// <summary>Base URL of the primary AI provider (e.g. <c>https://api.openai.com</c>).</summary>
     public string PrimaryProviderBaseUrl { get; init; } = string.Empty;
