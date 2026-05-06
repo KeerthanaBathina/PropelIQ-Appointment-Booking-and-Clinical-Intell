@@ -113,15 +113,10 @@ async function fetchProviders(): Promise<ProviderOption[]> {
  * Primary search hook (AC-1).  Active when any search term or filter is present.
  */
 export function usePatientSearch(params: PatientSearchParams) {
-  const hasFilter =
-    params.term.trim().length > 0 ||
-    !!params.provider ||
-    (params.status !== undefined && params.status !== 'All');
-
   return useQuery<PatientSearchResponse, ApiError>({
     queryKey:  patientSearchKeys.search(params),
     queryFn:   () => fetchPatients(params),
-    enabled:   hasFilter,
+    enabled:   true,  // always run — shows all patients when no filter is set
     staleTime: STALE_TIME_MS,
     retry:     1,
   });

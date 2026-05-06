@@ -118,8 +118,20 @@ public sealed class DocumentIngestionWorker : BackgroundService
 
     private async Task ProcessNextJobAsync(CancellationToken ct)
     {
-        var db  = _redis.GetDatabase();
-        var raw = await db.ListLeftPopAsync(QueueKey);
+        StackExchange.Redis.IDatabase db;
+        RedisValue raw;
+        try
+        {
+            db  = _redis.GetDatabase();
+            raw = await db.ListLeftPopAsync(QueueKey);
+        }
+        catch (StackExchange.Redis.RedisException ex)
+        {
+            // Redis unavailable — fail-open and skip this tick (EC-1 resilience).
+            _logger.LogWarning(ex,
+                "DocumentIngestionWorker: Redis unavailable. Will retry on next tick.");
+            return;
+        }
 
         if (!raw.HasValue)
             return; // queue is empty

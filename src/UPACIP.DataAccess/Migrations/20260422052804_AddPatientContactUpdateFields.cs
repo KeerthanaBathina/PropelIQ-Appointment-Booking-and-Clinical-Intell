@@ -140,7 +140,7 @@ namespace UPACIP.DataAccess.Migrations
                 table: "waitlist_entries",
                 column: "ClaimToken",
                 unique: true,
-                filter: "claim_token IS NOT NULL");
+                filter: "\"ClaimToken\" IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "ix_waitlist_entries_patient_id",

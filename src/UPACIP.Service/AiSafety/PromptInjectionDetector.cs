@@ -98,6 +98,7 @@ public sealed class PromptInjectionDetector : IPromptInjectionDetector, IDisposa
     // Fields
     // ─────────────────────────────────────────────────────────────────────────
 
+    private readonly IOptionsMonitor<List<InjectionPattern>> _patternsMonitor;
     private readonly ILogger<PromptInjectionDetector>        _logger;
     private readonly IDisposable?                            _changeSubscription;
 
@@ -112,7 +113,8 @@ public sealed class PromptInjectionDetector : IPromptInjectionDetector, IDisposa
         IOptionsMonitor<List<InjectionPattern>> patternsMonitor,
         ILogger<PromptInjectionDetector>        logger)
     {
-        _logger = logger;
+        _patternsMonitor = patternsMonitor;
+        _logger          = logger;
 
         _cache = BuildCache(patternsMonitor.CurrentValue);
 
@@ -162,9 +164,9 @@ public sealed class PromptInjectionDetector : IPromptInjectionDetector, IDisposa
             {
                 matches = entry.Regex.Matches(userInput);
             }
-            catch (RegexMatchTimeoutException ex)
+            catch (RegexMatchTimeoutException)
             {
-                _logger.LogWarning(ex,
+                _logger.LogWarning(
                     "PromptInjectionDetector: regex timeout — pattern skipped. Category={Category}",
                     entry.Pattern.Category);
                 continue;
@@ -321,10 +323,15 @@ public sealed class PromptInjectionDetector : IPromptInjectionDetector, IDisposa
         float score = 0.0f;
 
         // 1. Medical eponyms / disease-name terms from the allowlist.
-        if (window.Split([' ', ',', '.', ';', ':', '\n', '\r', '\t', '(', ')'], StringSplitOptions.RemoveEmptyEntries)
-            .Any(word => MedicalTermAllowlist.Contains(word.Trim('"', '\''))))
+        foreach (var word in window.Split(
+            [' ', ',', '.', ';', ':', '\n', '\r', '\t', '(', ')'],
+            StringSplitOptions.RemoveEmptyEntries))
         {
-            score += 0.4f;
+            if (MedicalTermAllowlist.Contains(word.Trim('"', '\'')))
+            {
+                score += 0.4f;
+                break; // One allowlist hit is enough to start scoring.
+            }
         }
 
         // 2. ICD-10 code pattern in the context window.
@@ -336,9 +343,13 @@ public sealed class PromptInjectionDetector : IPromptInjectionDetector, IDisposa
         catch (RegexMatchTimeoutException) { /* Don't suppress on timeout. */ }
 
         // 3. Clinical keyword indicators.
-        if (ClinicalKeywords.Any(keyword => window.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
+        foreach (var keyword in ClinicalKeywords)
         {
-            score += 0.3f;
+            if (window.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                score += 0.3f;
+                break; // One keyword hit contributes once.
+            }
         }
 
         return score >= MedicalContextThreshold;

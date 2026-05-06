@@ -25,6 +25,7 @@ import { useAuthStore } from '@/hooks/useAuth';
 import { useSessionTimeout } from '@/hooks/useSessionTimeout';
 import {
   apiPost,
+  apiPostFireAndForget,
   registerActivityReset,
   registerSessionInvalidate,
   registerSessionTerminated,
@@ -65,9 +66,13 @@ export function SessionTimeoutProvider({ children }: SessionTimeoutProviderProps
 
   const invalidateSession = useCallback(() => {
     setShowWarning(false);
+    // Capture token before clearAuth() so the server can blacklist the JTI.
+    const token = useAuthStore.getState().accessToken ?? undefined;
     clearAuth();
-    // Best-effort server-side logout — don't block navigation on failure
-    apiPost('/api/auth/logout', {}).catch(() => {});
+    // Use fire-and-forget (bypasses auth interceptor) to avoid a re-entrant
+    // invalidation loop: apiPost's 401 handler would otherwise call invalidateSession
+    // again before the component unmounts.
+    apiPostFireAndForget('/api/auth/logout', {}, token);
     navigate('/login?expired=true', { replace: true });
   }, [clearAuth, navigate]);
 

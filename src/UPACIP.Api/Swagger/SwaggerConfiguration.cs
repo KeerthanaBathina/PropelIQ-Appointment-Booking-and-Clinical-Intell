@@ -1,5 +1,6 @@
 using Asp.Versioning;
 using Asp.Versioning.ApiExplorer;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -63,6 +64,11 @@ public static class SwaggerConfiguration
         // API version (uses IApiVersionDescriptionProvider).
         services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
 
+        // Ensures SupportedRequestFormats contains multipart/form-data for actions that have
+        // [FromForm] IFormFile parameters, working around an Asp.Versioning + Swashbuckle
+        // incompatibility where ConsumesAttribute is not propagated into SupportedRequestFormats.
+        services.AddSingleton<IApiDescriptionProvider, FormFileApiDescriptionProvider>();
+
         // ── Swashbuckle ───────────────────────────────────────────────────────────────────────
         services.AddSwaggerGen(options =>
         {
@@ -109,6 +115,17 @@ public static class SwaggerConfiguration
 
             // Enable [SwaggerOperation], [SwaggerResponse], etc. attributes.
             options.EnableAnnotations();
+
+            // Tell Swashbuckle how to represent IFormFile in schemas.
+            options.MapType<IFormFile>(() => new Microsoft.OpenApi.Models.OpenApiSchema
+            {
+                Type   = "string",
+                Format = "binary"
+            });
+
+            // Move IFormFile parameters from the query-parameter list into the
+            // multipart/form-data request body where they belong.
+            options.OperationFilter<FormFileOperationFilter>();
         });
 
         return services;

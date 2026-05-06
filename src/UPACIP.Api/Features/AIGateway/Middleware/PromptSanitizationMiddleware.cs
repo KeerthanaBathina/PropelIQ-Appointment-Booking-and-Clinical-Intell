@@ -55,12 +55,12 @@ public sealed class PromptSanitizationMiddleware
 {
     private const float BlockRiskScoreThreshold = 0.8f;
 
-    private readonly IPromptInjectionDetector              _detector;
-    private readonly ILogger<PromptSanitizationMiddleware> _logger;
+    private readonly IPromptInjectionDetector               _detector;
+    private readonly ILogger<PromptSanitizationMiddleware>  _logger;
 
     public PromptSanitizationMiddleware(
-        IPromptInjectionDetector              detector,
-        ILogger<PromptSanitizationMiddleware> logger)
+        IPromptInjectionDetector               detector,
+        ILogger<PromptSanitizationMiddleware>  logger)
     {
         _detector = detector;
         _logger   = logger;
@@ -137,15 +137,15 @@ public sealed class PromptSanitizationMiddleware
         // Replace the prompt with the sanitised text; all other fields are unchanged.
         var sanitisedRequest = new AIRequest
         {
-            RequestId       = request.RequestId,
-            RequestType     = request.RequestType,
-            Prompt          = result.SanitizedText,
-            SystemMessage   = request.SystemMessage,
-            MaxInputTokens  = request.MaxInputTokens,
-            MaxOutputTokens = request.MaxOutputTokens,
-            Temperature     = request.Temperature,
-            Metadata        = request.Metadata,
-            CorrelationId   = request.CorrelationId,
+            RequestId      = request.RequestId,
+            RequestType    = request.RequestType,
+            Prompt         = result.SanitizedText,
+            SystemMessage  = request.SystemMessage,
+            MaxInputTokens = request.MaxInputTokens,
+            MaxOutputTokens= request.MaxOutputTokens,
+            Temperature    = request.Temperature,
+            Metadata       = request.Metadata,
+            CorrelationId  = request.CorrelationId,
         };
 
         return (sanitisedRequest, result, false);

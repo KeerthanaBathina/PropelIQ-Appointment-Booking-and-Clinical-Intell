@@ -580,7 +580,7 @@ namespace UPACIP.DataAccess.Migrations
                 name: "ix_queue_entries_status_arrival_timestamp",
                 table: "queue_entries",
                 columns: new[] { "Status", "ArrivalTimestamp" },
-                filter: "status IN ('Waiting', 'InVisit')");
+                filter: "\"Status\" IN ('Waiting', 'InVisit')");
 
             migrationBuilder.CreateIndex(
                 name: "ix_queue_entries_status_priority_created_at",
@@ -591,13 +591,13 @@ namespace UPACIP.DataAccess.Migrations
                 name: "ix_medical_codes_ai_pending_approval",
                 table: "medical_codes",
                 columns: new[] { "SuggestedByAi", "ApprovedByUserId" },
-                filter: "suggested_by_ai = true AND approved_by_user_id IS NULL");
+                filter: "\"SuggestedByAi\" = true AND \"ApprovedByUserId\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "ix_extracted_data_pending_review",
                 table: "extracted_data",
                 columns: new[] { "FlaggedForReview", "VerifiedByUserId" },
-                filter: "flagged_for_review = true AND verified_by_user_id IS NULL");
+                filter: "\"FlaggedForReview\" = true AND \"VerifiedByUserId\" IS NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_asp_net_users_AccountStatus",
@@ -629,7 +629,7 @@ namespace UPACIP.DataAccess.Migrations
                 table: "ab_experiments",
                 column: "Status",
                 unique: true,
-                filter: "\"status\" = 'Active'");
+                filter: "\"Status\" = 'Active'");
 
             migrationBuilder.CreateIndex(
                 name: "ix_ab_experiments_start_date",
@@ -755,7 +755,7 @@ namespace UPACIP.DataAccess.Migrations
                 table: "calibration_parameters",
                 columns: new[] { "DataType", "IsActive" },
                 unique: true,
-                filter: "is_active = true");
+                filter: "\"IsActive\" = true");
 
             migrationBuilder.CreateIndex(
                 name: "ix_calibration_records_drift_detected",

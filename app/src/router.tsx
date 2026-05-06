@@ -26,6 +26,8 @@ const AIIntakePage = lazy(() => import('@/pages/AIIntakePage'));
 const ManualIntakePage = lazy(() => import('@/pages/ManualIntakePage'));
 // SCR-012 — Document Upload (US_038)
 const DocumentUploadPage = lazy(() => import('@/pages/DocumentUploadPage'));
+// SCR-012 — Staff patient documents detail (US_038)
+const StaffPatientDocumentsPage = lazy(() => import('@/pages/staff/StaffPatientDocumentsPage'));
 // SCR-013 — Patient Profile 360° (US_041) — extraction review
 const PatientProfilePage = lazy(() => import('@/pages/PatientProfilePage'));
 // SCR-013 — Patient Profile 360° (US_043) — consolidated profile
@@ -34,6 +36,10 @@ const PatientProfile360Page = lazy(() => import('@/pages/PatientProfile360Page')
 const MedicalCodingReviewPage = lazy(() => import('@/pages/MedicalCodingReviewPage'));
 // SCR-016 — Patient Search (US_062)
 const PatientSearchPage = lazy(() => import('@/pages/staff/PatientSearchPage'));
+// SCR-012 — Staff Documents landing (US_038)
+const StaffDocumentsPage = lazy(() => import('@/pages/staff/StaffDocumentsPage'));
+// SCR-015 — Admin Users (US_058 AC-3, US_061)
+const AdminUsersPage = lazy(() => import('@/pages/AdminUsersPage'));
 
 function RouteLoadingFallback() {
   return (
@@ -141,10 +147,18 @@ function AppRoutes() {
         />
         {/* SCR-012 — Document Upload (US_038) */}
         <Route
+          path="/staff/documents"
+          element={
+            <ProtectedRoute allowedRoles={['Staff']}>
+              <StaffDocumentsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/staff/documents/:patientId"
           element={
             <ProtectedRoute allowedRoles={['Staff']}>
-              <DocumentUploadPage />
+              <StaffPatientDocumentsPage />
             </ProtectedRoute>
           }
         />
@@ -199,6 +213,15 @@ function AppRoutes() {
           element={
             <ProtectedRoute allowedRoles={['Admin']}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        {/* SCR-015 — User Management (US_061) */}
+        <Route
+          path="/admin/users"
+          element={
+            <ProtectedRoute allowedRoles={['Admin']}>
+              <AdminUsersPage />
             </ProtectedRoute>
           }
         />

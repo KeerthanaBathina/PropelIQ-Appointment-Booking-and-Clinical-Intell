@@ -178,17 +178,18 @@ public static class AIGatewayServiceCollectionExtensions
         services.AddScoped<IAiRequestCostLogger, AiRequestCostLogger>();
         services.AddSingleton<AiCostTrackingMiddleware>();
 
+        // ── Prompt Injection Sanitization Middleware (US_079 task_001, AIR-S06) ──
+        // Singleton — delegates to IPromptInjectionDetector (also Singleton); placed BEFORE
+        // PiiRedactionMiddleware in the gateway pipeline so injection detection operates on
+        // raw user text before PII tokens are substituted.
+        // IPromptInjectionDetector is registered in Program.cs before AddAIGateway().
+        services.AddSingleton<PromptSanitizationMiddleware>();
+
         // ── PII Redaction Middleware (US_074 task_001, AC-3, AIR-S01) ─────────
         // Singleton — delegates to IPiiRedactionService (also Singleton); wraps the
         // gateway-facing redact/log methods and creates a sanitised AIRequest copy.
         // IPiiRedactionService is registered in Program.cs before AddAIGateway().
         services.AddSingleton<PiiRedactionMiddleware>();
-
-        // ── AI Audit Logging Middleware (US_080 task_002, AIR-S04) ────────────
-        // Singleton — reads post-PII-redacted prompt + response from completed requests
-        // and enqueues persistence entries to IAiAuditService (bounded channel).
-        // IAiAuditService is registered in Program.cs before AddAIGateway().
-        services.AddSingleton<AiAuditLoggingMiddleware>();
 
         // ── Core gateway service (Scoped) ─────────────────────────────────────
         services.AddScoped<IAIGatewayService, AIGatewayService>();

@@ -79,26 +79,39 @@ export interface IntakeFieldSummary {
   alternateSource?: 'ai' | 'manual';
 }
 
+// Raw API response from POST /api/intake/sessions
 interface StartSessionResponse {
   sessionId: string;
-  /** True when resuming a timed-out or abandoned session */
   isResumed: boolean;
-  /** Initial/resumed message history */
-  messages: IntakeMessage[];
+  /** Initial greeting text — converted to an AI message locally */
+  greetingMessage: string;
+  /** Prior conversation turns when resuming */
+  history: Array<{
+    id: string;
+    role: string;
+    content: string;
+    timestamp: string;
+    clarificationExamples?: string[];
+  }>;
   collectedCount: number;
   totalRequired: number;
-  /** Last auto-save timestamp (ISO) — for UXR-004 autosave indicator */
   lastSavedAt: string | null;
 }
 
+// Raw API response from POST /api/intake/sessions/{id}/messages
 interface SendMessageResponse {
-  /** AI reply message */
-  reply: IntakeMessage;
+  /** AI reply text */
+  replyToPatient: string;
+  fieldKey: string;
+  extractedValue?: string | null;
+  needsClarification: boolean;
+  clarificationExamples: string[];
   collectedCount: number;
   totalRequired: number;
-  /** True when all mandatory fields have been collected */
   summaryReady: boolean;
+  shouldSwitchToManual: boolean;
   lastSavedAt: string;
+  provider: string;
 }
 
 interface AutosaveDraftPayload {
@@ -147,9 +160,25 @@ export function useAIIntakeSession() {
     try {
       const response = await apiPost<StartSessionResponse>('/api/intake/sessions', {});
 
+      // Map history turns to IntakeMessage; prepend greeting as first AI message
+      const historyMessages: IntakeMessage[] = (response.history ?? []).map(t => ({
+        id:                   t.id,
+        role:                 t.role as MessageRole,
+        content:              t.content,
+        timestamp:            t.timestamp,
+        clarificationExamples: t.clarificationExamples,
+      }));
+      const greetingMsg: IntakeMessage = {
+        id:        crypto.randomUUID(),
+        role:      'ai',
+        content:   response.greetingMessage,
+        timestamp: new Date().toISOString(),
+      };
+      const initialMessages = historyMessages.length > 0 ? historyMessages : [greetingMsg];
+
       setSessionId(response.sessionId);
       sessionIdRef.current = response.sessionId;
-      setMessages(response.messages);
+      setMessages(initialMessages);
       setCollectedCount(response.collectedCount);
       setTotalRequired(response.totalRequired);
       setSessionState('active');
@@ -158,7 +187,7 @@ export function useAIIntakeSession() {
       if (response.lastSavedAt) {
         notifyChange({
           sessionId:      response.sessionId,
-          messages:       response.messages,
+          messages:       initialMessages,
           collectedCount: response.collectedCount,
         });
       }
@@ -199,13 +228,23 @@ export function useAIIntakeSession() {
           { content: trimmed },
         );
 
-        setMessages((prev) => [...prev, response.reply]);
+        // Map replyToPatient string to an IntakeMessage object
+        const replyMsg: IntakeMessage = {
+          id:                    crypto.randomUUID(),
+          role:                  'ai',
+          content:               response.replyToPatient,
+          timestamp:             new Date().toISOString(),
+          fieldKey:              response.fieldKey,
+          clarificationExamples: response.clarificationExamples,
+        };
+
+        setMessages((prev) => [...prev, replyMsg]);
         setCollectedCount(response.collectedCount);
 
         // Notify autosave hook of the new snapshot (EC-2: captured at next 30-s boundary)
         notifyChange({
           sessionId:      sessionId,
-          messages:       [...messages, response.reply],
+          messages:       [...messages, replyMsg],
           collectedCount: response.collectedCount,
         });
 
@@ -239,8 +278,28 @@ export function useAIIntakeSession() {
 
   const loadSummary = useCallback(async (sid: string) => {
     try {
-      const data = await apiGet<IntakeSessionSummary>(`/api/intake/sessions/${sid}/summary`);
-      setSummary(data);
+      const raw = await apiGet<{
+        summaryText: string;
+        fields: Array<{
+          key: string; label: string; value: string;
+          isMandatory: boolean; isEditable: boolean;
+        }>;
+        mandatoryCollectedCount: number;
+        mandatoryTotalCount: number;
+      }>(`/api/intake/sessions/${sid}/summary`);
+
+      const mapped: IntakeSessionSummary = {
+        sessionId:      sid,
+        fields:         raw.fields.map(f => ({
+          key:       f.key,
+          label:     f.label,
+          value:     f.value,
+          isEditable: f.isEditable,
+        })),
+        collectedCount: raw.mandatoryCollectedCount,
+        totalRequired:  raw.mandatoryTotalCount,
+      };
+      setSummary(mapped);
       setSessionState('summary');
     } catch {
       setSessionState('active'); // stay in conversation if summary fails

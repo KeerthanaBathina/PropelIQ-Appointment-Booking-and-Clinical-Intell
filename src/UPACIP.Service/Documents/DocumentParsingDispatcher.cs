@@ -174,13 +174,13 @@ public sealed class DocumentParsingDispatcher : BackgroundService
                 }, ct);
             }
         }
-        catch (RedisException ex) when (!ct.IsCancellationRequested)
+        catch (RedisException ex)
         {
-            // Redis transient failure during polling — log and wait for next tick (EC-1 resilience).
+            // Redis unavailable (including during shutdown) — log and skip this tick (EC-1 resilience).
             _logger.LogWarning(ex,
                 "DocumentParsingDispatcher: Redis error during queue drain. Will retry on next tick.");
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
             // Graceful shutdown — expected.
         }

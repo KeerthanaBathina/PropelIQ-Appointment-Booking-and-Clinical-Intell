@@ -220,7 +220,8 @@ export default function PatientSearchPage() {
   const [provider,   setProvider]   = useState('');
   const [statusFilter, setStatus]   = useState<PatientStatusFilter>('All');
   const [page,       setPage]       = useState(1);
-  const [submitted,  setSubmitted]  = useState(() => !!searchParams.get('q'));
+  // Start as submitted so the table loads all patients immediately on mount
+  const [submitted,  setSubmitted]  = useState(true);
   const [termError,  setTermError]  = useState('');
 
   // Sort state
@@ -229,9 +230,9 @@ export default function PatientSearchPage() {
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
   // Defer the search params so rapid typing doesn't fire concurrent queries
-  const deferredTerm     = useDeferredValue(submitted ? term : '');
-  const deferredProvider = useDeferredValue(submitted ? provider : '');
-  const deferredStatus   = useDeferredValue(submitted ? statusFilter : 'All');
+  const deferredTerm     = useDeferredValue(term);
+  const deferredProvider = useDeferredValue(provider);
+  const deferredStatus   = useDeferredValue(statusFilter);
 
   const searchParamsObj: PatientSearchParams = useMemo(
     () => ({ term: deferredTerm, provider: deferredProvider, status: deferredStatus, page, pageSize: PAGE_SIZE }),
@@ -553,7 +554,7 @@ export default function PatientSearchPage() {
             )}
 
             {/* ── Results — desktop table (md+) ── */}
-            {(isLoading || (submitted && !isError && (data?.total ?? 0) > 0)) && (
+            {submitted && (isLoading || (!isError && (data?.total ?? 0) > 0)) && (
               <Paper variant="outlined" sx={{ display: { xs: 'none', md: 'block' } }}>
                 <TableContainer>
                   <Table aria-label="Patient search results">

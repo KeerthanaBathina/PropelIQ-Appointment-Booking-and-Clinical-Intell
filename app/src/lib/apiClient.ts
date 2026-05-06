@@ -187,6 +187,24 @@ export async function apiPut<T>(path: string, body: unknown): Promise<T> {
   return null as T;
 }
 
+/**
+ * Fire-and-forget POST that bypasses the 401/403/440 error interceptor entirely.
+ * Used for best-effort cleanup calls (e.g. logout after session invalidation) where
+ * triggering auth error handling would cause a re-entrant invalidation loop.
+ *
+ * Pass an explicit `token` to include a Bearer header even after the store has been
+ * cleared. Errors are silently swallowed.
+ */
+export function apiPostFireAndForget(path: string, body: unknown, token?: string): void {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (token) headers['Authorization'] = `Bearer ${token}`;
+  fetch(`${BASE_URL}${path}`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  }).catch(() => {});
+}
+
 export async function apiGetBlob(path: string): Promise<Blob> {
   const response = await fetch(`${BASE_URL}${path}`, {
     method: 'GET',

@@ -150,12 +150,20 @@ public sealed class DocumentParsingQueueConsumer : BackgroundService
             }
         }
 
-        var db         = _redis.GetDatabase();
-        var queueDepth = await db.ListLengthAsync(_options.QueueKey);
+        long queueDepth = -1;
+        try
+        {
+            var db = _redis.GetDatabase();
+            queueDepth = await db.ListLengthAsync(_options.QueueKey);
+        }
+        catch (RedisException)
+        {
+            // Redis unavailable at shutdown — skip depth check (EC-1 resilience).
+        }
 
         _logger.LogInformation(
             "AI Queue consumer: shutdown complete. RemainingQueueDepth={Depth}",
-            queueDepth);
+            queueDepth < 0 ? "unknown (Redis unavailable)" : queueDepth.ToString());
     }
 
     // ── Private implementation ────────────────────────────────────────────────

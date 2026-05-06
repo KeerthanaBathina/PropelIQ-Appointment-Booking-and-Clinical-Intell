@@ -85,13 +85,14 @@ public sealed class ClinicalDocumentsController : ControllerBase
     [HttpPost]
     [DisableRequestSizeLimit]
     [RequestFormLimits(MultipartBodyLengthLimit = 11 * 1024 * 1024)] // 11MB headroom above 10MB limit
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ClinicalDocumentUploadResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status403Forbidden)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> UploadDocument(
-        [FromForm] IFormFile file,
+        IFormFile            file,
         [FromForm] Guid      patientId,
         [FromForm] string    category,
         [FromForm] string?   notes,
@@ -220,6 +221,7 @@ public sealed class ClinicalDocumentsController : ControllerBase
     [HttpPost("{id:guid}/replace")]
     [DisableRequestSizeLimit]
     [RequestFormLimits(MultipartBodyLengthLimit = 11 * 1024 * 1024)]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(typeof(ClinicalDocumentReplacementResponse), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -228,7 +230,7 @@ public sealed class ClinicalDocumentsController : ControllerBase
     [ProducesResponseType(typeof(ErrorResponse), StatusCodes.Status409Conflict)]
     public async Task<IActionResult> ReplaceDocument(
         [FromRoute] Guid      id,
-        [FromForm]  IFormFile file,
+        IFormFile             file,
         [FromForm]  Guid      patientId,
         [FromForm]  string    category,
         [FromForm]  string?   notes,
