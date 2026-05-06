@@ -1,9 +1,17 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "D:\\PropelDemo\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\",
+  "WorkspaceRootPath": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|d:\\propeldemo\\propeliq-appointment-booking-and-clinical-intell\\src\\upacip.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "AbsoluteMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|d:\\propeliq-appointment-booking-and-clinical-intell\\src\\upacip.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|solutionrelative:src\\upacip.api\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|d:\\propeliq-appointment-booking-and-clinical-intell\\src\\upacip.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
+      "RelativeMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|solutionrelative:src\\upacip.api\\properties\\launchsettings.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|d:\\propeliq-appointment-booking-and-clinical-intell\\src\\upacip.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}",
       "RelativeMoniker": "D:0:0:{9D056C32-DF2D-4DF1-8F96-F8CFFEED4AB7}|src\\UPACIP.Api\\UPACIP.Api.csproj|solutionrelative:src\\upacip.api\\appsettings.development.json||{90A6B3A7-C1A3-4009-A288-E2FF89E96FA0}"
     }
   ],
@@ -14,17 +22,51 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 0,
+          "SelectedChildIndex": 3,
           "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:129:0:{1fc202d4-d401-403c-9834-5b218574bb67}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "launchSettings.json",
+              "DocumentMoniker": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\Properties\\launchSettings.json",
+              "RelativeDocumentMoniker": "src\\UPACIP.Api\\Properties\\launchSettings.json",
+              "ToolTip": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\Properties\\launchSettings.json",
+              "RelativeToolTip": "src\\UPACIP.Api\\Properties\\launchSettings.json",
+              "ViewState": "AgIAAAYAAAAAAAAAAAAAAAcAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
+              "WhenOpened": "2026-05-04T09:35:46.351Z",
+              "EditorCaption": ""
+            },
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\Program.cs",
+              "RelativeDocumentMoniker": "src\\UPACIP.Api\\Program.cs",
+              "ToolTip": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\Program.cs",
+              "RelativeToolTip": "src\\UPACIP.Api\\Program.cs",
+              "ViewState": "AgIAAAkBAAAAAAAAAADgvxQBAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-05-04T09:12:17.207Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
               "Title": "appsettings.Development.json",
-              "DocumentMoniker": "D:\\PropelDemo\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\appsettings.Development.json",
+              "DocumentMoniker": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\appsettings.Development.json",
               "RelativeDocumentMoniker": "src\\UPACIP.Api\\appsettings.Development.json",
-              "ToolTip": "D:\\PropelDemo\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\appsettings.Development.json",
+              "ToolTip": "D:\\PropelIQ-Appointment-Booking-and-Clinical-Intell\\src\\UPACIP.Api\\appsettings.Development.json",
               "RelativeToolTip": "src\\UPACIP.Api\\appsettings.Development.json",
-              "ViewState": "AQIAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.001642|",
               "WhenOpened": "2026-04-27T09:54:44.588Z",
               "EditorCaption": ""

@@ -821,9 +821,9 @@ namespace UPACIP.DataAccess.Migrations
 
                     b.ToTable("provider_availability_templates", null, t =>
                         {
-                            t.HasCheckConstraint("ck_provider_availability_templates_end_after_start", "end_time > start_time");
+                            t.HasCheckConstraint("ck_provider_availability_templates_end_after_start", "\"EndTime\" > \"StartTime\"");
 
-                            t.HasCheckConstraint("ck_provider_availability_templates_slot_duration_positive", "slot_duration_minutes > 0");
+                            t.HasCheckConstraint("ck_provider_availability_templates_slot_duration_positive", "\"SlotDurationMinutes\" > 0");
                         });
 
                     b.HasData(

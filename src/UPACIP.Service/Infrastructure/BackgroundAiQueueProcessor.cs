@@ -179,12 +179,12 @@ public sealed class BackgroundAiQueueProcessor : BackgroundService
                 }, ct);
             }
         }
-        catch (RedisException ex) when (!ct.IsCancellationRequested)
+        catch (StackExchange.Redis.RedisException ex)
         {
             _logger.LogWarning(ex,
                 "BackgroundAiQueueProcessor: Redis error during queue drain. Retrying on next tick.");
         }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        catch (OperationCanceledException)
         {
             // Expected on shutdown.
         }

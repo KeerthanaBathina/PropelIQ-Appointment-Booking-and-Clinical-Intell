@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using UPACIP.Service.Caching;
 
@@ -10,15 +11,21 @@ namespace UPACIP.Service.Appointments;
 ///   - Polly circuit breaker (3 failures → 30 s open window)
 ///   - Graceful fallback on Redis unavailability (cache errors never break the pipeline)
 ///
+/// When Redis is unavailable, an in-memory <see cref="ConcurrentDictionary{TKey,TValue}"/>
+/// acts as a fallback so that slot holds still work in development without Redis.
+/// The in-memory fallback enforces the same 60-second TTL.
+///
 /// Atomicity: AcquireHoldAsync uses a get-then-conditional-set pattern.
-/// This is intentionally non-atomic because <c>ICacheService</c> does not expose SET NX.
-/// The small race window between GET and SET is acceptable: the DB-level uniqueness check
-/// and EF Core Version concurrency token are the hard concurrency guarantees (FR-012, TR-015).
-/// Redis holds are a UX convenience that reduces 409 conflict frequency under normal load.
+/// The DB-level uniqueness check and EF Core Version concurrency token are the hard
+/// concurrency guarantees (FR-012, TR-015). Redis/memory holds are a UX convenience.
 /// </summary>
 public sealed class SlotHoldService : ISlotHoldService
 {
     private static readonly TimeSpan HoldTtl = TimeSpan.FromSeconds(60); // AC-3
+
+    // In-memory fallback: key = slotId, value = (normalisedEmail, expiresAt).
+    // Static so the dictionary survives across Scoped service instances (one per HTTP request).
+    private static readonly ConcurrentDictionary<string, (string Email, DateTime ExpiresAt)> _memoryHolds = new();
 
     private readonly ICacheService _cache;
     private readonly ILogger<SlotHoldService> _logger;
@@ -31,7 +38,18 @@ public sealed class SlotHoldService : ISlotHoldService
 
     // Redis key for a given slot hold.
     private static string HoldKey(string slotId)              => $"hold:{slotId}";
-    private static string Normalise(string email)              => email.ToLowerInvariant();
+    private static string Normalise(string email) => email.ToLowerInvariant();
+
+    // Evict stale in-memory entries to prevent unbounded growth.
+    private void EvictExpired()
+    {
+        var now = DateTime.UtcNow;
+        foreach (var kvp in _memoryHolds)
+        {
+            if (kvp.Value.ExpiresAt <= now)
+                _memoryHolds.TryRemove(kvp.Key, out _);
+        }
+    }
 
     /// <inheritdoc/>
     public async Task<bool> AcquireHoldAsync(
@@ -39,21 +57,42 @@ public sealed class SlotHoldService : ISlotHoldService
         string            userEmail,
         CancellationToken cancellationToken = default)
     {
-        var key         = HoldKey(slotId);
-        var normEmail   = Normalise(userEmail);
-        var existing    = await _cache.GetAsync<string>(key, cancellationToken);
+        var key       = HoldKey(slotId);
+        var normEmail = Normalise(userEmail);
 
-        // Deny if a different user already holds the slot.
-        if (existing is not null && existing != normEmail)
+        // ── Try Redis first ────────────────────────────────────────────────
+        var existing = await _cache.GetAsync<string>(key, cancellationToken);
+
+        if (existing is not null)
         {
-            _logger.LogDebug(
-                "Slot hold denied: slot={SlotId}, requested by {UserEmail} but already held by another user.",
-                slotId, userEmail);
-            return false;
+            // Redis is available and has a value — deny if a different user holds it.
+            if (existing != normEmail)
+            {
+                _logger.LogDebug(
+                    "Slot hold denied (Redis): slot={SlotId}, requested by {UserEmail} but already held.",
+                    slotId, userEmail);
+                return false;
+            }
+        }
+        else
+        {
+            // Redis returned null — may be unavailable. Check in-memory fallback.
+            EvictExpired();
+            if (_memoryHolds.TryGetValue(slotId, out var mem) && mem.ExpiresAt > DateTime.UtcNow)
+            {
+                if (mem.Email != normEmail)
+                {
+                    _logger.LogDebug(
+                        "Slot hold denied (memory): slot={SlotId}, requested by {UserEmail} but already held.",
+                        slotId, userEmail);
+                    return false;
+                }
+            }
         }
 
-        // Grant hold (or refresh TTL for the same user).
+        // Grant hold — write to Redis (best effort) and memory fallback.
         await _cache.SetAsync(key, normEmail, HoldTtl, cancellationToken);
+        _memoryHolds[slotId] = (normEmail, DateTime.UtcNow.Add(HoldTtl));
 
         _logger.LogInformation(
             "Slot hold acquired: slot={SlotId}, user={UserEmail}, ttlSeconds=60.",
@@ -69,18 +108,9 @@ public sealed class SlotHoldService : ISlotHoldService
     {
         var key       = HoldKey(slotId);
         var normEmail = Normalise(userEmail);
-        var existing  = await _cache.GetAsync<string>(key, cancellationToken);
-
-        if (existing != normEmail)
-        {
-            // No hold, or held by someone else — nothing to release.
-            _logger.LogDebug(
-                "Slot hold release skipped: slot={SlotId}, user={UserEmail} does not own the hold.",
-                slotId, userEmail);
-            return;
-        }
 
         await _cache.RemoveAsync(key, cancellationToken);
+        _memoryHolds.TryRemove(slotId, out _);
 
         _logger.LogInformation(
             "Slot hold released: slot={SlotId}, user={UserEmail}.",
@@ -95,7 +125,17 @@ public sealed class SlotHoldService : ISlotHoldService
     {
         var key       = HoldKey(slotId);
         var normEmail = Normalise(userEmail);
-        var existing  = await _cache.GetAsync<string>(key, cancellationToken);
-        return existing == normEmail;
+
+        // Try Redis first.
+        var existing = await _cache.GetAsync<string>(key, cancellationToken);
+        if (existing is not null)
+            return existing == normEmail;
+
+        // Redis unavailable — check in-memory fallback.
+        EvictExpired();
+        if (_memoryHolds.TryGetValue(slotId, out var mem) && mem.ExpiresAt > DateTime.UtcNow)
+            return mem.Email == normEmail;
+
+        return false;
     }
 }

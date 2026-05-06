@@ -73,7 +73,9 @@ public sealed class PatientSearchController : ControllerBase
         [FromQuery] int     pageSize   = 20,
         CancellationToken   ct         = default)
     {
-        if (string.IsNullOrWhiteSpace(q) || q.Trim().Length < 2)
+        // Allow empty term (returns all patients for browsing).
+        // When a term is supplied it must be at least 2 chars to be meaningful.
+        if (!string.IsNullOrWhiteSpace(q) && q.Trim().Length < 2)
             return BadRequest(BuildError(400, "Search term must be at least 2 characters."));
 
         var userId = GetCurrentUserId();

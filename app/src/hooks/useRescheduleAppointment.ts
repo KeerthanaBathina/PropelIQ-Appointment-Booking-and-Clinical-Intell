@@ -20,7 +20,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiPost, ApiError } from '@/lib/apiClient';
+import { apiPut, ApiError } from '@/lib/apiClient';
 import type { AppointmentSlot } from './useAppointmentSlots';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -32,6 +32,8 @@ export interface RescheduleRequest {
   slotId: string;
   /** Provider UUID for the new slot. */
   providerId: string;
+  /** Provider display name for the new slot — carried through to the confirmation response. */
+  providerName: string;
   /** UTC appointment time of the new slot. */
   newAppointmentTime: string;
   /** Appointment type carried through from the original. */
@@ -86,11 +88,12 @@ async function rescheduleAppointment(
   req: RescheduleRequest,
 ): Promise<RescheduleConfirmation> {
   try {
-    return await apiPost<RescheduleConfirmation>(
+    return await apiPut<RescheduleConfirmation>(
       `/api/appointments/${req.appointmentId}/reschedule`,
       {
         slotId:             req.slotId,
         providerId:         req.providerId,
+        providerName:       req.providerName,
         newAppointmentTime: req.newAppointmentTime,
         appointmentType:    req.appointmentType,
       },

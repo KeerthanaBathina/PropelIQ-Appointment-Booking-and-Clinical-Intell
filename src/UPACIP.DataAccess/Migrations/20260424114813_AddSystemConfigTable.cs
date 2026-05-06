@@ -47,7 +47,7 @@ namespace UPACIP.DataAccess.Migrations
                 name: "ix_appointments_scheduled_appointment_time",
                 table: "appointments",
                 column: "AppointmentTime",
-                filter: "\"status\" = 'Scheduled'");
+                filter: "\"Status\" = 'Scheduled'");
 
             migrationBuilder.CreateIndex(
                 name: "ix_system_configs_config_key",

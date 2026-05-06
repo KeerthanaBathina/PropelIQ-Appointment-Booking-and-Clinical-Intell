@@ -186,7 +186,10 @@ public sealed class RedisSessionService : ISessionService
         {
             _logger.LogWarning(ex,
                 "GetTimeRemainingAsync: Redis unavailable for user {UserId}.", userId);
-            return null;
+            // Rethrow so SessionController.TimeRemaining returns 503 instead of 401.
+            // Returning null here would cause the controller to treat an unavailable Redis
+            // as an expired session and issue a 401, which forces the client to log out.
+            throw;
         }
     }
 

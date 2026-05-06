@@ -49,11 +49,11 @@ public sealed class InjectionPattern
     public string RegexPattern { get; init; } = string.Empty;
 
     /// <summary>
-    /// Severity name — must match an <see cref="InjectionSeverity"/> enum value:
+    /// Severity level string — must match an <see cref="InjectionSeverity"/> enum value:
     /// Low, Medium, High, or Critical.
     /// </summary>
-    public string Severity { get; init; } = string.Empty;
+    public string Severity { get; init; } = nameof(InjectionSeverity.Medium);
 
-    /// <summary>Human-readable description used in audit log entries (AIR-S04).</summary>
+    /// <summary>Human-readable explanation used in audit logs and operator pattern tuning.</summary>
     public string Description { get; init; } = string.Empty;
 }

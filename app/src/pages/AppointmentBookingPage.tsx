@@ -329,8 +329,18 @@ export default function AppointmentBookingPage() {
   const handleBookingConfirm = useCallback(() => {
     if (!selectedSlotId) return;
 
+    if (!selectedSlot) return;
+
+    // Build UTC ISO-8601 appointmentTime from slot date + startTime
+    const appointmentTime = new Date(`${selectedSlot.date}T${selectedSlot.startTime}:00`).toISOString();
+
     bookMutation.mutate(
-      { slotId: selectedSlotId, visitType: selectedVisitType },
+      {
+        slotId: selectedSlotId,
+        providerId: selectedSlot.providerId,
+        appointmentTime,
+        appointmentType: selectedSlot.appointmentType,
+      },
       {
         onSuccess: () => {
           void slotHold.releaseHold();
@@ -354,7 +364,7 @@ export default function AppointmentBookingPage() {
         },
       },
     );
-  }, [selectedSlotId, selectedVisitType, bookMutation, slotHold]);
+  }, [selectedSlotId, selectedSlot, bookMutation, slotHold]);
 
   // User picks an alternative slot from the conflict modal (UXR-602)
   const handlePickAlternative = useCallback(

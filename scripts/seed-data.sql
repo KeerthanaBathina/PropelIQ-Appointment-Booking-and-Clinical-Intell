@@ -39,13 +39,19 @@ $$;
 -- ---------------------------------------------------------------------------
 -- Domain tables: TRUNCATE CASCADE handles FK dependency ordering automatically.
 TRUNCATE TABLE
+    queue_audit_logs,
+    queue_daily_summary,
+    notification_delivery_attempts,
     notification_logs,
+    clinical_conflicts,
+    coding_audit_log,
     queue_entries,
     extracted_data,
     audit_logs,
     medical_codes,
     intake_data,
     clinical_documents,
+    waitlist_entries,
     appointments,
     patients,
     cpt_bundle_rules,
@@ -55,6 +61,12 @@ TRUNCATE TABLE
     bundling_edits,
     code_modifiers
 RESTART IDENTITY CASCADE;
+
+-- Slot blocks first (FK to slot_templates), then templates
+TRUNCATE TABLE slot_template_blocks RESTART IDENTITY CASCADE;
+TRUNCATE TABLE slot_templates RESTART IDENTITY CASCADE;
+-- Notification templates are stand-alone
+TRUNCATE TABLE notification_templates RESTART IDENTITY CASCADE;
 
 -- Identity tables: delete seed rows by known UUIDs to preserve non-seed users.
 DELETE FROM asp_net_user_roles
@@ -95,7 +107,7 @@ INSERT INTO asp_net_users (
     'admin@upacip.dev', 'ADMIN@UPACIP.DEV',
     'admin@upacip.dev', 'ADMIN@UPACIP.DEV',
     true,
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'SEED-SECURITY-STAMP-ADMIN-001',
     'SEED-CONCURRENCY-STAMP-ADMIN-001',
     '+15550000001', true, false, NULL, true, 0
@@ -109,7 +121,7 @@ INSERT INTO asp_net_users (
     'staff1@upacip.dev', 'STAFF1@UPACIP.DEV',
     'staff1@upacip.dev', 'STAFF1@UPACIP.DEV',
     true,
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'SEED-SECURITY-STAMP-STAFF-002',
     'SEED-CONCURRENCY-STAMP-STAFF-002',
     '+15550000002', true, false, NULL, true, 0
@@ -123,7 +135,7 @@ INSERT INTO asp_net_users (
     'staff2@upacip.dev', 'STAFF2@UPACIP.DEV',
     'staff2@upacip.dev', 'STAFF2@UPACIP.DEV',
     true,
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'SEED-SECURITY-STAMP-STAFF-003',
     'SEED-CONCURRENCY-STAMP-STAFF-003',
     '+15550000003', true, false, NULL, true, 0
@@ -137,7 +149,7 @@ INSERT INTO asp_net_users (
     'patient1@upacip.dev', 'PATIENT1@UPACIP.DEV',
     'patient1@upacip.dev', 'PATIENT1@UPACIP.DEV',
     true,
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'SEED-SECURITY-STAMP-PAT-004',
     'SEED-CONCURRENCY-STAMP-PAT-004',
     '+15550000004', true, false, NULL, true, 0
@@ -151,7 +163,7 @@ INSERT INTO asp_net_users (
     'patient2@upacip.dev', 'PATIENT2@UPACIP.DEV',
     'patient2@upacip.dev', 'PATIENT2@UPACIP.DEV',
     true,
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'SEED-SECURITY-STAMP-PAT-005',
     'SEED-CONCURRENCY-STAMP-PAT-005',
     '+15550000005', true, false, NULL, true, 0
@@ -181,7 +193,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000001',
     'patient01@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Eleanor Hartley', '1978-04-12',
     '+15551001001', 'David Hartley (+15551001002)',
     NULL, '2026-01-05 09:00:00+00', '2026-01-05 09:00:00+00'
@@ -189,7 +201,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000002',
     'patient02@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Marcus Thompson', '1965-09-28',
     '+15551002001', 'Linda Thompson (+15551002002)',
     NULL, '2026-01-07 10:30:00+00', '2026-01-07 10:30:00+00'
@@ -197,7 +209,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000003',
     'patient03@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Priya Patel', '1990-02-17',
     '+15551003001', NULL,
     NULL, '2026-01-10 08:15:00+00', '2026-01-10 08:15:00+00'
@@ -205,7 +217,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000004',
     'patient04@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'James Okafor', '1955-11-03',
     '+15551004001', 'Grace Okafor (+15551004002)',
     NULL, '2026-01-12 14:00:00+00', '2026-01-12 14:00:00+00'
@@ -213,7 +225,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000005',
     'patient05@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Maria Santos', '1982-07-25',
     '+15551005001', 'Carlos Santos (+15551005002)',
     NULL, '2026-01-15 11:45:00+00', '2026-01-15 11:45:00+00'
@@ -221,7 +233,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000006',
     'patient06@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'David Chen', '1940-03-08',
     '+15551006001', 'Wei Chen (+15551006002)',
     NULL, '2026-01-18 09:30:00+00', '2026-01-18 09:30:00+00'
@@ -229,7 +241,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000007',
     'patient07@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Jennifer Walsh', '1997-06-14',
     '+15551007001', NULL,
     NULL, '2026-01-20 13:00:00+00', '2026-01-20 13:00:00+00'
@@ -237,7 +249,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000008',
     'patient08@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Ahmed Hassan', '1972-01-19',
     '+15551008001', 'Fatima Hassan (+15551008002)',
     NULL, '2026-01-22 10:00:00+00', '2026-01-22 10:00:00+00'
@@ -245,7 +257,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000009',
     'patient09@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Susan Brewer', '1988-10-31',
     '+15551009001', 'Tom Brewer (+15551009002)',
     NULL, '2026-01-25 15:30:00+00', '2026-01-25 15:30:00+00'
@@ -254,7 +266,7 @@ INSERT INTO patients (
 (
     '10000000-0000-0000-0000-000000000010',
     'patient10@test.upacip.dev',
-    '$2a$10$TK/MO5V2drnBAbMB0BzxhOqkOmk5LkqmXKj.L.rl2w3U1lCGiOBjO',
+    '$2a$10$jvP47kkz3xh1pWXCGNXxCuf6jkVeiZbgSIV8G4V.MYJV.WNgG3Wqe',
     'Paul Reeves', '1960-08-07',
     '+15551010001', NULL,
     '2026-03-01 12:00:00+00', '2026-01-28 08:00:00+00', '2026-03-01 12:00:00+00'

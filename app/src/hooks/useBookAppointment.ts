@@ -21,7 +21,9 @@ import type { AppointmentSlot } from './useAppointmentSlots';
 
 export interface BookingRequest {
   slotId: string;
-  visitType: string;
+  providerId: string;
+  appointmentTime: string; // UTC ISO-8601
+  appointmentType: string;
 }
 
 /** Returned by POST /api/appointments on 201 Created (AC-4). */
@@ -47,12 +49,38 @@ const MAX_503_RETRIES = 1; // EC-1: retry once on service unavailable
 
 // ─── Mutation fn ─────────────────────────────────────────────────────────────
 
+// Raw shape returned by the API (field names differ from BookingConfirmation)
+interface RawBookingResponse {
+  appointmentId: string;
+  bookingReference: string;
+  appointmentDate: string;  // API uses appointmentDate, not date
+  appointmentTime: string;  // API uses appointmentTime, not startTime
+  providerName: string;
+  appointmentType: string;
+}
+
+/** Add 30 minutes to a HH:mm string, return HH:mm. */
+function addThirtyMinutes(time24: string): string {
+  const [h, m] = time24.split(':').map(Number);
+  const total = (h ?? 0) * 60 + (m ?? 0) + 30;
+  return `${String(Math.floor(total / 60) % 24).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 async function bookAppointment(request: BookingRequest): Promise<BookingConfirmation> {
   let attempt = 0;
   // eslint-disable-next-line no-constant-condition
   while (true) {
     try {
-      return await apiPost<BookingConfirmation>('/api/appointments', request);
+      const raw = await apiPost<RawBookingResponse>('/api/appointments', request);
+      return {
+        bookingReference: raw.bookingReference,
+        appointmentId:   raw.appointmentId,
+        date:            raw.appointmentDate,
+        startTime:       raw.appointmentTime,
+        endTime:         addThirtyMinutes(raw.appointmentTime),
+        providerName:    raw.providerName,
+        appointmentType: raw.appointmentType,
+      };
     } catch (err) {
       if (err instanceof ApiError && err.status === 503 && attempt < MAX_503_RETRIES) {
         attempt++;

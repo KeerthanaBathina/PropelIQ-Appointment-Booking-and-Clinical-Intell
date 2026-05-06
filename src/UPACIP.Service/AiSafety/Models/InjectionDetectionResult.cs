@@ -49,31 +49,31 @@ public sealed class InjectionDetectionResult
     public bool IsInjectionDetected { get; init; }
 
     /// <summary>
-    /// All non-suppressed pattern matches found in the input, ordered by match position.
-    /// Empty when no injection was detected.
+    /// All patterns matched in this scan that were not suppressed as medical
+    /// false positives. Empty when <see cref="IsInjectionDetected"/> is <c>false</c>.
     /// </summary>
     public IReadOnlyList<DetectedPattern> DetectedPatterns { get; init; } =
         Array.Empty<DetectedPattern>();
 
     /// <summary>
-    /// Cleaned version of the original input. Injection patterns replaced with
-    /// <c>[SANITIZED]</c>, ASCII control characters stripped, Unicode NFC-normalised.
-    /// Equal to the original input when no injection was detected.
+    /// The sanitised version of the input: dangerous patterns replaced with
+    /// <c>[SANITIZED]</c> placeholders, ASCII control characters stripped
+    /// (excluding LF, CR, TAB), and Unicode normalised to NFC form.
     /// </summary>
     public string SanitizedText { get; init; } = string.Empty;
 
     /// <summary>
-    /// Aggregate risk score in [0.0, 1.0]. Calculated as the maximum severity weight
-    /// across all detected (non-suppressed) patterns:
-    /// Critical = 1.0, High = 0.8, Medium = 0.5, Low = 0.2.
-    /// Zero when no injection was detected.
+    /// Aggregate risk score in [0.0, 1.0] computed as the maximum severity weight
+    /// among all non-false-positive detected patterns.
+    /// Severity weights: Critical=1.0, High=0.8, Medium=0.5, Low=0.2.
+    /// 0.0 when no injection was detected.
     /// </summary>
     public float RiskScore { get; init; }
 
     /// <summary>
     /// <c>true</c> when at least one pattern match was suppressed by the medical
-    /// context scoring heuristic (US_079 edge case — not all detected means injection).
-    /// Can be <c>true</c> even when <see cref="IsInjectionDetected"/> is <c>false</c>.
+    /// context heuristic (e.g., "review of systems" or "ignore previous medication").
+    /// Used by callers to log false-positive suppression events for pattern tuning.
     /// </summary>
     public bool WasMedicalFalsePositive { get; init; }
 }

@@ -221,6 +221,7 @@ export default function RescheduleAppointmentDialog({
         appointmentId:      appointment.id,
         slotId:             selectedSlot.slotId,
         providerId:         selectedSlot.providerId,
+        providerName:       selectedSlot.providerName,
         newAppointmentTime: `${selectedSlot.date}T${selectedSlot.startTime}:00Z`,
         appointmentType:    appointment.appointmentType,
       });
