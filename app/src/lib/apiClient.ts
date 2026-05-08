@@ -1,7 +1,7 @@
 // Minimal API client — wraps fetch with base URL, JSON handling, and auth interceptors
 import { useAuthStore } from '@/hooks/useAuth';
 
-const BASE_URL = import.meta.env.VITE_API_BASE_URL as string;
+const BASE_URL: string = import.meta.env.VITE_API_BASE_URL ?? '';
 
 export class ApiError extends Error {
   constructor(
