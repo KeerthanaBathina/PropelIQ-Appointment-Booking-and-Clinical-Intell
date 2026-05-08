@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using UPACIP.Api.Authorization;
 using UPACIP.Api.Models;
+using UPACIP.DataAccess;
 using UPACIP.DataAccess.Entities;
 using UPACIP.DataAccess.Enums;
 using UPACIP.Service.Auth;
@@ -45,6 +46,7 @@ public sealed class ClinicalDocumentsController : ControllerBase
     private readonly IClinicalDocumentUploadService       _uploadService;
     private readonly IDocumentReplacementService          _replacementService;
     private readonly UserManager<ApplicationUser>         _userManager;
+    private readonly ApplicationDbContext                 _db;
     private readonly IAuditLogService                     _auditLog;
     private readonly ILogger<ClinicalDocumentsController> _logger;
 
@@ -52,12 +54,14 @@ public sealed class ClinicalDocumentsController : ControllerBase
         IClinicalDocumentUploadService        uploadService,
         IDocumentReplacementService           replacementService,
         UserManager<ApplicationUser>          userManager,
+        ApplicationDbContext                  db,
         IAuditLogService                      auditLog,
         ILogger<ClinicalDocumentsController>  logger)
     {
         _uploadService      = uploadService;
         _replacementService = replacementService;
         _userManager        = userManager;
+        _db                 = db;
         _auditLog           = auditLog;
         _logger             = logger;
     }
@@ -120,10 +124,10 @@ public sealed class ClinicalDocumentsController : ControllerBase
         }
 
         // ── Validate patient exists ───────────────────────────────────────────
-        // Use AsNoTracking for the existence check — only the Guid is needed.
-        var patientExists = await _userManager.Users
+        // Patients are stored in the 'patients' table, not asp_net_users.
+        var patientExists = await _db.Patients
             .AsNoTracking()
-            .AnyAsync(u => u.Id == patientId, cancellationToken);
+            .AnyAsync(p => p.Id == patientId, cancellationToken);
 
         if (!patientExists)
         {
