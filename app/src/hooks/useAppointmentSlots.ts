@@ -105,7 +105,18 @@ export function getAvailableDates(slots: AppointmentSlot[]): Set<string> {
 
 /**
  * Filters the full slot list to only those matching the selected date.
+ * Deduplicates by startTime — when multiple providers share the same time window,
+ * an available slot is preferred over an unavailable one; otherwise the first is kept.
+ * Results are sorted chronologically.
  */
 export function getSlotsForDate(slots: AppointmentSlot[], date: string): AppointmentSlot[] {
-  return slots.filter((s) => s.date === date);
+  const forDate = slots.filter((s) => s.date === date);
+  const seen = new Map<string, AppointmentSlot>();
+  for (const slot of forDate) {
+    const existing = seen.get(slot.startTime);
+    if (!existing || (slot.available && !existing.available)) {
+      seen.set(slot.startTime, slot);
+    }
+  }
+  return Array.from(seen.values()).sort((a, b) => a.startTime.localeCompare(b.startTime));
 }
